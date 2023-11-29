@@ -13,18 +13,17 @@ impl Id {
     }
 
     pub fn block_number(&self) -> u16 {
-        // NOTE: Bytes 0-12 are the actual Block Number
-        self.bytes >> 3
+        // NOTE: Bits 0-12 are the actual Block Number
+        self.bytes & 0x0FFF
     }
 
     pub fn block_rev_number(&self) -> u16 {
-        // NOTE: Bytes 13-15 are the Block Revision Number
+        // NOTE: Bits 13-15 are the Block Revision Number
         self.bytes & 0x07
     }
 }
 
 #[binrw]
-#[br(assert(length % 4 == 0, "length not a multiple of 4"))]
 #[derive(Debug)]
 pub struct Header {
     pub crc: u16,

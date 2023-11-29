@@ -20,14 +20,20 @@ fn main() -> anyhow::Result<()> {
         if libsbf::is_sync(&buf) {
             let mut header_buf = [0u8; 6];
             stream.read_exact(&mut header_buf)?;
-            let h = Header::read_ne(&mut Cursor::new(header_buf))?;
+            eprintln!("{:?}", header_buf);
+            let h = Header::read_le(&mut Cursor::new(header_buf))?;
+            eprintln!("{:?}", h);
+            eprintln!("{:?}", h.block_id.block_number());
+            if h.length % 4 != 0 || h.length <= 8 {
+                continue
+            }
             let mut body_buf = Vec::<u8>::with_capacity((h.length - 8) as usize);
             stream.read_exact(body_buf.as_mut_slice())?;
             // TODO: do CRC check
             match h.block_id.message_type() {
                 Messages::INSNavGeod => {
                     let mut body_cursor = Cursor::new(body_buf.as_slice());
-                    let ins_nav_geod = INSNavGeod::read_ne(&mut body_cursor)?;
+                    let ins_nav_geod = INSNavGeod::read_le(&mut body_cursor)?;
                     eprintln!("{:?}", ins_nav_geod);
                 }
                 _ => {
