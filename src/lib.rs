@@ -1,6 +1,5 @@
-#[no_std]
-use binrw::{binrw, BinRead, BinWrite};
-use binrw::io::Cursor;
+#![no_std]
+use binrw::{binrw};
 
 #[binrw]
 #[derive(Debug)]
