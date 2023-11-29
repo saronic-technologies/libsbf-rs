@@ -1,10 +1,10 @@
 #![no_std]
-use binrw::{binrw};
+use binrw::binrw;
 
 #[binrw]
 #[derive(Debug)]
 pub struct Id {
-    pub bytes: u16
+    pub bytes: u16,
 }
 
 impl Id {
@@ -14,12 +14,12 @@ impl Id {
 
     pub fn block_number(&self) -> u16 {
         // NOTE: Bits 0-12 are the actual Block Number
-        self.bytes & 0x0FFF
+        self.bytes & 0x1FFF
     }
 
     pub fn block_rev_number(&self) -> u16 {
         // NOTE: Bits 13-15 are the Block Revision Number
-        self.bytes & 0x07
+        self.bytes & 0xE000
     }
 }
 
@@ -28,7 +28,7 @@ impl Id {
 pub struct Header {
     pub crc: u16,
     pub block_id: Id,
-    pub length: u16
+    pub length: u16,
 }
 
 pub enum Messages {
@@ -73,14 +73,14 @@ pub struct INSNavGeod {
     // NOTE: Assuming that all sub blocks are populated by the message stream.
     // May want to change this in the future to be smarter
 
-    pub vel_cov: INSNavGeodVelCov,
-    pub att_cov: INSNavGeodAttCov,
-    pub pos_cov: INSNavGeodPosCov,
-    pub vel_std_dev: INSNavGeodVelStdDev,
-    pub vel: INSNavGeodVel,
-    pub att_std_dev: INSNavGeodAttStdDev,
-    pub att: INSNavGeodAtt,
+    // pub vel_cov: INSNavGeodVelCov,
+    // pub att_cov: INSNavGeodAttCov,
+    // pub pos_cov: INSNavGeodPosCov,
     pub pos_std_dev: INSNavGeodPosStdDev,
+    pub att: INSNavGeodAtt,
+    pub att_std_dev: INSNavGeodAttStdDev,
+    pub vel: INSNavGeodVel,
+    pub vel_std_dev: INSNavGeodVelStdDev,
 }
 
 #[binrw]
@@ -146,7 +146,6 @@ pub struct INSNavGeodAttCov {
     pub heading_roll_cov: f32,
     pub pitch_roll_cov: f32,
 }
-
 
 pub fn is_sync(bytes: &[u8; 2]) -> bool {
     bytes == b"$@"
