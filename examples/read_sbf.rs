@@ -1,4 +1,4 @@
-use libsbf::{Header, INSNavGeod, Messages};
+use libsbf::{Header, AttEuler, INSNavGeod, Messages};
 
 use binrw::io::Cursor;
 use binrw::BinRead;
@@ -42,6 +42,11 @@ fn main() -> anyhow::Result<()> {
                     let mut body_cursor = Cursor::new(body_buf.as_slice());
                     let ins_nav_geod = INSNavGeod::read_le(&mut body_cursor)?;
                     eprintln!("{:?}", ins_nav_geod);
+                },
+                Messages::AttEuler => {
+                    let mut body_cursor = Cursor::new(body_buf.as_slice());
+                    let att_euler = AttEuler::read_le(&mut body_cursor)?;
+                    eprintln!("{:?}", att_euler);
                 }
                 _ => continue,
             }
