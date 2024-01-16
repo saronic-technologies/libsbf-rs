@@ -100,11 +100,11 @@ pub struct INSNavGeod {
     #[br(if((sb_list >> 4) & 1 == 1))]
     pub vel_std_dev: Option<INSNavGeodVelStdDev>,
     #[br(if((sb_list >> 5) & 1 == 1))]
-    pub vel_cov: Option<INSNavGeodVelCov>,
+    pub pos_cov: Option<INSNavGeodPosCov>,
     #[br(if((sb_list >> 6) & 1 == 1))]
     pub att_cov: Option<INSNavGeodAttCov>,
     #[br(if((sb_list >> 7) & 1 == 1))]
-    pub pos_cov: Option<INSNavGeodPosCov>,
+    pub vel_cov: Option<INSNavGeodVelCov>,
 }
 
 #[binrw]
