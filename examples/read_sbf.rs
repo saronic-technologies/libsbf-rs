@@ -1,4 +1,4 @@
-use libsbf::{Header, AttEuler, INSNavGeod, Messages};
+use libsbf::{Header, AttEuler, ExtSensorMeas, INSNavGeod, Messages};
 
 use binrw::io::Cursor;
 use binrw::BinRead;
@@ -47,6 +47,11 @@ fn main() -> anyhow::Result<()> {
                     let mut body_cursor = Cursor::new(body_buf.as_slice());
                     let att_euler = AttEuler::read_le(&mut body_cursor)?;
                     eprintln!("{:?}", att_euler);
+                }
+                Messages::ExtSensorMeas => {
+                    let mut body_cursor = Cursor::new(body_buf.as_slice());
+                    let ext_sensor_meas = ExtSensorMeas::read_le(&mut body_cursor)?;
+                    eprintln!("{:?}", ext_sensor_meas);
                 }
                 _ => continue,
             }
