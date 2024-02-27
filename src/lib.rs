@@ -256,7 +256,19 @@ pub struct QualityInd {
     #[br(map = |x| if x == DO_NOT_USE_U1 { None } else { Some(x) })]
     pub reserved: Option<u8>,
     #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) })]
-    pub indicators: Option<u16>,
+    pub indicator_1: Option<u16>,
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) })]
+    pub indicator_2: Option<u16>,
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) })]
+    pub indicator_3: Option<u16>,
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) })]
+    pub indicator_4: Option<u16>,
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) })]
+    pub indicator_5: Option<u16>,
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) })]
+    pub indicator_6: Option<u16>,
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) })]
+    pub indicator_7: Option<u16>,
 }
 
 #[binrw]
