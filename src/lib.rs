@@ -47,6 +47,7 @@ pub enum Messages {
     INSNavGeod,
     AttEuler,
     ExtSensorMeas,
+    QualityInd,
     Unsupported,
 }
 
@@ -56,6 +57,7 @@ impl From<u16> for Messages {
             4050 => Self::ExtSensorMeas,
             4226 => Self::INSNavGeod,
             5938 => Self::AttEuler,
+            4082 => Self::QualityInd,
             _ => Self::Unsupported,
         }
     }
@@ -244,8 +246,6 @@ pub struct INSNavGeod {
 
 #[binrw]
 #[derive(Debug)]
-<<<<<<< Updated upstream
-=======
 pub struct QualityInd {
     #[br(map = |x| if x == DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,
@@ -269,12 +269,10 @@ pub struct QualityInd {
     pub indicator_7: Option<u16>,
     #[br( if(n.unwrap() > 7))]
     pub indicator_8: Option<u16>,
-
 }
 
 #[binrw]
 #[derive(Debug)]
->>>>>>> Stashed changes
 pub struct INSNavGeodPosStdDev {
     #[br(map = |x| if x == DO_NOT_USE_F4 { None } else { Some(x) })]
     pub longitude_std_dev: Option<f32>,
