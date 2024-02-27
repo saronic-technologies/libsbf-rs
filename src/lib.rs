@@ -47,6 +47,7 @@ pub enum Messages {
     INSNavGeod,
     AttEuler,
     ExtSensorMeas,
+    QualityInd,
     Unsupported,
 }
 
@@ -56,6 +57,7 @@ impl From<u16> for Messages {
             4050 => Self::ExtSensorMeas,
             4226 => Self::INSNavGeod,
             5938 => Self::AttEuler,
+            4082 => Self::QualityInd,
             _ => Self::Unsupported,
         }
     }
@@ -240,6 +242,38 @@ pub struct INSNavGeod {
     pub att_cov: Option<INSNavGeodAttCov>,
     #[br(if((sb_list >> 7) & 1 == 1))]
     pub vel_cov: Option<INSNavGeodVelCov>,
+}
+
+#[binrw]
+#[derive(Debug)]
+pub struct QualityInd {
+    #[br(map = |x| if x == DO_NOT_USE_U4 { None } else { Some(x) })]
+    pub tow: Option<u32>,
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) })]
+    pub wnc: Option<u16>,
+    #[br(map = |x| if x == DO_NOT_USE_U1 { None } else { Some(x) })]
+    pub n: Option<u8>,
+    #[br(map = |x| if x == DO_NOT_USE_U1 { None } else { Some(x) })]
+    pub reserved: Option<u8>,
+
+
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) }, if(n.unwrap() > 0))]
+    pub indicator_1: Option<u16>,
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) }, if(n.unwrap() > 1))]
+    pub indicator_2: Option<u16>,
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) }, if(n.unwrap() > 2))]
+    pub indicator_3: Option<u16>,
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) }, if(n.unwrap() > 3))]
+    pub indicator_4: Option<u16>,
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) }, if(n.unwrap() > 4))]
+    pub indicator_5: Option<u16>,
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) }, if(n.unwrap() > 5))]
+    pub indicator_6: Option<u16>,
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) }, if(n.unwrap() > 6))]
+    pub indicator_7: Option<u16>,
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) }, if(n.unwrap() > 7))]
+    pub indicator_8: Option<u16>,
+
 }
 
 #[binrw]
