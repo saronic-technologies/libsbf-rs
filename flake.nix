@@ -19,8 +19,10 @@
       {
         devShells.default = mkShell {
           nativeBuildInputs = [
+            bacon
             can-utils
             openssl
+            rust-analyzer
             rust-bin.nightly.latest.default
           ];
         };
