@@ -1,8 +1,13 @@
-#![no_std]
+#![cfg_attr(not(feature = "std"), no_std)]
 use binrw::binrw;
 
 extern crate alloc;
 use alloc::vec::Vec;
+
+pub mod parser;
+
+#[cfg(feature = "std")]
+pub mod std;
 
 const DO_NOT_USE_I2: i16 = -32768;
 const DO_NOT_USE_U1: u8  = 255;
@@ -43,21 +48,22 @@ pub struct Header {
     pub length: u16,
 }
 
+#[derive(Debug)]
 pub enum Messages {
-    INSNavGeod,
-    AttEuler,
-    ExtSensorMeas,
-    QualityInd,
+    INSNavGeod(Option<INSNavGeod>),
+    AttEuler(Option<AttEuler>),
+    ExtSensorMeas(Option<ExtSensorMeas>),
+    QualityInd(Option<QualityInd>),
     Unsupported,
 }
 
 impl From<u16> for Messages {
     fn from(block_number: u16) -> Self {
         match block_number {
-            4050 => Self::ExtSensorMeas,
-            4226 => Self::INSNavGeod,
-            5938 => Self::AttEuler,
-            4082 => Self::QualityInd,
+            4050 => Self::ExtSensorMeas(None),
+            4226 => Self::INSNavGeod(None),
+            5938 => Self::AttEuler(None),
+            4082 => Self::QualityInd(None),
             _ => Self::Unsupported,
         }
     }
@@ -245,7 +251,7 @@ pub struct INSNavGeod {
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct QualityInd {
     #[br(map = |x| if x == DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,
