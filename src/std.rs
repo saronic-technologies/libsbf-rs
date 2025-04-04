@@ -1,3 +1,4 @@
+#[cfg_attr(docsrs, doc(cfg(feature = "std")))]
 pub mod reader {
     use crate::Messages;
     use crate::parser::SbfParser;
@@ -11,6 +12,26 @@ pub mod reader {
         IOError(std::io::Error),
         ParseError(crate::parser::Error),
     }
+
+    /// Read SBF data via a BuffReader and Iterator.
+    ///
+    /// # Examples
+    ///
+    /// ```no_run
+    /// use libsbf::std::reader::SbfReader;
+    /// use std::env;
+    /// use std::net::TcpStream;
+
+    /// fn main() -> anyhow::Result<()> {
+    ///     let stream = TcpStream::connect("127.0.0.1:8080")?;
+    ///     let sbf_reader = SbfReader::new(stream);
+    ///     for m in sbf_reader {
+    ///         eprintln!("{:?}", m);
+    ///     }
+    ///     Ok(())
+    /// }
+    /// ```
+    #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
     pub struct SbfReader<R: Read> {
         reader: BufReader<R>,
         parser: SbfParser,

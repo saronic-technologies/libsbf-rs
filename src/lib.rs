@@ -1,3 +1,11 @@
+//! A no_std parser for the SBF (Septentrio Binary Format) using the
+//! [sans-io](https://sans-io.readthedocs.io/) philosophy.
+//!
+//! ## `std` BufReader Iterator
+//! There is also a `std` API that exposes an `SbfReader` that uses a
+//! BufReader. The `SbfReader` implements an `Iterator` that will give
+//! you `libsbf::Messages`. To enable this do `cargo add libsbf -F std`
+
 #![cfg_attr(not(feature = "std"), no_std)]
 use binrw::binrw;
 
@@ -7,6 +15,7 @@ use alloc::vec::Vec;
 pub mod parser;
 
 #[cfg(feature = "std")]
+#[cfg_attr(docsrs, doc(cfg(feature = "std")))]
 pub mod std;
 
 const DO_NOT_USE_I2: i16 = -32768;
