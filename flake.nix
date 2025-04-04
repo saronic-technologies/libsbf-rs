@@ -14,13 +14,33 @@
         pkgs = import nixpkgs {
           inherit system overlays;
         };
+
+        rustPlatform = pkgs.makeRustPlatform {
+          cargo = pkgs.rust-bin.nightly.latest.default;
+          rustc = pkgs.rust-bin.nightly.latest.default;
+        };
+
+        cargo-afl = rustPlatform.buildRustPackage rec {
+          pname = "cargo-afl";
+          version = "0.15.17";
+          src = pkgs.fetchFromGitHub {
+            owner = "rust-fuzz";
+            repo = "afl.rs";
+            rev = "v${version}";
+            hash = "sha256-JMQYa8UL+QAo8D8T13BEvrrhy4c/fiSozFDTPdGS5ME=";
+          };
+          useFetchCargoVendor = true;
+          cargoHash = "sha256-RCqjrrgHUMEf0rK1XH352plPoS8jKoo6lp7J9RakX/o=";
+
+          doCheck = false;
+        };
       in
       with pkgs;
       {
         devShells.default = mkShell {
           nativeBuildInputs = [
-            can-utils
-            openssl
+            cargo-afl
+            llvmPackages.libllvm
             rust-bin.nightly.latest.default
           ];
         };
