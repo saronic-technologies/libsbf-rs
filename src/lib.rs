@@ -6,6 +6,7 @@
 //! BufReader. The `SbfReader` implements an `Iterator` that will give
 //! you `libsbf::Messages`. To enable this do `cargo add libsbf -F std`
 
+#![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(not(feature = "std"), no_std)]
 use binrw::binrw;
 
