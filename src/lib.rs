@@ -1,8 +1,22 @@
-#![no_std]
+//! A no_std parser for the SBF (Septentrio Binary Format) using the
+//! [sans-io](https://sans-io.readthedocs.io/) philosophy.
+//!
+//! ## `std` BufReader Iterator
+//! There is also a `std` API that exposes an `SbfReader` that uses a
+//! BufReader. The `SbfReader` implements an `Iterator` that will give
+//! you `libsbf::Messages`. To enable this do `cargo add libsbf -F std`
+
+#![cfg_attr(not(feature = "std"), no_std)]
 use binrw::binrw;
 
 extern crate alloc;
 use alloc::vec::Vec;
+
+pub mod parser;
+
+#[cfg(feature = "std")]
+#[cfg_attr(docsrs, doc(cfg(feature = "std")))]
+pub mod reader;
 
 const DO_NOT_USE_I2: i16 = -32768;
 const DO_NOT_USE_U1: u8  = 255;
@@ -15,21 +29,21 @@ const DO_NOT_USE_F8: f64 = -2e10;
 
 #[binrw]
 #[derive(Debug)]
-pub struct Id {
+struct Id {
     pub bytes: u16,
 }
 
 impl Id {
-    pub fn message_type(&self) -> Messages {
-        Messages::from(self.block_number())
+    fn message_type(&self) -> MessageKind {
+        MessageKind::from(self.block_number())
     }
 
-    pub fn block_number(&self) -> u16 {
+    fn block_number(&self) -> u16 {
         // NOTE: Bits 0-12 are the actual Block Number
         self.bytes & 0x1FFF
     }
 
-    pub fn block_rev_number(&self) -> u16 {
+    fn _block_rev_number(&self) -> u16 {
         // NOTE: Bits 13-15 are the Block Revision Number
         self.bytes & 0xE000
     }
@@ -37,31 +51,45 @@ impl Id {
 
 #[binrw]
 #[derive(Debug)]
-pub struct Header {
+struct Header {
     pub crc: u16,
     pub block_id: Id,
     pub length: u16,
 }
 
-pub enum Messages {
-    INSNavGeod,
-    AttEuler,
-    ExtSensorMeas,
-    QualityInd,
-    Unsupported,
+macro_rules! define_messages {
+    ( $( $variant:ident => $code:expr ),+ $(,)? ) => {
+        /// Core enum that just represents the message kind.
+        #[derive(Debug, Copy, Clone, PartialEq, Eq)]
+        enum MessageKind {
+            $( $variant, )+
+            Unsupported,
+        }
+
+        impl From<u16> for MessageKind {
+            fn from(block_number: u16) -> Self {
+                match block_number {
+                    $( $code => MessageKind::$variant, )+
+                    _ => MessageKind::Unsupported,
+                }
+            }
+        }
+
+        /// Detailed enum that holds the associated payload.
+        #[derive(Debug)]
+        pub enum Messages {
+            $( $variant($variant), )+
+            Unsupported,
+        }
+    };
 }
 
-impl From<u16> for Messages {
-    fn from(block_number: u16) -> Self {
-        match block_number {
-            4050 => Self::ExtSensorMeas,
-            4226 => Self::INSNavGeod,
-            5938 => Self::AttEuler,
-            4082 => Self::QualityInd,
-            _ => Self::Unsupported,
-        }
-    }
-}
+define_messages!(
+    INSNavGeod => 4226,
+    AttEuler => 5938,
+    ExtSensorMeas => 4050,
+    QualityInd => 4082,
+);
 
 // Attitude Euler Block 5938
 #[binrw]
@@ -245,7 +273,7 @@ pub struct INSNavGeod {
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct QualityInd {
     #[br(map = |x| if x == DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,
