@@ -5,11 +5,11 @@ use std::io::{BufReader, Read};
 
 const BUFFER_SIZE: usize = 4096;
 
-#[derive(Debug)]
-pub enum Error {
-    IOError(std::io::Error),
-    ParseError(crate::parser::Error),
-}
+// #[derive(Debug)]
+// pub enum Error {
+//     IOError(std::io::Error),
+//     ParseError(crate::parser::Error),
+// }
 
 /// Read SBF data via a BuffReader and Iterator.
 ///
@@ -33,7 +33,6 @@ pub enum Error {
 pub struct SbfReader<R: Read> {
     reader: BufReader<R>,
     parser: SbfParser,
-    buffer: heapless::Vec<u8, BUFFER_SIZE>,
 }
 
 impl<R: Read> SbfReader<R> {
@@ -42,51 +41,32 @@ impl<R: Read> SbfReader<R> {
         Self {
             reader,
             parser: SbfParser::new(),
-            buffer: heapless::Vec::new(),
         }
     }
 }
 
 impl<R: Read> Iterator for SbfReader<R> {
-    type Item = Result<Messages, Error>;
+    type Item = Result<Messages, std::io::Error>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        while !self.buffer.is_empty() {
-            match self.parser.consume(&self.buffer) {
-                Ok((res, bytes_consumed)) => {
-                    assert!(bytes_consumed > 0, "parser consumed 0 bytes, this is impossible!"); // parser.consumed can never return 0 bytes consumed
-
-                    let prev_b = self.buffer.clone();
-                    self.buffer.clear();
-                    let _ = self.buffer.extend_from_slice(&prev_b[bytes_consumed..]);
-
-                    if let Some(msg) = res {
-                        return Some(Ok(msg));
-                    }
-                },
-                Err(e) => return Some(Err(Error::ParseError(e))),
-            }
-        }
-
         let mut buffer = [0u8; BUFFER_SIZE];
         loop {
             let bytes_read = match self.reader.read(&mut buffer) {
-                Ok(b) => b,
-                Err(e) => return Some(Err(Error::IOError(e))),
+                Ok(br) => {
+                    br
+                }
+                Err(e) => {
+                    return Some(Err(e));
+                }
             };
-            if bytes_read == 0 {
-                return None;
-            }
 
             match self.parser.consume(&buffer[..bytes_read]) {
-                Ok((res, bytes_consumed)) => {
-                    assert!(bytes_consumed > 0, "parser consumed 0 bytes, this is impossible!"); // parser.consumed can never return 0 bytes consumed
-                    if let Some(msg) = res {
-                        let _ = self.buffer.extend_from_slice(&buffer[bytes_consumed..]);
-                        return Some(Ok(msg));
-                    }
-                },
-                Err(e) => return Some(Err(Error::ParseError(e))),
+                Some(msg) => {
+                    return Some(Ok(msg));
+                }
+                None => {
+                    // loop
+                }
             }
         }
     }
