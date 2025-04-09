@@ -15,137 +15,132 @@ pub enum Error {
     BinRWError(binrw::Error),
 }
 
-enum ParserState {
-    Sync1,
-    Sync2,
-    Header {
-        header: heapless::Vec<u8, 6>, // statically allocated
-    },
-    Payload {
-        header: Header,
-        header_buf: Vec<u8>,
-        payload: Vec<u8>, // dynamically allocated, dependent on length in Header
-    },
+
+enum ParseError {
+    IncompleteData,
+    InvalidHeader,
+    InvalidCRC,
+    InvalidPayload,
+    SyncNotFound,
+}
+
+type Result<T> = core::result::Result<(T, usize), ParseError>;
+
+// Constants for our parser.
+const MIN_MESSAGE_SIZE: usize = 8; // 2 sync bytes + 6 header bytes
+
+fn parse_message(input: &[u8]) -> Result<Messages> {
+    // Make sure the input isn't empty
+    if input.is_empty() {
+        return Err(ParseError::IncompleteData);
+    }
+
+    // Find the sync sequence "$@".
+    let sync_index = input
+        .windows(2)
+        .position(|w| w == b"$@")
+        .ok_or(ParseError::SyncNotFound)?;
+
+    // Make sure there's enough data for sync, header, and payload.
+    if input.len() < sync_index + MIN_MESSAGE_SIZE {
+        return Err(ParseError::IncompleteData);
+    }
+
+    // Extract and validate the header.
+    let header_start = sync_index + 2;
+    let header_end = header_start + 6;
+    let header_slice = &input[header_start..header_end];
+    let header: [u8; 6] = header_slice.try_into().unwrap();
+
+    let h = Header::read_le(&mut Cursor::new(&header)).map_err(|_| ParseError::InvalidHeader)?;
+    if h.length % 4 != 0 || h.length < 8 {
+        return Err(ParseError::InvalidHeader);
+    }
+
+    if let MessageKind::Unsupported = h.block_id.message_type() {
+        return Err(ParseError::InvalidHeader);
+    }
+
+    // Ensure we have the complete payload.
+    let total_size = 2 + 6 + (h.length as usize) - 8;
+    if input.len() < sync_index + total_size {
+        return Err(ParseError::IncompleteData);
+    }
+
+    // Build the message.
+    let payload_start = header_end;
+    let payload = input[payload_start..payload_start + (h.length as usize) - 8].to_vec();
+    let mut full_block = Vec::with_capacity(4 + payload.len());
+    full_block.extend_from_slice(&header[2..]);
+    full_block.extend_from_slice(&payload);
+    let crc = State::<XMODEM>::calculate(full_block.as_slice());
+
+    if h.crc != crc {
+        return Err(ParseError::InvalidCRC);
+    }
+
+    let res = match h.block_id.message_type() {
+        MessageKind::QualityInd => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let quality_data = QualityInd::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::QualityInd(quality_data)
+        }
+        MessageKind::INSNavGeod => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let ins_nav_geod = INSNavGeod::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::INSNavGeod(ins_nav_geod)
+        }
+        MessageKind::AttEuler => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let att_euler = AttEuler::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::AttEuler(att_euler)
+        }
+        MessageKind::ExtSensorMeas => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let ext_sensor_meas = ExtSensorMeas::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::ExtSensorMeas(ext_sensor_meas)
+        }
+        _ => {
+            // should never end up in here since we
+            // return None and reset the parser if its
+            // an unsupported message
+            panic!("Tried to parse an unsupported message!");
+        }
+    };
+
+    Ok((res, sync_index + total_size))
 }
 
 pub struct SbfParser {
-    state: ParserState,
+    buf: Vec<u8>,
 }
 
 impl SbfParser {
     pub fn new() -> Self {
         Self {
-            state: ParserState::Sync1,
+            buf: Vec::new(),
         }
     }
 
-    /// Consume an input slice. Returns Some(Message) when a full message is parsed.
-    pub fn consume(&mut self, input: &[u8]) -> Result<(Option<Messages>, usize), Error> {
-        for (i, &byte) in input.iter().enumerate() {
-            if let Some(msg) = self.process_byte(byte)? {
-                return Ok((Some(msg), i + 1));
-            }
-        }
-        Ok((None, input.len()))
-    }
+    /// Consume bytes and attempt to parse the message. If we can't
+    /// find a message we return None.
+    pub fn consume(&mut self, input: &[u8]) -> Option<Messages> {
+        self.buf.extend(input);
 
-    /// Processes one byte at a time.
-    fn process_byte(&mut self, byte: u8) -> Result<Option<Messages>, Error> {
-        match &mut self.state {
-            ParserState::Sync1 => {
-                // Look for the '$' character.
-                if byte == b'$' {
-                    self.state = ParserState::Sync2;
+        loop {
+            match parse_message(&self.buf) {
+                Ok((msg, bytes_consumed)) => {
+                    self.buf.drain(0..bytes_consumed);
+                    return Some(msg);
+                },
+                Err(ParseError::IncompleteData) => {
+                    return None;
                 }
-                Ok(None)
-            }
-            ParserState::Sync2 => {
-                // Now expect the '@' to complete the sync sequence.
-                if byte == b'@' {
-                    self.state = ParserState::Header {
-                        header: heapless::Vec::<u8, 6>::new(),
-                    };
-                } else if byte == b'$' {
-                    // If another '$' is seen, remain in Sync2.
-                    self.state = ParserState::Sync2;
-                } else {
-                    // Any other character resets to Sync1.
-                    self.state = ParserState::Sync1;
-                }
-                Ok(None)
-            }
-            ParserState::Header { header } => {
-                let _ = header.push(byte);
-                if header.len() == 6 {
-                    let h = Header::read_le(&mut Cursor::new(&header)).map_err(|e| Error::BinRWError(e))?;
-
-                    if h.length % 4 != 0 || h.length < 8 {
-                        self.state = ParserState::Sync1;
-                        return Ok(None);
+                Err(ParseError::InvalidCRC | ParseError::InvalidHeader | ParseError::InvalidPayload | ParseError::SyncNotFound) => {
+                    if !self.buf.is_empty() {
+                        self.buf.drain(0..1);
                     }
-
-                    if let MessageKind::Unsupported = h.block_id.message_type() {
-                        // Prevents going searching for a
-                        // payload/message that we can't deserialize
-                        self.state = ParserState::Sync1;
-                        return Ok(None);
-                    }
-
-                    let payload_len = (h.length - 8) as usize;
-                    self.state = ParserState::Payload {
-                        header: h,
-                        header_buf: header[2..].to_vec(),
-                        payload: Vec::with_capacity(payload_len),
-                    };
                 }
-                Ok(None)
-            }
-            ParserState::Payload { header, header_buf, payload } => {
-                payload.push(byte);
-                if payload.len() == (header.length - 8) as usize {
-                    let mut full_block = Vec::with_capacity(header_buf.len() + payload.len());
-                    full_block.extend_from_slice(header_buf);
-                    full_block.extend_from_slice(payload);
-                    let crc = State::<XMODEM>::calculate(full_block.as_slice());
-
-                    if header.crc != crc {
-                        self.state = ParserState::Sync1;
-                        return Err(Error::InvalidHeaderCRC);
-                    }
-
-                    let res = match header.block_id.message_type() {
-                        MessageKind::QualityInd => {
-                            let mut body_cursor = Cursor::new(payload.as_slice());
-                            let quality_data = QualityInd::read_le(&mut body_cursor).map_err(|e| Error::BinRWError(e))?;
-                            Some(Messages::QualityInd(quality_data))
-                        }
-                        MessageKind::INSNavGeod => {
-                            let mut body_cursor = Cursor::new(payload.as_slice());
-                            let ins_nav_geod = INSNavGeod::read_le(&mut body_cursor).map_err(|e| Error::BinRWError(e))?;
-                            Some(Messages::INSNavGeod(ins_nav_geod))
-                        }
-                        MessageKind::AttEuler => {
-                            let mut body_cursor = Cursor::new(payload.as_slice());
-                            let att_euler = AttEuler::read_le(&mut body_cursor).map_err(|e| Error::BinRWError(e))?;
-                            Some(Messages::AttEuler(att_euler))
-                        }
-                        MessageKind::ExtSensorMeas => {
-                            let mut body_cursor = Cursor::new(payload.as_slice());
-                            let ext_sensor_meas = ExtSensorMeas::read_le(&mut body_cursor).map_err(|e| Error::BinRWError(e))?;
-                            Some(Messages::ExtSensorMeas(ext_sensor_meas))
-                        }
-                        _ => {
-                            // should never end up in here since we
-                            // return None and reset the parser if its
-                            // an unsupported message
-                            panic!("Tried to parse an unsupported message!");
-                        }
-                    };
-
-                    self.state = ParserState::Sync1;
-                    return Ok(res);
-                }
-                Ok(None)
             }
         }
     }
@@ -179,6 +174,7 @@ mod tests {
     };
 
     proptest! {
+
         #[test]
         fn test_valid_message_with_noise(noise in proptest::collection::vec(any::<u8>(), 0..10000)) {
             let mut valid_msg = Vec::new();
@@ -195,32 +191,24 @@ mod tests {
 
             // Initialize parser.
             let mut parser = SbfParser::new();
-            let mut remaining = test_input.as_slice();
-            let mut found = false;
 
+            
             // Process the input.
-            while !remaining.is_empty() {
-                match parser.consume(remaining) {
-                    Ok((Some(message), _bytes_consumed)) => {
-                        if let Messages::QualityInd(qi) = message {
-                            prop_assert_eq!(qi, VALID_QUALITY_IND);
-                        } else {
-                            prop_assert!(false, "Parsed to wrong Septentrio Message: {:?}", message);
-                        }
-                        // Additional invariants can be asserted here.
-                        found = true;
-                        break;
-                    },
-                    Ok((None, bytes_consumed)) => {
-                        remaining = &remaining[bytes_consumed..];
-                    },
-                    Err(err) => {
-                        // If the parser returns an error, that's a failure.
-                        prop_assert!(false, "Parser error: {:?}", err);
+            match parser.consume(test_input.as_slice()) {
+                Some(message) => {
+                    if let Messages::QualityInd(qi) = message {
+                        prop_assert_eq!(qi, VALID_QUALITY_IND);
+                    } else {
+                        prop_assert!(false, "Parsed to wrong Septentrio Message: {:?}", message);
                     }
+
+                    // Additional invariants can be asserted here.
+                    prop_assert!(true, "Valid message was not found in the noise.");
+                },
+                None => {
+                    prop_assert!(false, "Valid message was not found in the noise.");
                 }
             }
-            prop_assert!(found, "Valid message was not found in the noise.");
         }
     }
 }
