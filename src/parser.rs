@@ -8,6 +8,7 @@ use crate::{Header, MessageKind, Messages, AttEuler, INSNavGeod, ExtSensorMeas, 
 
 use crc16::*;
 
+use tracing::debug;
 
 #[derive(Debug)]
 pub enum Error {
@@ -54,10 +55,12 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
 
     let h = Header::read_le(&mut Cursor::new(&header)).map_err(|_| ParseError::InvalidHeader)?;
     if h.length % 4 != 0 || h.length < 8 {
+        debug!("Invalid header length: {}", h.length);
         return Err(ParseError::InvalidHeader);
     }
 
     if let MessageKind::Unsupported = h.block_id.message_type() {
+        debug!("Unsupported Block ID: {:?}", h.block_id);
         return Err(ParseError::InvalidHeader);
     }
 
@@ -76,6 +79,7 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
     let crc = State::<XMODEM>::calculate(full_block.as_slice());
 
     if h.crc != crc {
+        debug!("Invalid CRC for {:?}", h.block_id.message_type());
         return Err(ParseError::InvalidCRC);
     }
 
