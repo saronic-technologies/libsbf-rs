@@ -1,15 +1,12 @@
 use crate::Messages;
 use crate::parser::SbfParser;
 
-use std::io::{BufReader, Read};
+use std::io::Read;
 
-const BUFFER_SIZE: usize = 4096;
-
-// #[derive(Debug)]
-// pub enum Error {
-//     IOError(std::io::Error),
-//     ParseError(crate::parser::Error),
-// }
+// NOTE: May make this tunable. The std reader is going to be on user
+// space linux and in many cases users will have the memory.
+// 8K is the default size of the BufReader in rust.
+const BUFFER_SIZE: usize = 1024 * 8;
 
 /// Read SBF data via a BuffReader and Iterator.
 ///
@@ -31,13 +28,12 @@ const BUFFER_SIZE: usize = 4096;
 /// ```
 #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
 pub struct SbfReader<R: Read> {
-    reader: BufReader<R>,
+    reader: R,
     parser: SbfParser,
 }
 
 impl<R: Read> SbfReader<R> {
-    pub fn new(r: R) -> Self {
-        let reader = BufReader::new(r);
+    pub fn new(reader: R) -> Self {
         Self {
             reader,
             parser: SbfParser::new(),
@@ -51,14 +47,20 @@ impl<R: Read> Iterator for SbfReader<R> {
     fn next(&mut self) -> Option<Self::Item> {
         let mut buffer = [0u8; BUFFER_SIZE];
         loop {
+            tracing::debug!("Trying to read from reader");
             let bytes_read = match self.reader.read(&mut buffer) {
                 Ok(br) => {
+                    tracing::debug!("Successfully read {br} bytes from reader");
                     br
                 }
                 Err(e) => {
                     return Some(Err(e));
                 }
             };
+
+            if bytes_read == 0 {
+                return None;
+            }
 
             match self.parser.consume(&buffer[..bytes_read]) {
                 Some(msg) => {
