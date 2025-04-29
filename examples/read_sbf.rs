@@ -1,4 +1,4 @@
-use libsbf::reader::SbfReader;
+use libsbf::{Messages, reader::SbfReader};
 
 use std::env;
 use std::net::TcpStream;
@@ -11,7 +11,6 @@ fn main() -> anyhow::Result<()> {
         .with_env_filter(EnvFilter::from_default_env())
         .with_writer(std::io::stderr)
         .init();
-
     let ip_port = env::args()
         .nth(1)
         .unwrap_or_else(|| "127.0.0.1:8080".into());
@@ -20,7 +19,18 @@ fn main() -> anyhow::Result<()> {
     let sbf_reader = SbfReader::new(stream);
 
     for m in sbf_reader {
-        eprintln!("{:?}", m);
+        match m? {
+            Messages::INSNavGeod(ins_nav_geod) => {
+                println!("{:?}", ins_nav_geod);
+            }
+            Messages::AttEuler(att_euler) => {
+                println!("{:?}", att_euler);
+            }
+            Messages::ExtSensorMeas(ext_sensor_meas) => {
+                println!("{:?}", ext_sensor_meas);
+            }
+            _ => continue
+        }
     }
     Ok(())
 }
