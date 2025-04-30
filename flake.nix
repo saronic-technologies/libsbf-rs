@@ -42,6 +42,7 @@
             cargo-afl
             llvmPackages.libllvm
             rust-bin.nightly.latest.default
+            valgrind
           ];
         };
       }

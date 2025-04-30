@@ -33,6 +33,7 @@ const MIN_MESSAGE_SIZE: usize = 8; // 2 sync bytes + 6 header bytes
 fn parse_message(input: &[u8]) -> Result<Messages> {
     // Make sure the input isn't empty
     if input.is_empty() {
+        debug!("Incomplete data, don't have enough for sync");
         return Err(ParseError::IncompleteData);
     }
 
@@ -44,6 +45,7 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
 
     // Make sure there's enough data for sync, header, and payload.
     if input.len() < sync_index + MIN_MESSAGE_SIZE {
+        debug!("Incomplete data, don't have enough for sync and header");
         return Err(ParseError::IncompleteData);
     }
 
@@ -67,6 +69,7 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
     // Ensure we have the complete payload.
     let total_size = 2 + 6 + (h.length as usize) - 8;
     if input.len() < sync_index + total_size {
+        debug!("Don't have full message.");
         return Err(ParseError::IncompleteData);
     }
 
@@ -127,26 +130,31 @@ impl SbfParser {
     }
 
     /// Consume bytes and attempt to parse the message. If we can't
-    /// find a message we return None.
+    /// find a message we return None. If we get a message it doesn't
+    /// gurantee the whole buffer internal buffer is drained.
     pub fn consume(&mut self, input: &[u8]) -> Option<Messages> {
         self.buf.extend(input);
-
         loop {
+            debug!("Internal Buffer Size: {}", self.buf.len());
             match parse_message(&self.buf) {
                 Ok((msg, bytes_consumed)) => {
+                    debug!("draining the buffer");
                     self.buf.drain(0..bytes_consumed);
                     return Some(msg);
                 },
                 Err(ParseError::IncompleteData) => {
+                    debug!("Incomplete Data, feed us more!");
                     return None;
                 }
                 Err(ParseError::InvalidCRC | ParseError::InvalidHeader | ParseError::InvalidPayload | ParseError::SyncNotFound) => {
+                    debug!("Parse error, drain the buffer down");
                     if !self.buf.is_empty() {
                         self.buf.drain(0..1);
                     }
                 }
             }
         }
+
     }
 }
 
