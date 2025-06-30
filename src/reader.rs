@@ -126,6 +126,11 @@ mod tests {
                     let expected = cf_lines.next().unwrap()?;
                     assert!(parsed == expected, "parsed line: {} did not match expected line: {}", parsed, expected);
                 }
+                // Messages::ImuSetup(imu_setup) => {
+                //     let parsed = format!("{:?}",imu_setup);
+                //     let expected = cf_lines.next().unwrap()?;
+                //     assert!(parsed == expected, "parsed line: {} did not match expected line: {}", parsed, expected);
+                // }
                 _ => continue
             }
         }

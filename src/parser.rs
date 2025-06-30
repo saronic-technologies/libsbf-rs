@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use binrw::io::Cursor;
 use binrw::BinRead;
 
-use crate::{Header, MessageKind, Messages, AttEuler, INSNavGeod, ExtSensorMeas, QualityInd};
+use crate::{Header, MessageKind, Messages, AttEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup};
 
 use crc16::*;
 
@@ -106,6 +106,11 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
             let mut body_cursor = Cursor::new(payload.as_slice());
             let ext_sensor_meas = ExtSensorMeas::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::ExtSensorMeas(ext_sensor_meas)
+        }
+        MessageKind::ImuSetup => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let imu_setup = ImuSetup::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::ImuSetup(imu_setup)
         }
         _ => {
             // should never end up in here since we
