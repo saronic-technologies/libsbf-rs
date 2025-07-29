@@ -7,4 +7,8 @@ edition = "2021"
 
 [dependencies]
 afl = "0.15.17"
-libsbf = { path = ".." }
+libsbf = { path = "..", features = [ "std" ] }
+
+[[bin]]
+name = "reader-fuzz"
+path = "src/reader-fuzz.rs"

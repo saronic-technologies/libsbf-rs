@@ -13,4 +13,8 @@ nix develop
 cd sbf-parser-fuzz
 cargo afl build --release
 cargo afl fuzz -i in -o out ../target/release/sbf-parser-fuzz
+
+## fuzz testing std iterator
+cargo afl build --bin reader-fuzz --release
+cargo afl fuzz -i in -o out ../target/release/sbf-parser-fuzz
 ```
