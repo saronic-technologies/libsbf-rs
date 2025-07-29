@@ -57,7 +57,7 @@ impl<R: Read> Iterator for SbfReader<R> {
                     match self.reader.read(&mut buffer) {
                         Ok(br) => {
                             tracing::debug!("Successfully read {br} bytes from reader");
-                            (br, true)
+                            (br, br == 0)
                         }
                         Err(e) => {
                             return Some(Err(e));
@@ -98,7 +98,81 @@ impl<R: Read> Iterator for SbfReader<R> {
 mod tests {
     use anyhow::Result;
     use libsbf::{Messages, reader::SbfReader};
-    use std::io::BufRead;
+    use std::io::{BufRead, Read};
+
+    #[test]
+    fn test_random_data_consumption() {
+        // Create a reader that tracks how many bytes were read
+        struct TrackingReader {
+            data: Vec<u8>,
+            position: usize,
+        }
+
+        impl TrackingReader {
+            fn new(size: usize) -> Self {
+                // Generate random data
+                let data: Vec<_> = (0..size).map(|i| (i % 256) as u8).collect();
+                Self { data, position: 0 }
+            }
+
+            fn bytes_read(&self) -> usize {
+                self.position
+            }
+
+            fn total_bytes(&self) -> usize {
+                self.data.len()
+            }
+        }
+
+        impl Read for TrackingReader {
+            fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+                let remaining = self.data.len() - self.position;
+                let to_read = buf.len().min(remaining);
+                
+                if to_read > 0 {
+                    buf[..to_read].copy_from_slice(&self.data[self.position..self.position + to_read]);
+                    self.position += to_read;
+                }
+                
+                Ok(to_read)
+            }
+        }
+
+        // Test with various data sizes
+        let test_sizes = vec![100, 1024, 8192, 16384, 100000];
+        
+        for size in test_sizes {
+            let mut reader = TrackingReader::new(size);
+            let total_bytes = reader.total_bytes();
+            
+            let sbf_reader = SbfReader::new(&mut reader);
+            
+            // Consume all messages (valid or invalid)
+            let mut message_count = 0;
+            let mut error_count = 0;
+            
+            for result in sbf_reader {
+                match result {
+                    Ok(_) => message_count += 1,
+                    Err(_) => error_count += 1,
+                }
+            }
+            
+            // Verify that all bytes were consumed
+            assert_eq!(
+                reader.bytes_read(), 
+                total_bytes,
+                "SbfReader did not consume all bytes. Read {} out of {} bytes",
+                reader.bytes_read(),
+                total_bytes
+            );
+            
+            println!(
+                "Test passed for {} bytes: {} messages parsed, {} errors",
+                size, message_count, error_count
+            );
+        }
+    }
 
     #[test]
     fn sbf_correct_parse() -> Result<()> {
@@ -126,7 +200,7 @@ mod tests {
                     let expected = cf_lines.next().unwrap()?;
                     assert!(parsed == expected, "parsed line: {} did not match expected line: {}", parsed, expected);
                 }
-                /// TODO: Update Test to include IMUSetup
+                // TODO: Update Test to include IMUSetup
                 // Messages::ImuSetup(imu_setup) => {
                 //     let parsed = format!("{:?}",imu_setup);
                 //     let expected = cf_lines.next().unwrap()?;
