@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use binrw::io::Cursor;
 use binrw::BinRead;
 
-use crate::{Header, MessageKind, Messages, AttEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup};
+use crate::{Header, MessageKind, Messages, AttEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
 
 use crc16::*;
 
@@ -112,6 +112,11 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
             let imu_setup = ImuSetup::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::ImuSetup(imu_setup)
         }
+        MessageKind::ReceiverSetup => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let receiver_setup = ReceiverSetup::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::ReceiverSetup(receiver_setup)
+        }
         _ => {
             // should never end up in here since we
             // return None and reset the parser if its
@@ -190,6 +195,145 @@ mod tests {
         indicator_8: None
     };
 
+    // Helper function to create ReceiverSetup test payload
+    fn create_receiver_setup_payload() -> Vec<u8> {
+        let mut payload = Vec::new();
+        
+        // TOW and WNc
+        payload.extend_from_slice(&490403000u32.to_le_bytes());
+        payload.extend_from_slice(&2360u16.to_le_bytes());
+        payload.extend_from_slice(&[0u8; 2]); // Reserved
+        
+        // String fields
+        let mut marker_name = [0u8; 60];
+        marker_name[..11].copy_from_slice(b"TEST_MARKER");
+        payload.extend_from_slice(&marker_name);
+        
+        let mut marker_number = [0u8; 20];
+        marker_number[..5].copy_from_slice(b"12345");
+        payload.extend_from_slice(&marker_number);
+        
+        let mut observer = [0u8; 20];
+        observer[..9].copy_from_slice(b"OBSERVER1");
+        payload.extend_from_slice(&observer);
+        
+        let mut agency = [0u8; 40];
+        agency[..11].copy_from_slice(b"TEST_AGENCY");
+        payload.extend_from_slice(&agency);
+        
+        let mut rx_serial = [0u8; 20];
+        rx_serial[..8].copy_from_slice(b"RX123456");
+        payload.extend_from_slice(&rx_serial);
+        
+        let mut rx_name = [0u8; 20];
+        rx_name[..6].copy_from_slice(b"MOSAIC");
+        payload.extend_from_slice(&rx_name);
+        
+        let mut rx_version = [0u8; 20];
+        rx_version[..5].copy_from_slice(b"1.0.0");
+        payload.extend_from_slice(&rx_version);
+        
+        let mut ant_serial = [0u8; 20];
+        ant_serial[..6].copy_from_slice(b"ANT001");
+        payload.extend_from_slice(&ant_serial);
+        
+        let mut ant_type = [0u8; 20];
+        ant_type[..10].copy_from_slice(b"CHOKE_RING");
+        payload.extend_from_slice(&ant_type);
+        
+        // Delta values
+        payload.extend_from_slice(&0.0f32.to_le_bytes());
+        payload.extend_from_slice(&0.0f32.to_le_bytes());
+        payload.extend_from_slice(&0.0f32.to_le_bytes());
+        
+        let mut marker_type = [0u8; 20];
+        marker_type[..8].copy_from_slice(b"GEODETIC");
+        payload.extend_from_slice(&marker_type);
+        
+        let mut fw_version = [0u8; 40];
+        fw_version[..7].copy_from_slice(b"FW_V1.0");
+        payload.extend_from_slice(&fw_version);
+        
+        let mut product_name = [0u8; 40];
+        product_name[..9].copy_from_slice(b"MOSAIC-X5");
+        payload.extend_from_slice(&product_name);
+        
+        // Position
+        payload.extend_from_slice(&0.8997f64.to_le_bytes());
+        payload.extend_from_slice(&(-0.00223f64).to_le_bytes());
+        payload.extend_from_slice(&45.0f32.to_le_bytes());
+        
+        let mut station_code = [0u8; 10];
+        station_code[..5].copy_from_slice(b"STAT1");
+        payload.extend_from_slice(&station_code);
+        
+        payload.push(1); // MonumentIdx
+        payload.push(1); // ReceiverIdx
+        payload.extend_from_slice(b"GBR"); // CountryCode
+        payload.extend_from_slice(&[0u8; 21]); // Reserved1
+        
+        payload
+    }
+
+    fn create_valid_receiver_setup_message() -> Vec<u8> {
+        let mut message = Vec::new();
+        message.extend_from_slice(VALID_SYNC);
+        
+        let payload = create_receiver_setup_payload();
+        let block_id = 5902u16;
+        let length = (payload.len() + 8) as u16;
+        
+        let mut crc_data = Vec::new();
+        crc_data.extend_from_slice(&block_id.to_le_bytes());
+        crc_data.extend_from_slice(&length.to_le_bytes());
+        crc_data.extend_from_slice(&payload);
+        let crc = State::<XMODEM>::calculate(&crc_data);
+        
+        message.extend_from_slice(&crc.to_le_bytes());
+        message.extend_from_slice(&block_id.to_le_bytes());
+        message.extend_from_slice(&length.to_le_bytes());
+        message.extend_from_slice(&payload);
+        
+        message
+    }
+
+    #[test]
+    fn test_receiver_setup_parsing() {
+        let message = create_valid_receiver_setup_message();
+        let mut parser = SbfParser::new();
+        
+        match parser.consume(&message) {
+            Some(Messages::ReceiverSetup(setup)) => {
+                assert_eq!(setup.tow, Some(490403000));
+                assert_eq!(setup.wnc, Some(2360));
+                assert_eq!(&setup.marker_name[..11], b"TEST_MARKER");
+                assert_eq!(&setup.marker_number[..5], b"12345");
+                assert_eq!(&setup.observer[..9], b"OBSERVER1");
+                assert_eq!(&setup.agency[..11], b"TEST_AGENCY");
+                assert_eq!(&setup.rx_serial_number[..8], b"RX123456");
+                assert_eq!(&setup.rx_name[..6], b"MOSAIC");
+                assert_eq!(&setup.rx_version[..5], b"1.0.0");
+                assert_eq!(&setup.ant_serial_nbr[..6], b"ANT001");
+                assert_eq!(&setup.ant_type[..10], b"CHOKE_RING");
+                assert_eq!(setup.delta_h, Some(0.0));
+                assert_eq!(setup.delta_e, Some(0.0));
+                assert_eq!(setup.delta_n, Some(0.0));
+                assert_eq!(&setup.marker_type[..8], b"GEODETIC");
+                assert_eq!(&setup.gnss_fw_version[..7], b"FW_V1.0");
+                assert_eq!(&setup.product_name[..9], b"MOSAIC-X5");
+                assert!(setup.latitude.is_some());
+                assert!(setup.longitude.is_some());
+                assert_eq!(setup.height, Some(45.0));
+                assert_eq!(&setup.station_code[..5], b"STAT1");
+                assert_eq!(setup.monument_idx, 1);
+                assert_eq!(setup.receiver_idx, 1);
+                assert_eq!(&setup.country_code, b"GBR");
+            }
+            Some(other) => panic!("Expected ReceiverSetup, got {:?}", other),
+            None => panic!("Failed to parse ReceiverSetup message"),
+        }
+    }
+
     proptest! {
 
         #[test]
@@ -224,6 +368,38 @@ mod tests {
                 },
                 None => {
                     prop_assert!(false, "Valid message was not found in the noise.");
+                }
+            }
+        }
+
+        #[test]
+        fn test_receiver_setup_with_noise(noise in proptest::collection::vec(any::<u8>(), 0..10000)) {
+            let valid_msg = create_valid_receiver_setup_message();
+            
+            let insert_index = if noise.is_empty() { 0 } else { noise.len() / 2 };
+            
+            let mut test_input = Vec::new();
+            test_input.extend_from_slice(&noise[..insert_index]);
+            test_input.extend_from_slice(&valid_msg);
+            test_input.extend_from_slice(&noise[insert_index..]);
+            
+            // Initialize parser.
+            let mut parser = SbfParser::new();
+            
+            // Process the input.
+            match parser.consume(test_input.as_slice()) {
+                Some(Messages::ReceiverSetup(setup)) => {
+                    // Just verify key fields to ensure message was parsed correctly
+                    prop_assert_eq!(setup.tow, Some(490403000));
+                    prop_assert_eq!(setup.wnc, Some(2360));
+                    prop_assert_eq!(&setup.marker_name[..11], b"TEST_MARKER");
+                    prop_assert_eq!(setup.monument_idx, 1);
+                },
+                Some(other) => {
+                    prop_assert!(false, "Parsed to wrong message type: {:?}", other);
+                }
+                None => {
+                    prop_assert!(false, "Valid ReceiverSetup message was not found in the noise.");
                 }
             }
         }
