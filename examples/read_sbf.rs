@@ -1,36 +1,101 @@
 use libsbf::{Messages, reader::SbfReader};
 
-use std::env;
+use clap::Parser;
+use std::collections::HashMap;
+use std::fs::File;
+use std::io::Read;
 use std::net::TcpStream;
 
 use tracing_subscriber::EnvFilter;
 
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+    /// Input source: file path or TCP address (host:port)
+    /// 
+    /// Examples:
+    ///   - /path/to/file.sbf (read from file)
+    ///   - 192.168.1.100:5555 (connect to TCP)
+    ///   - 127.0.0.1:8080 (default if not specified)
+    #[arg(default_value = "127.0.0.1:8080")]
+    input: String,
+
+    /// Print message details (not just statistics)
+    #[arg(short, long)]
+    verbose: bool,
+}
 
 fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(EnvFilter::from_default_env())
         .with_writer(std::io::stderr)
         .init();
-    let ip_port = env::args()
-        .nth(1)
-        .unwrap_or_else(|| "127.0.0.1:8080".into());
-    eprintln!("{ip_port}");
-    let stream = TcpStream::connect(ip_port)?;
-    let sbf_reader = SbfReader::new(stream);
+    
+    let args = Args::parse();
+    
+    // Check if argument looks like a file path or TCP address
+    let reader: Box<dyn Read> = if args.input.contains(':') {
+        eprintln!("Connecting to TCP: {}", args.input);
+        Box::new(TcpStream::connect(args.input)?)
+    } else {
+        eprintln!("Reading from file: {}", args.input);
+        Box::new(File::open(args.input)?)
+    };
+    
+    let sbf_reader = SbfReader::new(reader);
+    let mut stats: HashMap<&str, usize> = HashMap::new();
 
     for m in sbf_reader {
         match m? {
-            Messages::INSNavGeod(ins_nav_geod) => {
-                println!("{:?}", ins_nav_geod);
+            Messages::INSNavGeod(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("INSNavGeod").or_insert(0) += 1;
             }
-            Messages::AttEuler(att_euler) => {
-                println!("{:?}", att_euler);
+            Messages::AttEuler(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("AttEuler").or_insert(0) += 1;
             }
-            Messages::ExtSensorMeas(ext_sensor_meas) => {
-                println!("{:?}", ext_sensor_meas);
+            Messages::ExtSensorMeas(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("ExtSensorMeas").or_insert(0) += 1;
             }
-            _ => continue
+            Messages::ReceiverSetup(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("ReceiverSetup").or_insert(0) += 1;
+            }
+            Messages::ImuSetup(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("ImuSetup").or_insert(0) += 1;
+            }
+            Messages::QualityInd(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("QualityInd").or_insert(0) += 1;
+            }
+            Messages::Unsupported => {
+                *stats.entry("Unsupported").or_insert(0) += 1;
+            }
         }
     }
+    
+    // Print statistics
+    eprintln!("\n=== Message Statistics ===");
+    let total: usize = stats.values().sum();
+    for (msg_type, count) in stats.iter() {
+        eprintln!("{}: {}", msg_type, count);
+    }
+    eprintln!("Total messages: {}", total);
+    
     Ok(())
 }
