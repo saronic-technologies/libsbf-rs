@@ -92,6 +92,13 @@ define_messages!(
     QualityInd => 4082,
     ImuSetup => 4224,
     ReceiverSetup => 5902,
+    EndOfPvt => 4109,
+    Dop => 4000,
+    EndOfAux => 4111,
+    BaseVectorGeod => 5919,
+    QSFQualityInd => 5906,
+    GalAuthStatus => 4020,
+    VelCovGeodetic => 5891,
 );
 
 // Attitude Euler Block 5938
@@ -453,6 +460,131 @@ pub struct ReceiverSetup {
     pub receiver_idx: u8,
     pub country_code: [u8; 3],
     pub reserved1: [u8; 21],
+}
+
+// EndOfPVT Block 4109
+#[binrw]
+#[derive(Debug)]
+pub struct EndOfPvt {
+    #[br(map = |x| if x == DO_NOT_USE_U4 { None } else { Some(x) })]
+    pub tow: Option<u32>,
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) })]
+    pub wnc: Option<u16>,
+}
+
+// DOP Block 4000
+#[binrw]
+#[derive(Debug)]
+pub struct Dop {
+    #[br(map = |x| if x == DO_NOT_USE_U4 { None } else { Some(x) })]
+    pub tow: Option<u32>,
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) })]
+    pub wnc: Option<u16>,
+    pub nr_sv: u8,
+    pub reserved: u8,
+    pub pdop: u16,
+    pub tdop: u16,
+    pub hdop: u16,
+    pub vdop: u16,
+    pub hpl: f32,
+    pub vpl: f32,
+}
+
+// EndOfAux Block 4111
+#[binrw]
+#[derive(Debug)]
+pub struct EndOfAux {
+    #[br(map = |x| if x == DO_NOT_USE_U4 { None } else { Some(x) })]
+    pub tow: Option<u32>,
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) })]
+    pub wnc: Option<u16>,
+}
+
+// BaseVectorGeod Block 5919
+#[binrw]
+#[derive(Debug)]
+pub struct BaseVectorGeod {
+    #[br(map = |x| if x == DO_NOT_USE_U4 { None } else { Some(x) })]
+    pub tow: Option<u32>,
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) })]
+    pub wnc: Option<u16>,
+    pub n: u8,
+    pub sb_length: u8,
+    #[br(count = n)]
+    pub base_vectors: Vec<BaseVectorInfo>,
+}
+
+#[binrw]
+#[derive(Debug)]
+pub struct BaseVectorInfo {
+    pub nr_sv: u8,
+    pub error: u8,
+    pub mode: u8,
+    pub misc: u8,
+    pub delta_east: f64,
+    pub delta_north: f64,
+    pub delta_up: f64,
+    pub delta_veast: f32,
+    pub delta_vnorth: f32,
+    pub delta_vup: f32,
+    pub azimuth: u16,
+    pub elevation: i16,
+    pub ref_id: u16,
+    pub corr_age: u16,
+    pub signal_info: u32,
+}
+
+// QSFQualityInd Block 5906 - Quality Sub-Frame Quality Indicators
+#[binrw]
+#[derive(Debug)]
+pub struct QSFQualityInd {
+    #[br(map = |x| if x == DO_NOT_USE_U4 { None } else { Some(x) })]
+    pub tow: Option<u32>,
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) })]
+    pub wnc: Option<u16>,
+    pub n: u8,
+    pub sb_size: u8,
+    pub _reserved: [u8; 2],
+    #[br(count = n)]
+    pub indicators: Vec<u16>,
+}
+
+// GALAuthStatus Block 4020
+#[binrw]
+#[derive(Debug)]
+pub struct GalAuthStatus {
+    #[br(map = |x| if x == DO_NOT_USE_U4 { None } else { Some(x) })]
+    pub tow: Option<u32>,
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) })]
+    pub wnc: Option<u16>,
+    pub osnma_status: u8,
+    pub trusted_time_delta: f32,
+    pub gal_active_mask: u64,
+    pub gal_authentic_mask: u64,
+    pub gps_active_mask: u64,
+    pub gps_authentic_mask: u64,
+}
+
+// VelCovGeodetic Block 5891
+#[binrw]
+#[derive(Debug)]
+pub struct VelCovGeodetic {
+    #[br(map = |x| if x == DO_NOT_USE_U4 { None } else { Some(x) })]
+    pub tow: Option<u32>,
+    #[br(map = |x| if x == DO_NOT_USE_U2 { None } else { Some(x) })]
+    pub wnc: Option<u16>,
+    pub mode: u8,
+    pub error: u8,
+    pub cov_veve: f32,
+    pub cov_vnvn: f32,
+    pub cov_vuvu: f32,
+    pub cov_dtdt: f32,
+    pub cov_vevn: f32,
+    pub cov_vevu: f32,
+    pub cov_vedt: f32,
+    pub cov_vnvu: f32,
+    pub cov_vndt: f32,
+    pub cov_vudt: f32,
 }
 
 pub fn is_sync(bytes: &[u8; 2]) -> bool {

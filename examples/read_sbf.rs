@@ -83,6 +83,48 @@ fn main() -> anyhow::Result<()> {
                 }
                 *stats.entry("QualityInd").or_insert(0) += 1;
             }
+            Messages::EndOfPvt(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("EndOfPvt").or_insert(0) += 1;
+            }
+            Messages::Dop(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("Dop").or_insert(0) += 1;
+            }
+            Messages::EndOfAux(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("EndOfAux").or_insert(0) += 1;
+            }
+            Messages::BaseVectorGeod(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("BaseVectorGeod").or_insert(0) += 1;
+            }
+            Messages::QSFQualityInd(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("QSFQualityInd").or_insert(0) += 1;
+            }
+            Messages::GalAuthStatus(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("GalAuthStatus").or_insert(0) += 1;
+            }
+            Messages::VelCovGeodetic(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("VelCovGeodetic").or_insert(0) += 1;
+            }
             Messages::Unsupported => {
                 *stats.entry("Unsupported").or_insert(0) += 1;
             }

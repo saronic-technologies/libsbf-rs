@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use binrw::io::Cursor;
 use binrw::BinRead;
 
-use crate::{Header, MessageKind, Messages, AttEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
+use crate::{Header, MessageKind, Messages, AttEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup, EndOfPvt, Dop, EndOfAux, BaseVectorGeod, QSFQualityInd, GalAuthStatus, VelCovGeodetic};
 
 use crc16::*;
 
@@ -116,6 +116,41 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
             let mut body_cursor = Cursor::new(payload.as_slice());
             let receiver_setup = ReceiverSetup::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::ReceiverSetup(receiver_setup)
+        }
+        MessageKind::EndOfPvt => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let end_of_pvt = EndOfPvt::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::EndOfPvt(end_of_pvt)
+        }
+        MessageKind::Dop => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let dop = Dop::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::Dop(dop)
+        }
+        MessageKind::EndOfAux => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let end_of_aux = EndOfAux::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::EndOfAux(end_of_aux)
+        }
+        MessageKind::BaseVectorGeod => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let base_vector = BaseVectorGeod::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::BaseVectorGeod(base_vector)
+        }
+        MessageKind::QSFQualityInd => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let qsf_quality = QSFQualityInd::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::QSFQualityInd(qsf_quality)
+        }
+        MessageKind::GalAuthStatus => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let gal_auth = GalAuthStatus::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::GalAuthStatus(gal_auth)
+        }
+        MessageKind::VelCovGeodetic => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let vel_cov = VelCovGeodetic::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::VelCovGeodetic(vel_cov)
         }
         _ => {
             // should never end up in here since we
