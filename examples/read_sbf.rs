@@ -47,6 +47,12 @@ fn main() -> anyhow::Result<()> {
 
     for m in sbf_reader {
         match m? {
+            Messages::MeasEpoch(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("MeasEpoch").or_insert(0) += 1;
+            }
             Messages::INSNavGeod(msg) => {
                 if args.verbose {
                     println!("{:?}", msg);
