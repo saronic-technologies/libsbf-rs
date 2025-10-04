@@ -1,4 +1,5 @@
 pub mod meas_epoch;
+pub mod meas_extra;
 pub mod ins_nav_geod;
 pub mod att_euler;
 pub mod ext_sensor_meas;
@@ -7,6 +8,7 @@ pub mod imu_setup;
 pub mod receiver_setup;
 
 pub use meas_epoch::{MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2};
+pub use meas_extra::{MeasExtra, MeasExtraChannelSub};
 pub use ins_nav_geod::{
     INSNavGeod, INSNavGeodPosStdDev, INSNavGeodAtt, INSNavGeodAttStdDev,
     INSNavGeodVel, INSNavGeodVelStdDev, INSNavGeodPosCov, INSNavGeodVelCov, 
