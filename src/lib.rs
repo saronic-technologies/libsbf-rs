@@ -42,6 +42,7 @@ pub use messages::{
     QualityInd,
     ImuSetup,
     ReceiverSetup,
+    GEORawL1,
 };
 
 #[binrw]
@@ -106,6 +107,7 @@ macro_rules! define_messages {
 
 define_messages!(
     MeasExtra => 4000,
+    GEORawL1 => 4020,
     MeasEpoch => 4027,
     INSNavGeod => 4226,
     AttEuler => 5938,
