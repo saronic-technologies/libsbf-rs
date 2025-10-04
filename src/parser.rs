@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use binrw::io::Cursor;
 use binrw::BinRead;
 
-use crate::{Header, MessageKind, Messages, MeasEpoch, AttEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
+use crate::{Header, MessageKind, Messages, MeasEpoch, MeasExtra, AttEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
 
 use crc16::*;
 
@@ -84,6 +84,11 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
     }
 
     let res = match h.block_id.message_type() {
+        MessageKind::MeasExtra => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let meas_extra = MeasExtra::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::MeasExtra(meas_extra)
+        }
         MessageKind::MeasEpoch => {
             let mut body_cursor = Cursor::new(payload.as_slice());
             let meas_epoch = MeasEpoch::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
@@ -120,6 +125,7 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
             Messages::ReceiverSetup(receiver_setup)
         }
         MessageKind::Unsupported => {
+            debug!("Unsupported block ID: {:#04X}", h.block_id.block_number());
             Messages::Unsupported
         }
     };
