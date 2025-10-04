@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use binrw::io::Cursor;
 use binrw::BinRead;
 
-use crate::{Header, MessageKind, Messages, AttEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
+use crate::{Header, MessageKind, Messages, MeasEpoch, AttEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
 
 use crc16::*;
 
@@ -61,10 +61,7 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
         return Err(ParseError::InvalidHeader);
     }
 
-    if let MessageKind::Unsupported = h.block_id.message_type() {
-        debug!("Unsupported Block ID: {:?}", h.block_id);
-        return Err(ParseError::InvalidHeader);
-    }
+    // Note: We'll handle unsupported blocks below, no need to reject them here
 
     // Ensure we have the complete payload.
     let total_size = 2 + 6 + (h.length as usize) - 8;
@@ -87,6 +84,11 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
     }
 
     let res = match h.block_id.message_type() {
+        MessageKind::MeasEpoch => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let meas_epoch = MeasEpoch::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::MeasEpoch(meas_epoch)
+        }
         MessageKind::QualityInd => {
             let mut body_cursor = Cursor::new(payload.as_slice());
             let quality_data = QualityInd::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
@@ -117,11 +119,8 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
             let receiver_setup = ReceiverSetup::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::ReceiverSetup(receiver_setup)
         }
-        _ => {
-            // should never end up in here since we
-            // return None and reset the parser if its
-            // an unsupported message
-            panic!("Tried to parse an unsupported message!");
+        MessageKind::Unsupported => {
+            Messages::Unsupported
         }
     };
 
