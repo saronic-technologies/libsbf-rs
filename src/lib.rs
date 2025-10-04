@@ -31,6 +31,7 @@ const DO_NOT_USE_F8: f64 = -2e10;
 pub use messages::{
     MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2,
     MeasExtra, MeasExtraChannelSub,
+    DiffCorrIn,
     INSNavGeod, INSNavGeodPosStdDev, INSNavGeodAtt, INSNavGeodAttStdDev,
     INSNavGeodVel, INSNavGeodVelStdDev, INSNavGeodPosCov, INSNavGeodVelCov,
     INSNavGeodAttCov,
@@ -108,6 +109,7 @@ define_messages!(
     MeasEpoch => 4027,
     INSNavGeod => 4226,
     AttEuler => 5938,
+    DiffCorrIn => 5919,
     ExtSensorMeas => 4050,
     QualityInd => 4082,
     ImuSetup => 4224,

@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use binrw::io::Cursor;
 use binrw::BinRead;
 
-use crate::{Header, MessageKind, Messages, MeasEpoch, MeasExtra, AttEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
+use crate::{Header, MessageKind, Messages, MeasEpoch, MeasExtra, DiffCorrIn, AttEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
 
 use crc16::*;
 
@@ -108,6 +108,11 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
             let mut body_cursor = Cursor::new(payload.as_slice());
             let att_euler = AttEuler::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::AttEuler(att_euler)
+        }
+        MessageKind::DiffCorrIn => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let diff_corr_in = DiffCorrIn::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::DiffCorrIn(diff_corr_in)
         }
         MessageKind::ExtSensorMeas => {
             let mut body_cursor = Cursor::new(payload.as_slice());
