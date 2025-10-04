@@ -30,6 +30,7 @@ const DO_NOT_USE_F8: f64 = -2e10;
 // Re-export all message types at crate level
 pub use messages::{
     MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2,
+    MeasExtra, MeasExtraChannelSub,
     INSNavGeod, INSNavGeodPosStdDev, INSNavGeodAtt, INSNavGeodAttStdDev,
     INSNavGeodVel, INSNavGeodVelStdDev, INSNavGeodPosCov, INSNavGeodVelCov,
     INSNavGeodAttCov,
@@ -103,6 +104,7 @@ macro_rules! define_messages {
 }
 
 define_messages!(
+    MeasExtra => 4000,
     MeasEpoch => 4027,
     INSNavGeod => 4226,
     AttEuler => 5938,

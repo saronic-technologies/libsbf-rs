@@ -47,6 +47,12 @@ fn main() -> anyhow::Result<()> {
 
     for m in sbf_reader {
         match m? {
+            Messages::MeasExtra(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("MeasExtra").or_insert(0) += 1;
+            }
             Messages::MeasEpoch(msg) => {
                 if args.verbose {
                     println!("{:?}", msg);
