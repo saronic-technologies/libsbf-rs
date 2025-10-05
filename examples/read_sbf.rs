@@ -44,6 +44,7 @@ fn main() -> anyhow::Result<()> {
     
     let sbf_reader = SbfReader::new(reader);
     let mut stats: HashMap<&str, usize> = HashMap::new();
+    let mut unsupported_blocks: HashMap<u16, usize> = HashMap::new();
 
     for m in sbf_reader {
         match m? {
@@ -70,6 +71,12 @@ fn main() -> anyhow::Result<()> {
                     println!("{:?}", msg);
                 }
                 *stats.entry("AttEuler").or_insert(0) += 1;
+            }
+            Messages::AttCovEuler(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("AttCovEuler").or_insert(0) += 1;
             }
             Messages::DiffCorrIn(msg) => {
                 if args.verbose {
@@ -107,8 +114,9 @@ fn main() -> anyhow::Result<()> {
                 }
                 *stats.entry("GEORawL1").or_insert(0) += 1;
             }
-            Messages::Unsupported => {
+            Messages::Unsupported(block_id) => {
                 *stats.entry("Unsupported").or_insert(0) += 1;
+                *unsupported_blocks.entry(block_id).or_insert(0) += 1;
             }
         }
     }
@@ -120,6 +128,16 @@ fn main() -> anyhow::Result<()> {
         eprintln!("{}: {}", msg_type, count);
     }
     eprintln!("Total messages: {}", total);
+    
+    // Print unsupported blocks
+    if !unsupported_blocks.is_empty() {
+        eprintln!("\n=== Unsupported Block IDs ===");
+        let mut sorted: Vec<_> = unsupported_blocks.iter().collect();
+        sorted.sort_by(|a, b| b.1.cmp(a.1));
+        for (block_id, count) in sorted.iter().take(10) {
+            eprintln!("  0x{:04X} ({}): {} occurrences", block_id, block_id, count);
+        }
+    }
     
     Ok(())
 }
