@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use binrw::io::Cursor;
 use binrw::BinRead;
 
-use crate::{Header, MessageKind, Messages, MeasEpoch, MeasExtra, Meas3Ranges, Meas3Doppler, INSSupport, GEORawL1, GEONav, GALIon, PosCovGeodetic, PVTGeodetic, ReceiverStatus, ExtSensorStatus, DiffCorrIn, AttEuler, AttCovEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
+use crate::{Header, MessageKind, Messages, MeasEpoch, MeasExtra, Meas3Ranges, Meas3Doppler, INSSupport, GEORawL1, GEONav, GALIon, GALUtc, PosCovGeodetic, PVTGeodetic, ReceiverStatus, ExtSensorStatus, DiffCorrIn, AttEuler, AttCovEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
 
 use crc16::*;
 
@@ -113,6 +113,11 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
             let mut body_cursor = Cursor::new(payload.as_slice());
             let gal_ion = GALIon::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::GALIon(gal_ion)
+        }
+        MessageKind::GALUtc => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let gal_utc = GALUtc::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::GALUtc(gal_utc)
         }
         MessageKind::Meas3Ranges => {
             let mut body_cursor = Cursor::new(payload.as_slice());
