@@ -148,6 +148,17 @@ fn main() -> anyhow::Result<()> {
                 }
                 *stats.entry("GEONav").or_insert(0) += 1;
             }
+            Messages::PosCovGeodetic(msg) => {
+                if args.verbose {
+                    println!("{:#?}", msg);
+                }
+                *stats.entry("PosCovGeodetic").or_insert(0) += 1;
+                if stats.get("PosCovGeodetic").unwrap_or(&0) == &1 && !args.verbose {
+                    // Print first PosCovGeodetic for debugging
+                    eprintln!("First PosCovGeodetic message:");
+                    eprintln!("{:#?}", msg);
+                }
+            }
             Messages::Unsupported(block_id) => {
                 *stats.entry("Unsupported").or_insert(0) += 1;
                 *unsupported_blocks.entry(block_id).or_insert(0) += 1;

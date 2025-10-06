@@ -45,6 +45,7 @@ pub use messages::{
     ImuSetup,
     ReceiverSetup,
     GEORawL1, GEONav,
+    PosCovGeodetic,
 };
 
 #[binrw]
@@ -123,6 +124,7 @@ define_messages!(
     ImuSetup => 4224,
     ReceiverSetup => 5902,
     GEONav => 5896,
+    PosCovGeodetic => 5906,
 );
 
 pub fn is_sync(bytes: &[u8; 2]) -> bool {
