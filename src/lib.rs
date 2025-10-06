@@ -58,6 +58,7 @@ pub use messages::{
     GALNav,
     GALGstGps,
     GPSNav,
+    Commands,
 };
 
 #[binrw]
@@ -125,6 +126,7 @@ define_messages!(
     GALNav => 4002,
     PVTGeodetic => 4007,
     ReceiverStatus => 4014,
+    Commands => 4015,
     GEORawL1 => 4020,
     MeasEpoch => 4027,
     GALIon => 4030,
