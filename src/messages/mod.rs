@@ -1,7 +1,10 @@
 pub mod meas_epoch;
 pub mod meas_extra;
+pub mod meas3_ranges;
+pub mod meas3_doppler;
 pub mod diff_corr_in;
 pub mod ins_nav_geod;
+pub mod ins_support;
 pub mod att_euler;
 pub mod att_cov_euler;
 pub mod ext_sensor_meas;
@@ -13,7 +16,10 @@ pub mod geo_nav;
 
 pub use meas_epoch::{MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2};
 pub use meas_extra::{MeasExtra, MeasExtraChannelSub};
+pub use meas3_ranges::Meas3Ranges;
+pub use meas3_doppler::Meas3Doppler;
 pub use diff_corr_in::DiffCorrIn;
+pub use ins_support::INSSupport;
 pub use ins_nav_geod::{
     INSNavGeod, INSNavGeodPosStdDev, INSNavGeodAtt, INSNavGeodAttStdDev,
     INSNavGeodVel, INSNavGeodVelStdDev, INSNavGeodPosCov, INSNavGeodVelCov, 

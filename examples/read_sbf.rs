@@ -45,6 +45,7 @@ fn main() -> anyhow::Result<()> {
     let sbf_reader = SbfReader::new(reader);
     let mut stats: HashMap<&str, usize> = HashMap::new();
     let mut unsupported_blocks: HashMap<u16, usize> = HashMap::new();
+    let mut att_cov_errors: HashMap<u8, usize> = HashMap::new();
 
     for m in sbf_reader {
         match m? {
@@ -60,6 +61,24 @@ fn main() -> anyhow::Result<()> {
                 }
                 *stats.entry("MeasEpoch").or_insert(0) += 1;
             }
+            Messages::Meas3Ranges(msg) => {
+                if args.verbose {
+                    println!("Meas3Ranges: TOW={:?}, raw_bytes={}", msg.tow, msg.raw_data.len());
+                }
+                *stats.entry("Meas3Ranges").or_insert(0) += 1;
+            }
+            Messages::Meas3Doppler(msg) => {
+                if args.verbose {
+                    println!("Meas3Doppler: TOW={:?}, raw_bytes={}", msg.tow, msg.raw_data.len());
+                }
+                *stats.entry("Meas3Doppler").or_insert(0) += 1;
+            }
+            Messages::INSSupport(msg) => {
+                if args.verbose {
+                    println!("INSSupport: TOW={:?}, raw_bytes={}", msg.tow, msg.raw_data.len());
+                }
+                *stats.entry("INSSupport").or_insert(0) += 1;
+            }
             Messages::INSNavGeod(msg) => {
                 if args.verbose {
                     println!("{:?}", msg);
@@ -74,9 +93,18 @@ fn main() -> anyhow::Result<()> {
             }
             Messages::AttCovEuler(msg) => {
                 if args.verbose {
-                    println!("{:?}", msg);
+                    println!("{:#?}", msg);
                 }
                 *stats.entry("AttCovEuler").or_insert(0) += 1;
+                *att_cov_errors.entry(msg.error).or_insert(0) += 1;
+                // Look for valid measurements (error = 0)
+                if msg.error == 0 && msg.cov_head_head.is_some() && !args.verbose {
+                    static FOUND_VALID: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+                    if !FOUND_VALID.swap(true, std::sync::atomic::Ordering::SeqCst) {
+                        eprintln!("Found AttCovEuler with valid measurements:");
+                        eprintln!("{:#?}", msg);
+                    }
+                }
             }
             Messages::DiffCorrIn(msg) => {
                 if args.verbose {
@@ -142,6 +170,14 @@ fn main() -> anyhow::Result<()> {
         sorted.sort_by(|a, b| b.1.cmp(a.1));
         for (block_id, count) in sorted.iter().take(10) {
             eprintln!("  0x{:04X} ({}): {} occurrences", block_id, block_id, count);
+        }
+    }
+    
+    // Print AttCovEuler error distribution
+    if !att_cov_errors.is_empty() {
+        eprintln!("\n=== AttCovEuler Error Distribution ===");
+        for (error_code, count) in att_cov_errors.iter() {
+            eprintln!("  Error {}: {} occurrences", error_code, count);
         }
     }
     
