@@ -71,6 +71,12 @@ fn main() -> anyhow::Result<()> {
                 }
                 *stats.entry("AttEuler").or_insert(0) += 1;
             }
+            Messages::DiffCorrIn(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("DiffCorrIn").or_insert(0) += 1;
+            }
             Messages::ExtSensorMeas(msg) => {
                 if args.verbose {
                     println!("{:?}", msg);
