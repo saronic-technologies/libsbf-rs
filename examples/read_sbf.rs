@@ -97,6 +97,12 @@ fn main() -> anyhow::Result<()> {
                 }
                 *stats.entry("INSNavGeod").or_insert(0) += 1;
             }
+            Messages::VelSensorSetup(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("VelSensorSetup").or_insert(0) += 1;
+            }
             Messages::AttEuler(msg) => {
                 if args.verbose {
                     println!("{:?}", msg);

@@ -52,6 +52,7 @@ pub use messages::{
     GALIon,
     GALUtc,
     GPSIon,
+    VelSensorSetup,
 };
 
 #[binrw]
@@ -127,6 +128,7 @@ define_messages!(
     Meas3Doppler => 4111,
     ExtSensorStatus => 4223,
     INSNavGeod => 4226,
+    VelSensorSetup => 4244,
     AttEuler => 5938,
     AttCovEuler => 5939,
     DiffCorrIn => 5919,
