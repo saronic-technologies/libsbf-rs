@@ -79,6 +79,12 @@ fn main() -> anyhow::Result<()> {
                 }
                 *stats.entry("GALUtc").or_insert(0) += 1;
             }
+            Messages::GALGstGps(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("GALGstGps").or_insert(0) += 1;
+            }
             Messages::Meas3Ranges(msg) => {
                 if args.verbose {
                     println!("Meas3Ranges: TOW={:?}, raw_bytes={}", msg.tow, msg.raw_data.len());

@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use binrw::io::Cursor;
 use binrw::BinRead;
 
-use crate::{Header, MessageKind, Messages, MeasEpoch, MeasExtra, GALNav, Meas3Ranges, Meas3Doppler, INSSupport, GEORawL1, GEONav, GALIon, GALUtc, GPSIon, VelSensorSetup, ExtSensorInfo, PosCovGeodetic, PVTGeodetic, ReceiverStatus, ExtSensorStatus, DiffCorrIn, AttEuler, AttCovEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
+use crate::{Header, MessageKind, Messages, MeasEpoch, MeasExtra, GALNav, Meas3Ranges, Meas3Doppler, INSSupport, GEORawL1, GEONav, GALIon, GALUtc, GALGstGps, GPSIon, VelSensorSetup, ExtSensorInfo, PosCovGeodetic, PVTGeodetic, ReceiverStatus, ExtSensorStatus, DiffCorrIn, AttEuler, AttCovEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
 
 use crc16::*;
 
@@ -123,6 +123,11 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
             let mut body_cursor = Cursor::new(payload.as_slice());
             let gal_utc = GALUtc::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::GALUtc(gal_utc)
+        }
+        MessageKind::GALGstGps => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let gal_gst_gps = GALGstGps::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::GALGstGps(gal_gst_gps)
         }
         MessageKind::Meas3Ranges => {
             let mut body_cursor = Cursor::new(payload.as_slice());
