@@ -60,6 +60,7 @@ pub use messages::{
     GPSNav,
     Commands,
     BDSIon,
+    GPSCNav,
 };
 
 #[binrw]
@@ -133,6 +134,7 @@ define_messages!(
     GALIon => 4030,
     GALUtc => 4031,
     GALGstGps => 4032,
+    GPSCNav => 4042,
     INSSupport => 4077,
     Meas3Ranges => 4109,
     Meas3Doppler => 4111,
