@@ -15,6 +15,7 @@ pub mod geo_raw_l1;
 pub mod geo_nav;
 pub mod pos_cov_geodetic;
 pub mod pvt_geodetic;
+pub mod receiver_status;
 
 pub use meas_epoch::{MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2};
 pub use meas_extra::{MeasExtra, MeasExtraChannelSub};
@@ -41,3 +42,4 @@ pub use geo_raw_l1::GEORawL1;
 pub use geo_nav::GEONav;
 pub use pos_cov_geodetic::PosCovGeodetic;
 pub use pvt_geodetic::PVTGeodetic;
+pub use receiver_status::{ReceiverStatus, AGCState};
