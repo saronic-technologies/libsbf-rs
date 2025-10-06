@@ -61,7 +61,10 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
         return Err(ParseError::InvalidHeader);
     }
 
-    // Note: We'll handle unsupported blocks below, no need to reject them here
+    if let MessageKind::Unsupported = h.block_id.message_type() {
+        debug!("Unsupported Block ID: {:?}", h.block_id);
+        return Err(ParseError::InvalidHeader);
+    }
 
     // Ensure we have the complete payload.
     let total_size = 2 + 6 + (h.length as usize) - 8;
@@ -240,8 +243,8 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
             Messages::PosCovGeodetic(pos_cov)
         }
         MessageKind::Unsupported => {
-            debug!("Unsupported block ID: {:#04X}", h.block_id.block_number());
-            Messages::Unsupported(h.block_id.block_number())
+            // This should never be reached because we reject unsupported blocks above
+            unreachable!("Unsupported block should have been rejected earlier")
         }
     };
 
