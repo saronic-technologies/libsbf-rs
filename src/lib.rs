@@ -48,6 +48,7 @@ pub use messages::{
     PosCovGeodetic,
     PVTGeodetic,
     ReceiverStatus, AGCState,
+    ExtSensorStatus,
 };
 
 #[binrw]
@@ -119,6 +120,7 @@ define_messages!(
     INSSupport => 4077,
     Meas3Ranges => 4109,
     Meas3Doppler => 4111,
+    ExtSensorStatus => 4223,
     INSNavGeod => 4226,
     AttEuler => 5938,
     AttCovEuler => 5939,
