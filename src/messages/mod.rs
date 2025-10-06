@@ -27,6 +27,7 @@ pub mod gal_nav;
 pub mod gal_gst_gps;
 pub mod gps_nav;
 pub mod commands;
+pub mod bds_ion;
 
 pub use meas_epoch::{MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2};
 pub use meas_extra::{MeasExtra, MeasExtraChannelSub};
@@ -65,3 +66,4 @@ pub use gal_nav::GALNav;
 pub use gal_gst_gps::GALGstGps;
 pub use gps_nav::GPSNav;
 pub use commands::Commands;
+pub use bds_ion::BDSIon;
