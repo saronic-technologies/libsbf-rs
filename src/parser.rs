@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use binrw::io::Cursor;
 use binrw::BinRead;
 
-use crate::{Header, MessageKind, Messages, MeasEpoch, MeasExtra, Meas3Ranges, Meas3Doppler, INSSupport, GEORawL1, GEONav, PosCovGeodetic, PVTGeodetic, DiffCorrIn, AttEuler, AttCovEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
+use crate::{Header, MessageKind, Messages, MeasEpoch, MeasExtra, Meas3Ranges, Meas3Doppler, INSSupport, GEORawL1, GEONav, PosCovGeodetic, PVTGeodetic, ReceiverStatus, DiffCorrIn, AttEuler, AttCovEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
 
 use crc16::*;
 
@@ -93,6 +93,11 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
             let mut body_cursor = Cursor::new(payload.as_slice());
             let pvt_geodetic = PVTGeodetic::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::PVTGeodetic(pvt_geodetic)
+        }
+        MessageKind::ReceiverStatus => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let receiver_status = ReceiverStatus::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::ReceiverStatus(receiver_status)
         }
         MessageKind::GEORawL1 => {
             let mut body_cursor = Cursor::new(payload.as_slice());
