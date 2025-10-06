@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use binrw::io::Cursor;
 use binrw::BinRead;
 
-use crate::{Header, MessageKind, Messages, MeasEpoch, MeasExtra, GEORawL1, GEONav, DiffCorrIn, AttEuler, AttCovEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
+use crate::{Header, MessageKind, Messages, MeasEpoch, MeasExtra, Meas3Ranges, Meas3Doppler, INSSupport, GEORawL1, GEONav, DiffCorrIn, AttEuler, AttCovEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
 
 use crc16::*;
 
@@ -98,6 +98,21 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
             let mut body_cursor = Cursor::new(payload.as_slice());
             let meas_epoch = MeasEpoch::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::MeasEpoch(meas_epoch)
+        }
+        MessageKind::Meas3Ranges => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let meas3_ranges = Meas3Ranges::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::Meas3Ranges(meas3_ranges)
+        }
+        MessageKind::Meas3Doppler => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let meas3_doppler = Meas3Doppler::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::Meas3Doppler(meas3_doppler)
+        }
+        MessageKind::INSSupport => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let ins_support = INSSupport::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::INSSupport(ins_support)
         }
         MessageKind::QualityInd => {
             let mut body_cursor = Cursor::new(payload.as_slice());
