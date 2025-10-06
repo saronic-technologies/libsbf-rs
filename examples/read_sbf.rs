@@ -134,6 +134,12 @@ fn main() -> anyhow::Result<()> {
                 }
                 *stats.entry("ExtSensorStatus").or_insert(0) += 1;
             }
+            Messages::ExtSensorInfo(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("ExtSensorInfo").or_insert(0) += 1;
+            }
             Messages::ReceiverSetup(msg) => {
                 if args.verbose {
                     println!("{:?}", msg);

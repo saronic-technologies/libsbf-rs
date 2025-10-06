@@ -53,6 +53,7 @@ pub use messages::{
     GALUtc,
     GPSIon,
     VelSensorSetup,
+    ExtSensorInfo,
 };
 
 #[binrw]
@@ -134,6 +135,7 @@ define_messages!(
     DiffCorrIn => 5919,
     ExtSensorMeas => 4050,
     QualityInd => 4082,
+    ExtSensorInfo => 4222,
     ImuSetup => 4224,
     ReceiverSetup => 5902,
     GEONav => 5896,
