@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use binrw::io::Cursor;
 use binrw::BinRead;
 
-use crate::{Header, MessageKind, Messages, MeasEpoch, MeasExtra, GEORawL1, DiffCorrIn, AttEuler, AttCovEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
+use crate::{Header, MessageKind, Messages, MeasEpoch, MeasExtra, GEORawL1, GEONav, DiffCorrIn, AttEuler, AttCovEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
 
 use crc16::*;
 
@@ -138,6 +138,11 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
             let mut body_cursor = Cursor::new(payload.as_slice());
             let receiver_setup = ReceiverSetup::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::ReceiverSetup(receiver_setup)
+        }
+        MessageKind::GEONav => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let geo_nav = GEONav::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::GEONav(geo_nav)
         }
         MessageKind::Unsupported => {
             debug!("Unsupported block ID: {:#04X}", h.block_id.block_number());
