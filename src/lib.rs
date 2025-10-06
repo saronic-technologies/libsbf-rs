@@ -55,6 +55,7 @@ pub use messages::{
     VelSensorSetup,
     ExtSensorInfo,
     GALNav,
+    GALGstGps,
 };
 
 #[binrw]
@@ -126,6 +127,7 @@ define_messages!(
     MeasEpoch => 4027,
     GALIon => 4030,
     GALUtc => 4031,
+    GALGstGps => 4032,
     INSSupport => 4077,
     Meas3Ranges => 4109,
     Meas3Doppler => 4111,
