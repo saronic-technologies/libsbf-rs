@@ -52,6 +52,7 @@ pub use messages::{
     GALIon,
     GALUtc,
     GPSIon,
+    GPSUtc,
     VelSensorSetup,
     ExtSensorInfo,
     GALNav,
@@ -146,6 +147,7 @@ define_messages!(
     GEONav => 5896,
     GPSIon => 5893,
     GPSNav => 5891,
+    GPSUtc => 5894,
     PosCovGeodetic => 5906,
 );
 
