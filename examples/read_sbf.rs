@@ -55,6 +55,12 @@ fn main() -> anyhow::Result<()> {
                 }
                 *stats.entry("MeasExtra").or_insert(0) += 1;
             }
+            Messages::GALNav(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("GALNav").or_insert(0) += 1;
+            }
             Messages::MeasEpoch(msg) => {
                 if args.verbose {
                     println!("{:?}", msg);

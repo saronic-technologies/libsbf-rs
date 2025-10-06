@@ -54,6 +54,7 @@ pub use messages::{
     GPSIon,
     VelSensorSetup,
     ExtSensorInfo,
+    GALNav,
 };
 
 #[binrw]
@@ -118,6 +119,7 @@ macro_rules! define_messages {
 
 define_messages!(
     MeasExtra => 4000,
+    GALNav => 4002,
     PVTGeodetic => 4007,
     ReceiverStatus => 4014,
     GEORawL1 => 4020,
