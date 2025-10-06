@@ -49,6 +49,7 @@ pub use messages::{
     PVTGeodetic,
     ReceiverStatus, AGCState,
     ExtSensorStatus,
+    GALIon,
 };
 
 #[binrw]
@@ -117,6 +118,7 @@ define_messages!(
     ReceiverStatus => 4014,
     GEORawL1 => 4020,
     MeasEpoch => 4027,
+    GALIon => 4030,
     INSSupport => 4077,
     Meas3Ranges => 4109,
     Meas3Doppler => 4111,
