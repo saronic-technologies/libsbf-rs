@@ -35,7 +35,7 @@ pub use messages::{
     INSNavGeod, INSNavGeodPosStdDev, INSNavGeodAtt, INSNavGeodAttStdDev,
     INSNavGeodVel, INSNavGeodVelStdDev, INSNavGeodPosCov, INSNavGeodVelCov,
     INSNavGeodAttCov,
-    AttEuler,
+    AttEuler, AttCovEuler,
     ExtSensorMeas, ExtSensorMeasSet, ExtSensorMeasAcceleration,
     ExtSensorMeasAngularRate, ExtSensorMeasVelocity, ExtSensorMeasInfo,
     ExtSensorMeasZeroVelocityFlag, ExtSensorMeasSetType,
@@ -100,7 +100,7 @@ macro_rules! define_messages {
         #[derive(Debug)]
         pub enum Messages {
             $( $variant($variant), )+
-            Unsupported,
+            Unsupported(u16),
         }
     };
 }
@@ -111,6 +111,7 @@ define_messages!(
     MeasEpoch => 4027,
     INSNavGeod => 4226,
     AttEuler => 5938,
+    AttCovEuler => 5939,
     DiffCorrIn => 5919,
     ExtSensorMeas => 4050,
     QualityInd => 4082,

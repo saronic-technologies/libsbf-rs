@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use binrw::io::Cursor;
 use binrw::BinRead;
 
-use crate::{Header, MessageKind, Messages, MeasEpoch, MeasExtra, GEORawL1, DiffCorrIn, AttEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
+use crate::{Header, MessageKind, Messages, MeasEpoch, MeasExtra, GEORawL1, DiffCorrIn, AttEuler, AttCovEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
 
 use crc16::*;
 
@@ -114,6 +114,11 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
             let att_euler = AttEuler::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::AttEuler(att_euler)
         }
+        MessageKind::AttCovEuler => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let att_cov_euler = AttCovEuler::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::AttCovEuler(att_cov_euler)
+        }
         MessageKind::DiffCorrIn => {
             let mut body_cursor = Cursor::new(payload.as_slice());
             let diff_corr_in = DiffCorrIn::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
@@ -136,7 +141,7 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
         }
         MessageKind::Unsupported => {
             debug!("Unsupported block ID: {:#04X}", h.block_id.block_number());
-            Messages::Unsupported
+            Messages::Unsupported(h.block_id.block_number())
         }
     };
 

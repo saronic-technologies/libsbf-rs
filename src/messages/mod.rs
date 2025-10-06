@@ -3,6 +3,7 @@ pub mod meas_extra;
 pub mod diff_corr_in;
 pub mod ins_nav_geod;
 pub mod att_euler;
+pub mod att_cov_euler;
 pub mod ext_sensor_meas;
 pub mod quality_ind;
 pub mod imu_setup;
@@ -18,6 +19,7 @@ pub use ins_nav_geod::{
     INSNavGeodAttCov,
 };
 pub use att_euler::AttEuler;
+pub use att_cov_euler::AttCovEuler;
 pub use ext_sensor_meas::{
     ExtSensorMeas, ExtSensorMeasSet, ExtSensorMeasAcceleration,
     ExtSensorMeasAngularRate, ExtSensorMeasVelocity, ExtSensorMeasInfo,
