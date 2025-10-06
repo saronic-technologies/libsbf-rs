@@ -9,6 +9,7 @@ pub mod quality_ind;
 pub mod imu_setup;
 pub mod receiver_setup;
 pub mod geo_raw_l1;
+pub mod geo_nav;
 
 pub use meas_epoch::{MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2};
 pub use meas_extra::{MeasExtra, MeasExtraChannelSub};
@@ -29,3 +30,4 @@ pub use quality_ind::QualityInd;
 pub use imu_setup::ImuSetup;
 pub use receiver_setup::ReceiverSetup;
 pub use geo_raw_l1::GEORawL1;
+pub use geo_nav::GEONav;
