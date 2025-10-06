@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 use binrw::io::Cursor;
 use binrw::BinRead;
 
-use crate::{Header, MessageKind, Messages, MeasEpoch, MeasExtra, Meas3Ranges, Meas3Doppler, INSSupport, GEORawL1, GEONav, GALIon, GALUtc, GPSIon, VelSensorSetup, PosCovGeodetic, PVTGeodetic, ReceiverStatus, ExtSensorStatus, DiffCorrIn, AttEuler, AttCovEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
+use crate::{Header, MessageKind, Messages, MeasEpoch, MeasExtra, Meas3Ranges, Meas3Doppler, INSSupport, GEORawL1, GEONav, GALIon, GALUtc, GPSIon, VelSensorSetup, ExtSensorInfo, PosCovGeodetic, PVTGeodetic, ReceiverStatus, ExtSensorStatus, DiffCorrIn, AttEuler, AttCovEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
 
 use crc16::*;
 
@@ -173,6 +173,11 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
             let mut body_cursor = Cursor::new(payload.as_slice());
             let ext_sensor_status = ExtSensorStatus::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::ExtSensorStatus(ext_sensor_status)
+        }
+        MessageKind::ExtSensorInfo => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let ext_sensor_info = ExtSensorInfo::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::ExtSensorInfo(ext_sensor_info)
         }
         MessageKind::ImuSetup => {
             let mut body_cursor = Cursor::new(payload.as_slice());

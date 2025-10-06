@@ -21,6 +21,7 @@ pub mod gal_ion;
 pub mod gal_utc;
 pub mod gps_ion;
 pub mod vel_sensor_setup;
+pub mod ext_sensor_info;
 
 pub use meas_epoch::{MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2};
 pub use meas_extra::{MeasExtra, MeasExtraChannelSub};
@@ -53,3 +54,4 @@ pub use gal_ion::GALIon;
 pub use gal_utc::GALUtc;
 pub use gps_ion::GPSIon;
 pub use vel_sensor_setup::VelSensorSetup;
+pub use ext_sensor_info::ExtSensorInfo;
