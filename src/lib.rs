@@ -59,6 +59,7 @@ pub use messages::{
     GALGstGps,
     GPSNav,
     Commands,
+    BDSIon,
 };
 
 #[binrw]
@@ -135,6 +136,7 @@ define_messages!(
     INSSupport => 4077,
     Meas3Ranges => 4109,
     Meas3Doppler => 4111,
+    BDSIon => 4120,
     ExtSensorStatus => 4223,
     INSNavGeod => 4226,
     VelSensorSetup => 4244,
