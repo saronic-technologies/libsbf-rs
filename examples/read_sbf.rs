@@ -101,6 +101,12 @@ fn main() -> anyhow::Result<()> {
                 }
                 *stats.entry("QualityInd").or_insert(0) += 1;
             }
+            Messages::GEORawL1(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("GEORawL1").or_insert(0) += 1;
+            }
             Messages::Unsupported => {
                 *stats.entry("Unsupported").or_insert(0) += 1;
             }
