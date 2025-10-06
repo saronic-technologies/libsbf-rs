@@ -97,14 +97,6 @@ fn main() -> anyhow::Result<()> {
                 }
                 *stats.entry("AttCovEuler").or_insert(0) += 1;
                 *att_cov_errors.entry(msg.error).or_insert(0) += 1;
-                // Look for valid measurements (error = 0)
-                if msg.error == 0 && msg.cov_head_head.is_some() && !args.verbose {
-                    static FOUND_VALID: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
-                    if !FOUND_VALID.swap(true, std::sync::atomic::Ordering::SeqCst) {
-                        eprintln!("Found AttCovEuler with valid measurements:");
-                        eprintln!("{:#?}", msg);
-                    }
-                }
             }
             Messages::DiffCorrIn(msg) => {
                 if args.verbose {
@@ -153,11 +145,12 @@ fn main() -> anyhow::Result<()> {
                     println!("{:#?}", msg);
                 }
                 *stats.entry("PosCovGeodetic").or_insert(0) += 1;
-                if stats.get("PosCovGeodetic").unwrap_or(&0) == &1 && !args.verbose {
-                    // Print first PosCovGeodetic for debugging
-                    eprintln!("First PosCovGeodetic message:");
-                    eprintln!("{:#?}", msg);
+            }
+            Messages::PVTGeodetic(msg) => {
+                if args.verbose {
+                    println!("{:#?}", msg);
                 }
+                *stats.entry("PVTGeodetic").or_insert(0) += 1;
             }
             Messages::Unsupported(block_id) => {
                 *stats.entry("Unsupported").or_insert(0) += 1;

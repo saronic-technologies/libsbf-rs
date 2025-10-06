@@ -46,6 +46,7 @@ pub use messages::{
     ReceiverSetup,
     GEORawL1, GEONav,
     PosCovGeodetic,
+    PVTGeodetic,
 };
 
 #[binrw]
@@ -110,6 +111,7 @@ macro_rules! define_messages {
 
 define_messages!(
     MeasExtra => 4000,
+    PVTGeodetic => 4007,
     GEORawL1 => 4020,
     MeasEpoch => 4027,
     INSSupport => 4077,
