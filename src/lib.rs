@@ -19,6 +19,9 @@ pub mod messages;
 #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
 pub mod reader;
 
+#[cfg(all(test, feature = "std"))]
+mod mega_test;
+
 // Constants for DO_NOT_USE values
 const DO_NOT_USE_I2: i16 = -32768;
 const DO_NOT_USE_U1: u8  = 255;
