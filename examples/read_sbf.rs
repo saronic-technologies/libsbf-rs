@@ -159,6 +159,17 @@ fn main() -> anyhow::Result<()> {
                     eprintln!("{:#?}", msg);
                 }
             }
+            Messages::PVTGeodetic(msg) => {
+                if args.verbose {
+                    println!("{:#?}", msg);
+                }
+                *stats.entry("PVTGeodetic").or_insert(0) += 1;
+                if stats.get("PVTGeodetic").unwrap_or(&0) == &1 && !args.verbose {
+                    // Print first PVTGeodetic for debugging
+                    eprintln!("First PVTGeodetic message:");
+                    eprintln!("{:#?}", msg);
+                }
+            }
             Messages::Unsupported(block_id) => {
                 *stats.entry("Unsupported").or_insert(0) += 1;
                 *unsupported_blocks.entry(block_id).or_insert(0) += 1;
