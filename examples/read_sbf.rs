@@ -110,6 +110,12 @@ fn main() -> anyhow::Result<()> {
                 }
                 *stats.entry("ExtSensorMeas").or_insert(0) += 1;
             }
+            Messages::ExtSensorStatus(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("ExtSensorStatus").or_insert(0) += 1;
+            }
             Messages::ReceiverSetup(msg) => {
                 if args.verbose {
                     println!("{:?}", msg);
