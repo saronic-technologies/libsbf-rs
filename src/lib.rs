@@ -50,6 +50,7 @@ pub use messages::{
     ReceiverStatus, AGCState,
     ExtSensorStatus,
     GALIon,
+    GALUtc,
 };
 
 #[binrw]
@@ -119,6 +120,7 @@ define_messages!(
     GEORawL1 => 4020,
     MeasEpoch => 4027,
     GALIon => 4030,
+    GALUtc => 4031,
     INSSupport => 4077,
     Meas3Ranges => 4109,
     Meas3Doppler => 4111,

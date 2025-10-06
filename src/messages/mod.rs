@@ -18,6 +18,7 @@ pub mod pvt_geodetic;
 pub mod receiver_status;
 pub mod ext_sensor_status;
 pub mod gal_ion;
+pub mod gal_utc;
 
 pub use meas_epoch::{MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2};
 pub use meas_extra::{MeasExtra, MeasExtraChannelSub};
@@ -47,3 +48,4 @@ pub use pvt_geodetic::PVTGeodetic;
 pub use receiver_status::{ReceiverStatus, AGCState};
 pub use ext_sensor_status::ExtSensorStatus;
 pub use gal_ion::GALIon;
+pub use gal_utc::GALUtc;
