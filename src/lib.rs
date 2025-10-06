@@ -56,6 +56,7 @@ pub use messages::{
     ExtSensorInfo,
     GALNav,
     GALGstGps,
+    GPSNav,
 };
 
 #[binrw]
@@ -144,6 +145,7 @@ define_messages!(
     ReceiverSetup => 5902,
     GEONav => 5896,
     GPSIon => 5893,
+    GPSNav => 5891,
     PosCovGeodetic => 5906,
 );
 

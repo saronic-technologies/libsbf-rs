@@ -206,6 +206,12 @@ fn main() -> anyhow::Result<()> {
                 }
                 *stats.entry("ReceiverStatus").or_insert(0) += 1;
             }
+            Messages::GPSNav(msg) => {
+                if args.verbose {
+                    println!("{:#?}", msg);
+                }
+                *stats.entry("GPSNav").or_insert(0) += 1;
+            }
             Messages::Unsupported(block_id) => {
                 *stats.entry("Unsupported").or_insert(0) += 1;
                 *unsupported_blocks.entry(block_id).or_insert(0) += 1;
