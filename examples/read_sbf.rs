@@ -158,6 +158,12 @@ fn main() -> anyhow::Result<()> {
                 }
                 *stats.entry("GEONav").or_insert(0) += 1;
             }
+            Messages::GPSIon(msg) => {
+                if args.verbose {
+                    println!("{:?}", msg);
+                }
+                *stats.entry("GPSIon").or_insert(0) += 1;
+            }
             Messages::PosCovGeodetic(msg) => {
                 if args.verbose {
                     println!("{:#?}", msg);

@@ -51,6 +51,7 @@ pub use messages::{
     ExtSensorStatus,
     GALIon,
     GALUtc,
+    GPSIon,
 };
 
 #[binrw]
@@ -134,6 +135,7 @@ define_messages!(
     ImuSetup => 4224,
     ReceiverSetup => 5902,
     GEONav => 5896,
+    GPSIon => 5893,
     PosCovGeodetic => 5906,
 );
 

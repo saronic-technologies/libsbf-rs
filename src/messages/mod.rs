@@ -19,6 +19,7 @@ pub mod receiver_status;
 pub mod ext_sensor_status;
 pub mod gal_ion;
 pub mod gal_utc;
+pub mod gps_ion;
 
 pub use meas_epoch::{MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2};
 pub use meas_extra::{MeasExtra, MeasExtraChannelSub};
@@ -49,3 +50,4 @@ pub use receiver_status::{ReceiverStatus, AGCState};
 pub use ext_sensor_status::ExtSensorStatus;
 pub use gal_ion::GALIon;
 pub use gal_utc::GALUtc;
+pub use gps_ion::GPSIon;
