@@ -251,15 +251,14 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
     Ok((res, sync_index + total_size))
 }
 
+#[derive(Default)]
 pub struct SbfParser {
     buf: Vec<u8>,
 }
 
 impl SbfParser {
     pub fn new() -> Self {
-        Self {
-            buf: Vec::new(),
-        }
+        Self::default()
     }
 
     /// Consume bytes and attempt to parse the message. If we can't
@@ -293,7 +292,6 @@ impl SbfParser {
 
 
 #[cfg(test)]
-
 mod tests {
     use super::*;
     use proptest::prelude::*;

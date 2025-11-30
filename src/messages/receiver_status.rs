@@ -1,18 +1,19 @@
 use binrw::binrw;
 use alloc::vec::Vec;
+use crate::do_not_use::{map_u1, map_u2, map_u4, unmap_u1, unmap_u2, unmap_u4, write_vec};
 
 // ReceiverStatus Block 4014
 #[binrw]
 #[derive(Debug, Clone)]
 pub struct ReceiverStatus {
-    #[br(map = crate::do_not_use::map_u4)]
-    #[bw(map = |x| crate::do_not_use::unmap_u4(x))]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = crate::do_not_use::map_u2)]
-    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
-    #[br(map = crate::do_not_use::map_u1)]
-    #[bw(map = |x| crate::do_not_use::unmap_u1(x))]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub cpu_load: Option<u8>,
     pub ext_error: u8,
     pub up_time: u32,
@@ -22,10 +23,10 @@ pub struct ReceiverStatus {
     pub sb_length: u8,
     pub cmd_count: u8,
     pub temperature: u8,
-    #[br(count = n)]
+    #[br(count = n as usize)]
     pub agc_state: Vec<AGCState>,
     #[br(parse_with = binrw::helpers::until_eof)]
-    #[bw(write_with = crate::do_not_use::write_vec)]
+    #[bw(write_with = write_vec)]
     pub padding: Vec<u8>,
 }
 

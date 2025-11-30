@@ -1,15 +1,16 @@
 use binrw::binrw;
 use alloc::vec::Vec;
+use crate::do_not_use::{map_u1, map_u2, map_u4, map_f4, unmap_u1, unmap_u2, unmap_u4, unmap_f4, write_vec};
 
 // GALNav Block 4002
 #[binrw]
 #[derive(Debug, Clone)]
 pub struct GALNav {
-    #[br(map = crate::do_not_use::map_u4)]
-    #[bw(map = |x| crate::do_not_use::unmap_u4(x))]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = crate::do_not_use::map_u2)]
-    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     pub svid: u8,
     pub source: u8,
@@ -38,29 +39,29 @@ pub struct GALNav {
     pub iod_nav: u16,
     pub health_ossol: u16,
     pub health_prs: u8,
-    #[br(map = crate::do_not_use::map_u1)]
-    #[bw(map = |x| crate::do_not_use::unmap_u1(x))]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub sisa_l1e5a: Option<u8>,
-    #[br(map = crate::do_not_use::map_u1)]
-    #[bw(map = |x| crate::do_not_use::unmap_u1(x))]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub sisa_l1e5b: Option<u8>,
-    #[br(map = crate::do_not_use::map_u1)]
-    #[bw(map = |x| crate::do_not_use::unmap_u1(x))]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub sisa_l1ae6a: Option<u8>,
-    #[br(map = crate::do_not_use::map_f4)]
-    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub bgd_l1e5a: Option<f32>,
-    #[br(map = crate::do_not_use::map_f4)]
-    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub bgd_l1e5b: Option<f32>,
-    #[br(map = crate::do_not_use::map_f4)]
-    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub bgd_l1ae6a: Option<f32>,
-    #[br(map = crate::do_not_use::map_u1)]
-    #[bw(map = |x| crate::do_not_use::unmap_u1(x))]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub cnav_enc: Option<u8>,
     #[br(parse_with = binrw::helpers::until_eof)]
-    #[bw(write_with = crate::do_not_use::write_vec)]
+    #[bw(write_with = write_vec)]
     pub padding: Vec<u8>,
 }
 

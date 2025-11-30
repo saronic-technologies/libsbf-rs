@@ -1,20 +1,21 @@
 use binrw::binrw;
 use alloc::vec::Vec;
+use crate::do_not_use::{map_u2, map_u4, unmap_u2, unmap_u4};
 
 // MeasExtra Block 4000
 #[binrw]
 #[derive(Debug, Clone)]
 pub struct MeasExtra {
-    #[br(map = crate::do_not_use::map_u4)]
-    #[bw(map = |x| crate::do_not_use::unmap_u4(x))]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = crate::do_not_use::map_u2)]
-    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     pub n: u8,
     pub sb_length: u8,
     pub doppler_var_factor: f32,
-    #[br(count = n)]
+    #[br(count = n as usize)]
     pub channel_sub: Vec<MeasExtraChannelSub>,
 }
 
@@ -25,14 +26,14 @@ pub struct MeasExtraChannelSub {
     pub type_field: u8,
     pub mp_correction: i16,
     pub smoothing_corr: i16,
-    #[br(map = crate::do_not_use::map_u2)]
-    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub code_var: Option<u16>,
-    #[br(map = crate::do_not_use::map_u2)]
-    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub carrier_var: Option<u16>,
-    #[br(map = crate::do_not_use::map_u2)]
-    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub lock_time: Option<u16>,
     pub cum_loss_cont: u8,
     pub car_mp_corr: i8,
