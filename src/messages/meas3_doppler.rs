@@ -6,15 +6,18 @@ use alloc::vec::Vec;
 // The documentation states that the reference C implementation should be used to 
 // parse these messages. For now, we store the raw bytes.
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Meas3Doppler {
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u4)]
+    #[bw(map = |x| crate::do_not_use::unmap_u4(x))]
     pub tow: Option<u32>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u2)]
+    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
     pub wnc: Option<u16>,
     
     // The rest of the message is undocumented and requires the C implementation
     // to properly parse. We store the raw bytes for future processing.
     #[br(parse_with = binrw::helpers::until_eof)]
+    #[bw(write_with = crate::do_not_use::write_vec)]
     pub raw_data: Vec<u8>,
 }

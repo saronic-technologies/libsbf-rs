@@ -3,15 +3,18 @@ use alloc::vec::Vec;
 
 // GPSNav Block 5891
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GPSNav {
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u4)]
+    #[bw(map = |x| crate::do_not_use::unmap_u4(x))]
     pub tow: Option<u32>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u2)]
+    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
     pub wnc: Option<u16>,
     pub prn: u8,
     pub reserved: u8,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u2)]
+    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
     pub wn: Option<u16>,
     pub ca_or_p_on_l2: u8,
     pub ura: u8,
@@ -46,6 +49,7 @@ pub struct GPSNav {
     pub wn_t_oc: u16,
     pub wn_t_oe: u16,
     #[br(parse_with = binrw::helpers::until_eof)]
+    #[bw(write_with = crate::do_not_use::write_vec)]
     pub padding: Vec<u8>,
 }
 

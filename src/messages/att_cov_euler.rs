@@ -2,25 +2,33 @@ use binrw::binrw;
 
 // AttCovEuler Block 5939
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AttCovEuler {
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u4)]
+    #[bw(map = |x| crate::do_not_use::unmap_u4(x))]
     pub tow: Option<u32>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u2)]
+    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
     pub wnc: Option<u16>,
     pub reserved: u8,
     pub error: u8,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub cov_head_head: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub cov_pitch_pitch: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub cov_roll_roll: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub cov_head_pitch: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub cov_head_roll: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub cov_pitch_roll: Option<f32>,
 }
 

@@ -3,59 +3,80 @@ use alloc::vec::Vec;
 
 // PVTGeodetic Block 4007
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PVTGeodetic {
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u4)]
+    #[bw(map = |x| crate::do_not_use::unmap_u4(x))]
     pub tow: Option<u32>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u2)]
+    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
     pub wnc: Option<u16>,
     pub mode: u8,
     pub error: u8,
-    #[br(map = |x: f64| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f8)]
+    #[bw(map = |x| crate::do_not_use::unmap_f8(x))]
     pub latitude: Option<f64>,
-    #[br(map = |x: f64| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f8)]
+    #[bw(map = |x| crate::do_not_use::unmap_f8(x))]
     pub longitude: Option<f64>,
-    #[br(map = |x: f64| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f8)]
+    #[bw(map = |x| crate::do_not_use::unmap_f8(x))]
     pub height: Option<f64>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub undulation: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub vn: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub ve: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub vu: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub cog: Option<f32>,
-    #[br(map = |x: f64| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f8)]
+    #[bw(map = |x| crate::do_not_use::unmap_f8(x))]
     pub rx_clk_bias: Option<f64>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub rx_clk_drift: Option<f32>,
-    #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u1)]
+    #[bw(map = |x| crate::do_not_use::unmap_u1(x))]
     pub time_system: Option<u8>,
-    #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u1)]
+    #[bw(map = |x| crate::do_not_use::unmap_u1(x))]
     pub datum: Option<u8>,
-    #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u1)]
+    #[bw(map = |x| crate::do_not_use::unmap_u1(x))]
     pub nr_sv: Option<u8>,
     pub wa_corr_info: u8,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u2)]
+    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
     pub reference_id: Option<u16>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u2)]
+    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
     pub mean_corr_age: Option<u16>,
     pub signal_info: u32,
     pub alert_flag: u8,
     // Rev 1 fields
     pub nr_bases: u8,
     pub ppp_info: u16,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u2)]
+    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
     pub latency: Option<u16>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u2)]
+    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
     pub h_accuracy: Option<u16>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u2)]
+    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
     pub v_accuracy: Option<u16>,
     pub misc: u8,
     // Rev 2 fields
     #[br(parse_with = binrw::helpers::until_eof)]
+    #[bw(write_with = crate::do_not_use::write_vec)]
     pub padding: Vec<u8>,
 }
 

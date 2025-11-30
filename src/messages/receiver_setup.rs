@@ -2,11 +2,13 @@ use binrw::binrw;
 
 // Receiver Setup Block 5902
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ReceiverSetup {
-    #[br(map = |x| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u4)]
+    #[bw(map = |x| crate::do_not_use::unmap_u4(x))]
     pub tow: Option<u32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u2)]
+    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
     pub wnc: Option<u16>,
     pub reserved: [u8; 2],
     pub marker_name: [u8; 60],
@@ -18,20 +20,26 @@ pub struct ReceiverSetup {
     pub rx_version: [u8; 20],
     pub ant_serial_nbr: [u8; 20],
     pub ant_type: [u8; 20],
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub delta_h: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub delta_e: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub delta_n: Option<f32>,
     pub marker_type: [u8; 20],
     pub gnss_fw_version: [u8; 40],
     pub product_name: [u8; 40],
-    #[br(map = |x| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f8)]
+    #[bw(map = |x| crate::do_not_use::unmap_f8(x))]
     pub latitude: Option<f64>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f8)]
+    #[bw(map = |x| crate::do_not_use::unmap_f8(x))]
     pub longitude: Option<f64>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub height: Option<f32>,
     pub station_code: [u8; 10],
     pub monument_idx: u8,

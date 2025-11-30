@@ -3,11 +3,13 @@ use alloc::vec::Vec;
 
 // External Sensor Measurement Block 4050
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ExtSensorMeas {
-    #[br(map = |x| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u4)]
+    #[bw(map = |x| crate::do_not_use::unmap_u4(x))]
     pub tow: Option<u32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u2)]
+    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
     pub wnc: Option<u16>,
     pub n: u8,
     pub sb_length: u8,
@@ -26,7 +28,7 @@ pub enum ExtSensorMeasSetType {
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ExtSensorMeasSet {
     pub source: u8,
     pub sensor_model: u8,
@@ -46,54 +48,67 @@ pub struct ExtSensorMeasSet {
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ExtSensorMeasAcceleration {
-    #[br(map = |x| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f8)]
+    #[bw(map = |x| crate::do_not_use::unmap_f8(x))]
     pub ax: Option<f64>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f8)]
+    #[bw(map = |x| crate::do_not_use::unmap_f8(x))]
     pub ay: Option<f64>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f8)]
+    #[bw(map = |x| crate::do_not_use::unmap_f8(x))]
     pub az: Option<f64>,
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ExtSensorMeasAngularRate {
-    #[br(map = |x| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f8)]
+    #[bw(map = |x| crate::do_not_use::unmap_f8(x))]
     pub wx: Option<f64>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f8)]
+    #[bw(map = |x| crate::do_not_use::unmap_f8(x))]
     pub wy: Option<f64>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f8)]
+    #[bw(map = |x| crate::do_not_use::unmap_f8(x))]
     pub wz: Option<f64>,
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ExtSensorMeasVelocity {
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub vx: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub vy: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub vz: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub stdx: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub stdy: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_f4)]
+    #[bw(map = |x| crate::do_not_use::unmap_f4(x))]
     pub stdz: Option<f32>,
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ExtSensorMeasInfo {
-    #[br(map = |x| if x == crate::DO_NOT_USE_I2 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_i2)]
+    #[bw(map = |x| crate::do_not_use::unmap_i2(x))]
     pub sensor_temp: Option<i16>,
     pub _reserved: [u8; 22],
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ExtSensorMeasZeroVelocityFlag {
     pub zero_v_flag: f64,
     pub _reserved: [u8; 16],

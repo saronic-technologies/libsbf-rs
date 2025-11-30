@@ -3,13 +3,16 @@ use alloc::vec::Vec;
 
 // ReceiverStatus Block 4014
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ReceiverStatus {
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u4)]
+    #[bw(map = |x| crate::do_not_use::unmap_u4(x))]
     pub tow: Option<u32>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u2)]
+    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
     pub wnc: Option<u16>,
-    #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u1)]
+    #[bw(map = |x| crate::do_not_use::unmap_u1(x))]
     pub cpu_load: Option<u8>,
     pub ext_error: u8,
     pub up_time: u32,
@@ -22,11 +25,12 @@ pub struct ReceiverStatus {
     #[br(count = n)]
     pub agc_state: Vec<AGCState>,
     #[br(parse_with = binrw::helpers::until_eof)]
+    #[bw(write_with = crate::do_not_use::write_vec)]
     pub padding: Vec<u8>,
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct AGCState {
     pub frontend_id: u8,
     #[br(map = |x: i8| if x == -128 { None } else { Some(x) })]

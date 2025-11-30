@@ -3,11 +3,13 @@ use alloc::vec::Vec;
 
 // MeasEpoch Block 4027
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MeasEpoch {
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u4)]
+    #[bw(map = |x| crate::do_not_use::unmap_u4(x))]
     pub tow: Option<u32>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u2)]
+    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
     pub wnc: Option<u16>,
     pub n1: u8,
     pub sb1_length: u8,
@@ -20,7 +22,7 @@ pub struct MeasEpoch {
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MeasEpochChannelType1 {
     pub rx_channel: u8,
     pub type_field: u8,
@@ -31,9 +33,11 @@ pub struct MeasEpochChannelType1 {
     pub doppler: Option<i32>,
     pub carrier_lsb: u16,
     pub carrier_msb: i8,
-    #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u1)]
+    #[bw(map = |x| crate::do_not_use::unmap_u1(x))]
     pub cn0: Option<u8>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u2)]
+    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
     pub lock_time: Option<u16>,
     pub obs_info: u8,
     pub n2: u8,
@@ -43,12 +47,14 @@ pub struct MeasEpochChannelType1 {
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct MeasEpochChannelType2 {
     pub type_field: u8,
-    #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u1)]
+    #[bw(map = |x| crate::do_not_use::unmap_u1(x))]
     pub lock_time: Option<u8>,
-    #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u1)]
+    #[bw(map = |x| crate::do_not_use::unmap_u1(x))]
     pub cn0: Option<u8>,
     pub offsets_msb: u8,
     pub carrier_msb: i8,

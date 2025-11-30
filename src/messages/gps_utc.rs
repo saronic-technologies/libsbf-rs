@@ -3,11 +3,13 @@ use alloc::vec::Vec;
 
 // GPSUtc Block 5894
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GPSUtc {
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u4)]
+    #[bw(map = |x| crate::do_not_use::unmap_u4(x))]
     pub tow: Option<u32>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = crate::do_not_use::map_u2)]
+    #[bw(map = |x| crate::do_not_use::unmap_u2(x))]
     pub wnc: Option<u16>,
     pub prn: u8,
     pub reserved: u8,
@@ -20,5 +22,6 @@ pub struct GPSUtc {
     pub dn: u8,
     pub del_t_lsf: i8,
     #[br(parse_with = binrw::helpers::until_eof)]
+    #[bw(write_with = crate::do_not_use::write_vec)]
     pub padding: Vec<u8>,
 }
