@@ -14,13 +14,6 @@ libfuzzer-sys = "0.4"
 libsbf = { path = "..", features = [ "std" ] }
 
 [[bin]]
-name = "fuzz_target_1"
-path = "fuzz_targets/fuzz_target_1.rs"
-test = false
-doc = false
-bench = false
-
-[[bin]]
 name = "reader_fuzz"
 path = "fuzz_targets/reader_fuzz.rs"
 test = false
