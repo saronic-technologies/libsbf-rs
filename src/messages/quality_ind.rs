@@ -1,12 +1,15 @@
 use binrw::binrw;
+use crate::do_not_use::{map_u2, map_u4, unmap_u2, unmap_u4};
 
 // Quality Indicator Block 4082
 #[binrw]
 #[derive(Debug, PartialEq)]
 pub struct QualityInd {
-    #[br(map = |x| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     pub n: u8,
     pub reserved: u8,

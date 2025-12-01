@@ -14,6 +14,7 @@ extern crate alloc;
 
 pub mod parser;
 pub mod messages;
+pub mod do_not_use;
 
 #[cfg(feature = "std")]
 #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
@@ -21,14 +22,6 @@ pub mod reader;
 
 #[cfg(all(test, feature = "std"))]
 mod mega_test;
-
-// Constants for DO_NOT_USE values
-const DO_NOT_USE_I2: i16 = -32768;
-const DO_NOT_USE_U1: u8  = 255;
-const DO_NOT_USE_U2: u16 = 65535;
-const DO_NOT_USE_U4: u32 = 4294967295;
-const DO_NOT_USE_F4: f32 = -2e10;
-const DO_NOT_USE_F8: f64 = -2e10;
 
 // Re-export all message types at crate level
 pub use messages::{
@@ -67,7 +60,7 @@ pub use messages::{
 };
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Id {
     pub bytes: u16,
 }
@@ -89,7 +82,7 @@ impl Id {
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 struct Header {
     pub crc: u16,
     pub block_id: Id,

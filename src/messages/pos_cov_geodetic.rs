@@ -1,34 +1,47 @@
 use binrw::binrw;
+use crate::do_not_use::{map_u2, map_u4, map_f4, unmap_u2, unmap_u4, unmap_f4};
 
 // PosCovGeodetic Block 5906
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PosCovGeodetic {
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     pub mode: u8,
     pub error: u8,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_latlat: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_lonlon: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_hgthgt: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_bb: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_latlon: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_lathgt: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_latb: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_lonhgt: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_lonb: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_hb: Option<f32>,
 }
 

@@ -1,17 +1,21 @@
 use binrw::binrw;
 use alloc::vec::Vec;
+use crate::do_not_use::{map_u2, map_u4, unmap_u2, unmap_u4, write_vec};
 
 // ExtSensorInfo Block 4222
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ExtSensorInfo {
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     pub source: u8,
     pub sensor_model: u8,
     #[br(parse_with = binrw::helpers::until_eof)]
+    #[bw(write_with = write_vec)]
     pub data: Vec<u8>,
 }
 

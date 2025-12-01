@@ -1,61 +1,83 @@
 use binrw::binrw;
 use alloc::vec::Vec;
+use crate::do_not_use::{map_u1, map_u2, map_u4, map_f4, map_f8, unmap_u1, unmap_u2, unmap_u4, unmap_f4, unmap_f8, write_vec};
 
 // PVTGeodetic Block 4007
 #[binrw]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PVTGeodetic {
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     pub mode: u8,
     pub error: u8,
-    #[br(map = |x: f64| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub latitude: Option<f64>,
-    #[br(map = |x: f64| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub longitude: Option<f64>,
-    #[br(map = |x: f64| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub height: Option<f64>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub undulation: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub vn: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub ve: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub vu: Option<f32>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cog: Option<f32>,
-    #[br(map = |x: f64| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub rx_clk_bias: Option<f64>,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub rx_clk_drift: Option<f32>,
-    #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) })]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub time_system: Option<u8>,
-    #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) })]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub datum: Option<u8>,
-    #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) })]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub nr_sv: Option<u8>,
     pub wa_corr_info: u8,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub reference_id: Option<u16>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub mean_corr_age: Option<u16>,
     pub signal_info: u32,
     pub alert_flag: u8,
     // Rev 1 fields
     pub nr_bases: u8,
     pub ppp_info: u16,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub latency: Option<u16>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub h_accuracy: Option<u16>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub v_accuracy: Option<u16>,
     pub misc: u8,
     // Rev 2 fields
     #[br(parse_with = binrw::helpers::until_eof)]
+    #[bw(write_with = write_vec)]
     pub padding: Vec<u8>,
 }
 

@@ -16,7 +16,7 @@ const BUFFER_SIZE: usize = 1024 * 8;
 /// use libsbf::reader::SbfReader;
 /// use std::env;
 /// use std::net::TcpStream;
-
+///
 /// fn main() -> anyhow::Result<()> {
 ///     let stream = TcpStream::connect("127.0.0.1:8080")?;
 ///     let sbf_reader = SbfReader::new(stream);
@@ -94,7 +94,6 @@ impl<R: Read> Iterator for SbfReader<R> {
 }
 
 #[cfg(test)]
-
 mod tests {
     use anyhow::Result;
     use libsbf::{Messages, reader::SbfReader};

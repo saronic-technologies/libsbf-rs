@@ -128,8 +128,7 @@ mod tests {
         let mut found_gps_nav = false;
         let mut found_ext_sensor = false;
         
-        for msg_result in sbf_reader {
-            if let Ok(msg) = msg_result {
+        for msg in sbf_reader.flatten() {
                 match msg {
                     Messages::ReceiverSetup(setup) => {
                         // Verify ReceiverSetup has expected data
@@ -164,7 +163,6 @@ mod tests {
                     }
                     _ => {}
                 }
-            }
         }
         
         assert!(found_receiver_setup, "Should find ReceiverSetup message");
