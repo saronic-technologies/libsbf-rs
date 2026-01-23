@@ -3,7 +3,7 @@ use alloc::vec::Vec;
 
 // Quality Indicator Block 4082
 #[binrw]
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct QualityInd {
     #[br(map = |x| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,
@@ -15,4 +15,15 @@ pub struct QualityInd {
     pub indicators: Vec<u16>,
     #[br(parse_with = binrw::helpers::until_eof)]
     pub padding: Vec<u8>,
+}
+
+impl PartialEq for QualityInd {
+    fn eq(&self, other: &Self) -> bool {
+        self.tow == other.tow
+            && self.wnc == other.wnc
+            && self.n == other.n
+            && self.reserved == other.reserved
+            && self.indicators == other.indicators
+        // Note: padding is intentionally not compared as it's not part of the logical message content
+    }
 }
