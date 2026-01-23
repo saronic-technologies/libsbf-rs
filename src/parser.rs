@@ -303,20 +303,16 @@ mod tests {
     const VALID_QUALITY_IND_HEADER: &[u8; 6] = &[134, 98, 242, 15, 32, 0];
     const VALID_QUALITY_IND_PAYLOAD: &[u8; 24] = &[184, 244, 58, 29, 56, 9, 7, 0, 11, 10, 12, 10, 1, 0, 2, 0, 21, 10, 31, 0, 0, 0, 0, 0];
 
-    const VALID_QUALITY_IND: QualityInd = QualityInd {
-        tow: Some(490403000),
-        wnc: Some(2360),
-        n: 7,
-        reserved: 0,
-        indicator_1: Some(2571),
-        indicator_2: Some(2572),
-        indicator_3: Some(1),
-        indicator_4: Some(2),
-        indicator_5: Some(2581),
-        indicator_6: Some(31),
-        indicator_7: Some(0),
-        indicator_8: None
-    };
+    fn get_valid_quality_ind() -> QualityInd {
+        QualityInd {
+            tow: Some(490403000),
+            wnc: Some(2360),
+            n: 7,
+            reserved: 0,
+            indicators: alloc::vec![2571, 2572, 1, 2, 2581, 31, 0],
+            padding: alloc::vec![0, 0],
+        }
+    }
 
     // Helper function to create ReceiverSetup test payload
     fn create_receiver_setup_payload() -> Vec<u8> {
@@ -481,7 +477,7 @@ mod tests {
             match parser.consume(test_input.as_slice()) {
                 Some(message) => {
                     if let Messages::QualityInd(qi) = message {
-                        prop_assert_eq!(qi, VALID_QUALITY_IND);
+                        prop_assert_eq!(qi, get_valid_quality_ind());
                     } else {
                         prop_assert!(false, "Parsed to wrong Septentrio Message: {:?}", message);
                     }
