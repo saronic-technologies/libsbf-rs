@@ -32,15 +32,17 @@ const DO_NOT_USE_F8: f64 = -2e10;
 
 // Re-export all message types at crate level
 pub use messages::{
-    AGCState, AttCovEuler, AttEuler, BDSIon, Commands, DiffCorrIn, ExtSensorInfo, ExtSensorMeas,
-    ExtSensorMeasAcceleration, ExtSensorMeasAngularRate, ExtSensorMeasInfo, ExtSensorMeasSet,
-    ExtSensorMeasSetType, ExtSensorMeasVelocity, ExtSensorMeasZeroVelocityFlag, ExtSensorStatus,
-    GALGstGps, GALIon, GALNav, GALUtc, GEONav, GEORawL1, GPSCNav, GPSIon, GPSNav, GPSUtc,
-    INSNavGeod, INSNavGeodAtt, INSNavGeodAttCov, INSNavGeodAttStdDev, INSNavGeodPosCov,
-    INSNavGeodPosStdDev, INSNavGeodVel, INSNavGeodVelCov, INSNavGeodVelStdDev, INSSupport,
-    ImuSetup, Meas3Doppler, Meas3Ranges, MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2,
-    MeasExtra, MeasExtraChannelSub, PVTGeodetic, PosCovGeodetic, QualityInd, ReceiverSetup,
-    ReceiverStatus, VelSensorSetup,
+    AGCState, AttCovEuler, AttEuler, AttitudeMode, BDSIon, BaselineError, Commands, Datum,
+    DiffCorrIn, DiffCorrType, ExtError, ExtSensorInfo, ExtSensorMeas, ExtSensorMeasAcceleration,
+    ExtSensorMeasAngularRate, ExtSensorMeasInfo, ExtSensorMeasSet, ExtSensorMeasSetType,
+    ExtSensorMeasVelocity, ExtSensorMeasZeroVelocityFlag, ExtSensorStatus, GALGstGps, GALIon,
+    GALNav, GALUtc, GEONav, GEORawL1, GPSCNav, GPSIon, GPSNav, GPSUtc, GnssMode, INSCouplingMode,
+    INSError, INSNavGeod, INSNavGeodAtt, INSNavGeodAttCov, INSNavGeodAttStdDev, INSNavGeodPosCov,
+    INSNavGeodPosStdDev, INSNavGeodVel, INSNavGeodVelCov, INSNavGeodVelStdDev, INSSolutionLocation,
+    INSSupport, ImuSetup, Meas3Doppler, Meas3Ranges, MeasEpoch, MeasEpochChannelType1,
+    MeasEpochChannelType2, MeasExtra, MeasExtraChannelSub, PVTGeodetic, PosCovGeodetic, PvtError,
+    PvtMode, PvtModeFlags, QualityInd, QualityIndicator, RaimIntegrity, ReceiverSetup,
+    ReceiverStatus, RxError, RxState, VelSensorSetup, WACorrFlags,
 };
 
 #[binrw]

@@ -31,7 +31,7 @@ pub mod receiver_status;
 pub mod vel_sensor_setup;
 
 pub use att_cov_euler::AttCovEuler;
-pub use att_euler::AttEuler;
+pub use att_euler::{AttEuler, AttitudeMode, BaselineError};
 pub use bds_ion::BDSIon;
 pub use commands::Commands;
 pub use diff_corr_in::DiffCorrIn;
@@ -53,8 +53,9 @@ pub use gps_nav::GPSNav;
 pub use gps_utc::GPSUtc;
 pub use imu_setup::ImuSetup;
 pub use ins_nav_geod::{
-    INSNavGeod, INSNavGeodAtt, INSNavGeodAttCov, INSNavGeodAttStdDev, INSNavGeodPosCov,
-    INSNavGeodPosStdDev, INSNavGeodVel, INSNavGeodVelCov, INSNavGeodVelStdDev,
+    GnssMode, INSCouplingMode, INSError, INSNavGeod, INSNavGeodAtt, INSNavGeodAttCov,
+    INSNavGeodAttStdDev, INSNavGeodPosCov, INSNavGeodPosStdDev, INSNavGeodVel, INSNavGeodVelCov,
+    INSNavGeodVelStdDev, INSSolutionLocation,
 };
 pub use ins_support::INSSupport;
 pub use meas3_doppler::Meas3Doppler;
@@ -62,8 +63,10 @@ pub use meas3_ranges::Meas3Ranges;
 pub use meas_epoch::{MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2};
 pub use meas_extra::{MeasExtra, MeasExtraChannelSub};
 pub use pos_cov_geodetic::PosCovGeodetic;
-pub use pvt_geodetic::PVTGeodetic;
-pub use quality_ind::QualityInd;
+pub use pvt_geodetic::{
+    Datum, DiffCorrType, PVTGeodetic, PvtError, PvtMode, PvtModeFlags, RaimIntegrity, WACorrFlags,
+};
+pub use quality_ind::{QualityInd, QualityIndicator};
 pub use receiver_setup::ReceiverSetup;
-pub use receiver_status::{AGCState, ReceiverStatus};
+pub use receiver_status::{AGCState, ExtError, ReceiverStatus, RxError, RxState};
 pub use vel_sensor_setup::VelSensorSetup;

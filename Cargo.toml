@@ -1,7 +1,7 @@
 workspace = { members = ["sbf-parser-fuzz"] }
 [package]
 name = "libsbf"
-version = "0.13.0"
+version = "0.14.0"
 edition = "2021"
 license = "MPL-2.0"
 description = "A no_std rust crate to parse Septentrio SBF Messages."
@@ -13,6 +13,7 @@ readme = "README.md"
 
 [dependencies]
 binrw = "0.13.3"
+bitflags = "2"
 crc16 = "0.4.0"
 heapless = "0.8.0"
 tracing = { version = "0.1.41", default-features = false }
