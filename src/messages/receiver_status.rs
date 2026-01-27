@@ -93,3 +93,43 @@ impl AGCState {
         (self.frontend_id >> 5) & 0x07
     }
 }
+
+impl ReceiverStatus {
+    // RxError helper methods
+    pub fn software_error(&self) -> bool {
+        self.rx_error.contains(RxError::SOFTWARE)
+    }
+
+    pub fn watchdog_error(&self) -> bool {
+        self.rx_error.contains(RxError::WATCHDOG)
+    }
+
+    pub fn antenna_error(&self) -> bool {
+        self.rx_error.contains(RxError::ANTENNA)
+    }
+
+    pub fn congestion_error(&self) -> bool {
+        self.rx_error.contains(RxError::CONGESTION)
+    }
+
+    pub fn cpu_overload_error(&self) -> bool {
+        self.rx_error.contains(RxError::CPU_OVERLOAD)
+    }
+
+    // ExtError helper methods
+    pub fn sis_error(&self) -> bool {
+        self.ext_error.contains(ExtError::SIS)
+    }
+
+    pub fn diff_corr_error(&self) -> bool {
+        self.ext_error.contains(ExtError::DIFF_CORR)
+    }
+
+    pub fn ext_sensor_error(&self) -> bool {
+        self.ext_error.contains(ExtError::EXT_SENSOR)
+    }
+
+    pub fn setup_error(&self) -> bool {
+        self.ext_error.contains(ExtError::SETUP)
+    }
+}
