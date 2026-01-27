@@ -1,4 +1,4 @@
-use libsbf::{Messages, reader::SbfReader};
+use libsbf::{reader::SbfReader, Messages};
 
 use clap::Parser;
 use std::collections::HashMap;
@@ -12,7 +12,7 @@ use tracing_subscriber::EnvFilter;
 #[command(author, version, about, long_about = None)]
 struct Args {
     /// Input source: file path or TCP address (host:port)
-    /// 
+    ///
     /// Examples:
     ///   - /path/to/file.sbf (read from file)
     ///   - 192.168.1.100:5555 (connect to TCP)
@@ -30,9 +30,9 @@ fn main() -> anyhow::Result<()> {
         .with_env_filter(EnvFilter::from_default_env())
         .with_writer(std::io::stderr)
         .init();
-    
+
     let args = Args::parse();
-    
+
     // Check if argument looks like a file path or TCP address
     let reader: Box<dyn Read> = if args.input.contains(':') {
         eprintln!("Connecting to TCP: {}", args.input);
@@ -41,7 +41,7 @@ fn main() -> anyhow::Result<()> {
         eprintln!("Reading from file: {}", args.input);
         Box::new(File::open(args.input)?)
     };
-    
+
     let sbf_reader = SbfReader::new(reader);
     let mut stats: HashMap<&str, usize> = HashMap::new();
     let mut unsupported_blocks: HashMap<u16, usize> = HashMap::new();
@@ -87,19 +87,31 @@ fn main() -> anyhow::Result<()> {
             }
             Messages::Meas3Ranges(msg) => {
                 if args.verbose {
-                    println!("Meas3Ranges: TOW={:?}, raw_bytes={}", msg.tow, msg.raw_data.len());
+                    println!(
+                        "Meas3Ranges: TOW={:?}, raw_bytes={}",
+                        msg.tow,
+                        msg.raw_data.len()
+                    );
                 }
                 *stats.entry("Meas3Ranges").or_insert(0) += 1;
             }
             Messages::Meas3Doppler(msg) => {
                 if args.verbose {
-                    println!("Meas3Doppler: TOW={:?}, raw_bytes={}", msg.tow, msg.raw_data.len());
+                    println!(
+                        "Meas3Doppler: TOW={:?}, raw_bytes={}",
+                        msg.tow,
+                        msg.raw_data.len()
+                    );
                 }
                 *stats.entry("Meas3Doppler").or_insert(0) += 1;
             }
             Messages::INSSupport(msg) => {
                 if args.verbose {
-                    println!("INSSupport: TOW={:?}, raw_bytes={}", msg.tow, msg.raw_data.len());
+                    println!(
+                        "INSSupport: TOW={:?}, raw_bytes={}",
+                        msg.tow,
+                        msg.raw_data.len()
+                    );
                 }
                 *stats.entry("INSSupport").or_insert(0) += 1;
             }
@@ -242,7 +254,7 @@ fn main() -> anyhow::Result<()> {
             }
         }
     }
-    
+
     // Print statistics
     eprintln!("\n=== Message Statistics ===");
     let total: usize = stats.values().sum();
@@ -250,7 +262,7 @@ fn main() -> anyhow::Result<()> {
         eprintln!("{}: {}", msg_type, count);
     }
     eprintln!("Total messages: {}", total);
-    
+
     // Print unsupported blocks
     if !unsupported_blocks.is_empty() {
         eprintln!("\n=== Unsupported Block IDs ===");
@@ -260,7 +272,7 @@ fn main() -> anyhow::Result<()> {
             eprintln!("  0x{:04X} ({}): {} occurrences", block_id, block_id, count);
         }
     }
-    
+
     // Print AttCovEuler error distribution
     if !att_cov_errors.is_empty() {
         eprintln!("\n=== AttCovEuler Error Distribution ===");
@@ -268,6 +280,6 @@ fn main() -> anyhow::Result<()> {
             eprintln!("  Error {}: {} occurrences", error_code, count);
         }
     }
-    
+
     Ok(())
 }

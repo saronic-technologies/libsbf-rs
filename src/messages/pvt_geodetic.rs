@@ -1,5 +1,5 @@
-use binrw::binrw;
 use alloc::vec::Vec;
+use binrw::binrw;
 
 // PVTGeodetic Block 4007
 #[binrw]
@@ -71,7 +71,7 @@ impl PVTGeodetic {
     pub const MODE_MOVING_BASE_RTK_FIXED: u8 = 7;
     pub const MODE_MOVING_BASE_RTK_FLOAT: u8 = 8;
     pub const MODE_PPP: u8 = 10;
-    
+
     // Error codes
     pub const ERROR_NONE: u8 = 0;
     pub const ERROR_NOT_ENOUGH_MEAS: u8 = 1;
@@ -84,7 +84,7 @@ impl PVTGeodetic {
     pub const ERROR_NOT_ENOUGH_DIFF_CORR: u8 = 8;
     pub const ERROR_BASE_COORDS_UNAVAILABLE: u8 = 9;
     pub const ERROR_AMBIGUITIES_NOT_FIXED: u8 = 10;
-    
+
     // Time system values
     pub const TIME_GPS: u8 = 0;
     pub const TIME_GALILEO: u8 = 1;
@@ -92,7 +92,7 @@ impl PVTGeodetic {
     pub const TIME_BEIDOU: u8 = 4;
     pub const TIME_QZSS: u8 = 5;
     pub const TIME_FUGRO: u8 = 100;
-    
+
     // Datum values
     pub const DATUM_WGS84: u8 = 0;
     pub const DATUM_BASE_STATION: u8 = 19;
@@ -105,7 +105,7 @@ impl PVTGeodetic {
     pub const DATUM_JGD2011: u8 = 36;
     pub const DATUM_USER_1: u8 = 250;
     pub const DATUM_USER_2: u8 = 251;
-    
+
     // RAIM integrity flags (bits 0-1 of alert_flag)
     pub const RAIM_NOT_ACTIVE: u8 = 0;
     pub const RAIM_TEST_SUCCESS: u8 = 1;

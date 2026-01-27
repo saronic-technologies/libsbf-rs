@@ -1,5 +1,5 @@
-use binrw::binrw;
 use alloc::vec::Vec;
+use binrw::binrw;
 
 // GALGstGps Block 4032
 #[binrw]

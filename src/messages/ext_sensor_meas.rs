@@ -1,5 +1,5 @@
-use binrw::binrw;
 use alloc::vec::Vec;
+use binrw::binrw;
 
 // External Sensor Measurement Block 4050
 #[binrw]

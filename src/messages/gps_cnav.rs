@@ -1,5 +1,5 @@
-use binrw::binrw;
 use alloc::vec::Vec;
+use binrw::binrw;
 
 // GPSCNav Block 4042
 #[binrw]
@@ -62,15 +62,15 @@ impl GPSCNav {
     pub const FLAG_L2C_PHASING: u8 = 0x04;
     pub const FLAG_L2C_USED: u8 = 0x40;
     pub const FLAG_L5_USED: u8 = 0x80;
-    
+
     pub fn is_alert(&self) -> bool {
         self.flags & Self::FLAG_ALERT != 0
     }
-    
+
     pub fn is_l2c_used(&self) -> bool {
         self.flags & Self::FLAG_L2C_USED != 0
     }
-    
+
     pub fn is_l5_used(&self) -> bool {
         self.flags & Self::FLAG_L5_USED != 0
     }

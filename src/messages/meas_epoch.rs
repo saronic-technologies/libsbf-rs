@@ -1,5 +1,5 @@
-use binrw::binrw;
 use alloc::vec::Vec;
+use binrw::binrw;
 
 // MeasEpoch Block 4027
 #[binrw]

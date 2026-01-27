@@ -1,5 +1,5 @@
-use binrw::binrw;
 use alloc::vec::Vec;
+use binrw::binrw;
 
 // GALNav Block 4002
 #[binrw]
@@ -56,9 +56,9 @@ pub struct GALNav {
 
 impl GALNav {
     // Source constants
-    pub const SOURCE_INAV: u8 = 2;  // I/NAV (L1,E5b)
+    pub const SOURCE_INAV: u8 = 2; // I/NAV (L1,E5b)
     pub const SOURCE_FNAV: u8 = 16; // F/NAV (L1,E5a)
-    
+
     // Health_OSSOL bit masks
     pub const HEALTH_L1B_VALID: u16 = 0x0001;
     pub const HEALTH_L1B_DVS: u16 = 0x0002;
@@ -69,7 +69,7 @@ impl GALNav {
     pub const HEALTH_E5A_VALID: u16 = 0x0100;
     pub const HEALTH_E5A_DVS: u16 = 0x0200;
     pub const HEALTH_E5A_HS_MASK: u16 = 0x0C00;
-    
+
     // CNAVenc bit masks
     pub const CNAV_E6B_UNENCRYPTED: u8 = 0x01;
     pub const CNAV_E6C_UNENCRYPTED: u8 = 0x02;

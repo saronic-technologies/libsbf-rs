@@ -1,5 +1,5 @@
-use binrw::binrw;
 use alloc::vec::Vec;
+use binrw::binrw;
 
 // ExtSensorStatus Block 4223
 #[binrw]
@@ -43,7 +43,7 @@ impl ExtSensorStatus {
     pub const SOURCE_IPR4: u8 = 23;
     pub const SOURCE_IPR5: u8 = 24;
     pub const SOURCE_INTERNAL_SPI: u8 = 32;
-    
+
     // Sensor model constants
     pub const MODEL_SBG_ELLIPSE: u8 = 2;
     pub const MODEL_SBG_ELLIPSE2: u8 = 5;
@@ -51,7 +51,7 @@ impl ExtSensorStatus {
     pub const MODEL_ADIS1650X: u8 = 10;
     pub const MODEL_ZERO_VELOCITY: u8 = 20;
     pub const MODEL_VELOCITY_INPUT: u8 = 21;
-    
+
     // ADIS1650x status flags (byte 0)
     pub const ADIS_ERROR: u8 = 0x01;
     pub const ADIS_SENSOR_FAILURE: u8 = 0x02;
@@ -61,7 +61,7 @@ impl ExtSensorStatus {
     pub const ADIS_TIMESTAMP_ERROR: u8 = 0x20;
     pub const ADIS_DATA_GAP: u8 = 0x40;
     pub const ADIS_UNEXPECTED_SAMPLES: u8 = 0x80;
-    
+
     // ADIS1650x info type (byte 1)
     pub const ADIS_INFO_NONE: u8 = 0;
     pub const ADIS_INFO_DIAG_STAT: u8 = 1;

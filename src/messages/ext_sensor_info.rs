@@ -1,5 +1,5 @@
-use binrw::binrw;
 use alloc::vec::Vec;
+use binrw::binrw;
 
 // ExtSensorInfo Block 4222
 #[binrw]
@@ -43,7 +43,7 @@ impl ExtSensorInfo {
     pub const SOURCE_IPR4: u8 = 23;
     pub const SOURCE_IPR5: u8 = 24;
     pub const SOURCE_INTERNAL_SPI: u8 = 32;
-    
+
     // Sensor model constants (same as ExtSensorStatus)
     pub const MODEL_SBG_ELLIPSE: u8 = 2;
     pub const MODEL_SBG_ELLIPSE2: u8 = 5;
@@ -51,7 +51,7 @@ impl ExtSensorInfo {
     pub const MODEL_ADIS1650X: u8 = 10;
     pub const MODEL_ZERO_VELOCITY: u8 = 20;
     pub const MODEL_VELOCITY_INPUT: u8 = 21;
-    
+
     // Data structure sizes
     pub const SBG_DATA_SIZE: usize = 52;
     pub const VN100_DATA_SIZE: usize = 36;

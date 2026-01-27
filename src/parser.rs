@@ -4,7 +4,13 @@ use alloc::vec::Vec;
 use binrw::io::Cursor;
 use binrw::BinRead;
 
-use crate::{Header, MessageKind, Messages, MeasEpoch, MeasExtra, GALNav, Meas3Ranges, Meas3Doppler, INSSupport, GEORawL1, GEONav, GALIon, GALUtc, GALGstGps, GPSCNav, GPSIon, GPSNav, GPSUtc, VelSensorSetup, ExtSensorInfo, PosCovGeodetic, PVTGeodetic, ReceiverStatus, Commands, BDSIon, ExtSensorStatus, DiffCorrIn, AttEuler, AttCovEuler, INSNavGeod, ExtSensorMeas, QualityInd, ImuSetup, ReceiverSetup};
+use crate::{
+    AttCovEuler, AttEuler, BDSIon, Commands, DiffCorrIn, ExtSensorInfo, ExtSensorMeas,
+    ExtSensorStatus, GALGstGps, GALIon, GALNav, GALUtc, GEONav, GEORawL1, GPSCNav, GPSIon, GPSNav,
+    GPSUtc, Header, INSNavGeod, INSSupport, ImuSetup, Meas3Doppler, Meas3Ranges, MeasEpoch,
+    MeasExtra, MessageKind, Messages, PVTGeodetic, PosCovGeodetic, QualityInd, ReceiverSetup,
+    ReceiverStatus, VelSensorSetup,
+};
 
 use crc16::*;
 
@@ -15,7 +21,6 @@ pub enum Error {
     InvalidHeaderCRC,
     BinRWError(binrw::Error),
 }
-
 
 enum ParseError {
     IncompleteData,
@@ -89,157 +94,188 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
     let res = match h.block_id.message_type() {
         MessageKind::MeasExtra => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let meas_extra = MeasExtra::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let meas_extra =
+                MeasExtra::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::MeasExtra(meas_extra)
         }
         MessageKind::GALNav => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let gal_nav = GALNav::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let gal_nav =
+                GALNav::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::GALNav(gal_nav)
         }
         MessageKind::PVTGeodetic => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let pvt_geodetic = PVTGeodetic::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let pvt_geodetic =
+                PVTGeodetic::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::PVTGeodetic(pvt_geodetic)
         }
         MessageKind::ReceiverStatus => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let receiver_status = ReceiverStatus::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let receiver_status = ReceiverStatus::read_le(&mut body_cursor)
+                .map_err(|_| ParseError::InvalidPayload)?;
             Messages::ReceiverStatus(receiver_status)
         }
         MessageKind::Commands => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let commands = Commands::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let commands =
+                Commands::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::Commands(commands)
         }
         MessageKind::GEORawL1 => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let geo_raw_l1 = GEORawL1::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let geo_raw_l1 =
+                GEORawL1::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::GEORawL1(geo_raw_l1)
         }
         MessageKind::MeasEpoch => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let meas_epoch = MeasEpoch::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let meas_epoch =
+                MeasEpoch::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::MeasEpoch(meas_epoch)
         }
         MessageKind::GALIon => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let gal_ion = GALIon::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let gal_ion =
+                GALIon::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::GALIon(gal_ion)
         }
         MessageKind::GALUtc => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let gal_utc = GALUtc::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let gal_utc =
+                GALUtc::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::GALUtc(gal_utc)
         }
         MessageKind::GALGstGps => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let gal_gst_gps = GALGstGps::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let gal_gst_gps =
+                GALGstGps::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::GALGstGps(gal_gst_gps)
         }
         MessageKind::GPSCNav => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let gps_cnav = GPSCNav::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let gps_cnav =
+                GPSCNav::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::GPSCNav(gps_cnav)
         }
         MessageKind::Meas3Ranges => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let meas3_ranges = Meas3Ranges::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let meas3_ranges =
+                Meas3Ranges::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::Meas3Ranges(meas3_ranges)
         }
         MessageKind::Meas3Doppler => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let meas3_doppler = Meas3Doppler::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let meas3_doppler =
+                Meas3Doppler::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::Meas3Doppler(meas3_doppler)
         }
         MessageKind::BDSIon => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let bds_ion = BDSIon::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let bds_ion =
+                BDSIon::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::BDSIon(bds_ion)
         }
         MessageKind::INSSupport => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let ins_support = INSSupport::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let ins_support =
+                INSSupport::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::INSSupport(ins_support)
         }
         MessageKind::QualityInd => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let quality_data = QualityInd::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let quality_data =
+                QualityInd::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::QualityInd(quality_data)
         }
         MessageKind::INSNavGeod => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let ins_nav_geod = INSNavGeod::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let ins_nav_geod =
+                INSNavGeod::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::INSNavGeod(ins_nav_geod)
         }
         MessageKind::VelSensorSetup => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let vel_sensor_setup = VelSensorSetup::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let vel_sensor_setup = VelSensorSetup::read_le(&mut body_cursor)
+                .map_err(|_| ParseError::InvalidPayload)?;
             Messages::VelSensorSetup(vel_sensor_setup)
         }
         MessageKind::AttEuler => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let att_euler = AttEuler::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let att_euler =
+                AttEuler::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::AttEuler(att_euler)
         }
         MessageKind::AttCovEuler => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let att_cov_euler = AttCovEuler::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let att_cov_euler =
+                AttCovEuler::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::AttCovEuler(att_cov_euler)
         }
         MessageKind::DiffCorrIn => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let diff_corr_in = DiffCorrIn::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let diff_corr_in =
+                DiffCorrIn::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::DiffCorrIn(diff_corr_in)
         }
         MessageKind::ExtSensorMeas => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let ext_sensor_meas = ExtSensorMeas::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let ext_sensor_meas =
+                ExtSensorMeas::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::ExtSensorMeas(ext_sensor_meas)
         }
         MessageKind::ExtSensorStatus => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let ext_sensor_status = ExtSensorStatus::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let ext_sensor_status = ExtSensorStatus::read_le(&mut body_cursor)
+                .map_err(|_| ParseError::InvalidPayload)?;
             Messages::ExtSensorStatus(ext_sensor_status)
         }
         MessageKind::ExtSensorInfo => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let ext_sensor_info = ExtSensorInfo::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let ext_sensor_info =
+                ExtSensorInfo::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::ExtSensorInfo(ext_sensor_info)
         }
         MessageKind::ImuSetup => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let imu_setup = ImuSetup::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let imu_setup =
+                ImuSetup::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::ImuSetup(imu_setup)
         }
         MessageKind::ReceiverSetup => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let receiver_setup = ReceiverSetup::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let receiver_setup =
+                ReceiverSetup::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::ReceiverSetup(receiver_setup)
         }
         MessageKind::GEONav => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let geo_nav = GEONav::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let geo_nav =
+                GEONav::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::GEONav(geo_nav)
         }
         MessageKind::GPSIon => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let gps_ion = GPSIon::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let gps_ion =
+                GPSIon::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::GPSIon(gps_ion)
         }
         MessageKind::GPSNav => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let gps_nav = GPSNav::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let gps_nav =
+                GPSNav::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::GPSNav(gps_nav)
         }
         MessageKind::GPSUtc => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let gps_utc = GPSUtc::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let gps_utc =
+                GPSUtc::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::GPSUtc(gps_utc)
         }
         MessageKind::PosCovGeodetic => {
             let mut body_cursor = Cursor::new(payload.as_slice());
-            let pos_cov = PosCovGeodetic::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            let pos_cov = PosCovGeodetic::read_le(&mut body_cursor)
+                .map_err(|_| ParseError::InvalidPayload)?;
             Messages::PosCovGeodetic(pos_cov)
         }
         MessageKind::Unsupported => {
@@ -257,9 +293,7 @@ pub struct SbfParser {
 
 impl SbfParser {
     pub fn new() -> Self {
-        Self {
-            buf: Vec::new(),
-        }
+        Self { buf: Vec::new() }
     }
 
     /// Consume bytes and attempt to parse the message. If we can't
@@ -274,12 +308,17 @@ impl SbfParser {
                     debug!("draining the buffer");
                     self.buf.drain(0..bytes_consumed);
                     return Some(msg);
-                },
+                }
                 Err(ParseError::IncompleteData) => {
                     debug!("Incomplete Data, feed us more!");
                     return None;
                 }
-                Err(ParseError::InvalidCRC | ParseError::InvalidHeader | ParseError::InvalidPayload | ParseError::SyncNotFound) => {
+                Err(
+                    ParseError::InvalidCRC
+                    | ParseError::InvalidHeader
+                    | ParseError::InvalidPayload
+                    | ParseError::SyncNotFound,
+                ) => {
                     debug!("Parse error, drain the buffer down");
                     if !self.buf.is_empty() {
                         self.buf.drain(0..1);
@@ -287,21 +326,21 @@ impl SbfParser {
                 }
             }
         }
-
     }
 }
-
 
 #[cfg(test)]
 
 mod tests {
     use super::*;
-    use proptest::prelude::*;
     use alloc::vec::Vec;
+    use proptest::prelude::*;
 
     const VALID_SYNC: &[u8; 2] = &[36, 64];
     const VALID_QUALITY_IND_HEADER: &[u8; 6] = &[134, 98, 242, 15, 32, 0];
-    const VALID_QUALITY_IND_PAYLOAD: &[u8; 24] = &[184, 244, 58, 29, 56, 9, 7, 0, 11, 10, 12, 10, 1, 0, 2, 0, 21, 10, 31, 0, 0, 0, 0, 0];
+    const VALID_QUALITY_IND_PAYLOAD: &[u8; 24] = &[
+        184, 244, 58, 29, 56, 9, 7, 0, 11, 10, 12, 10, 1, 0, 2, 0, 21, 10, 31, 0, 0, 0, 0, 0,
+    ];
 
     fn get_valid_quality_ind() -> QualityInd {
         QualityInd {
@@ -317,102 +356,102 @@ mod tests {
     // Helper function to create ReceiverSetup test payload
     fn create_receiver_setup_payload() -> Vec<u8> {
         let mut payload = Vec::new();
-        
+
         // TOW and WNc
         payload.extend_from_slice(&490403000u32.to_le_bytes());
         payload.extend_from_slice(&2360u16.to_le_bytes());
         payload.extend_from_slice(&[0u8; 2]); // Reserved
-        
+
         // String fields
         let mut marker_name = [0u8; 60];
         marker_name[..11].copy_from_slice(b"TEST_MARKER");
         payload.extend_from_slice(&marker_name);
-        
+
         let mut marker_number = [0u8; 20];
         marker_number[..5].copy_from_slice(b"12345");
         payload.extend_from_slice(&marker_number);
-        
+
         let mut observer = [0u8; 20];
         observer[..9].copy_from_slice(b"OBSERVER1");
         payload.extend_from_slice(&observer);
-        
+
         let mut agency = [0u8; 40];
         agency[..11].copy_from_slice(b"TEST_AGENCY");
         payload.extend_from_slice(&agency);
-        
+
         let mut rx_serial = [0u8; 20];
         rx_serial[..8].copy_from_slice(b"RX123456");
         payload.extend_from_slice(&rx_serial);
-        
+
         let mut rx_name = [0u8; 20];
         rx_name[..6].copy_from_slice(b"MOSAIC");
         payload.extend_from_slice(&rx_name);
-        
+
         let mut rx_version = [0u8; 20];
         rx_version[..5].copy_from_slice(b"1.0.0");
         payload.extend_from_slice(&rx_version);
-        
+
         let mut ant_serial = [0u8; 20];
         ant_serial[..6].copy_from_slice(b"ANT001");
         payload.extend_from_slice(&ant_serial);
-        
+
         let mut ant_type = [0u8; 20];
         ant_type[..10].copy_from_slice(b"CHOKE_RING");
         payload.extend_from_slice(&ant_type);
-        
+
         // Delta values
         payload.extend_from_slice(&0.0f32.to_le_bytes());
         payload.extend_from_slice(&0.0f32.to_le_bytes());
         payload.extend_from_slice(&0.0f32.to_le_bytes());
-        
+
         let mut marker_type = [0u8; 20];
         marker_type[..8].copy_from_slice(b"GEODETIC");
         payload.extend_from_slice(&marker_type);
-        
+
         let mut fw_version = [0u8; 40];
         fw_version[..7].copy_from_slice(b"FW_V1.0");
         payload.extend_from_slice(&fw_version);
-        
+
         let mut product_name = [0u8; 40];
         product_name[..9].copy_from_slice(b"MOSAIC-X5");
         payload.extend_from_slice(&product_name);
-        
+
         // Position
         payload.extend_from_slice(&0.8997f64.to_le_bytes());
         payload.extend_from_slice(&(-0.00223f64).to_le_bytes());
         payload.extend_from_slice(&45.0f32.to_le_bytes());
-        
+
         let mut station_code = [0u8; 10];
         station_code[..5].copy_from_slice(b"STAT1");
         payload.extend_from_slice(&station_code);
-        
+
         payload.push(1); // MonumentIdx
         payload.push(1); // ReceiverIdx
         payload.extend_from_slice(b"GBR"); // CountryCode
         payload.extend_from_slice(&[0u8; 21]); // Reserved1
-        
+
         payload
     }
 
     fn create_valid_receiver_setup_message() -> Vec<u8> {
         let mut message = Vec::new();
         message.extend_from_slice(VALID_SYNC);
-        
+
         let payload = create_receiver_setup_payload();
         let block_id = 5902u16;
         let length = (payload.len() + 8) as u16;
-        
+
         let mut crc_data = Vec::new();
         crc_data.extend_from_slice(&block_id.to_le_bytes());
         crc_data.extend_from_slice(&length.to_le_bytes());
         crc_data.extend_from_slice(&payload);
         let crc = State::<XMODEM>::calculate(&crc_data);
-        
+
         message.extend_from_slice(&crc.to_le_bytes());
         message.extend_from_slice(&block_id.to_le_bytes());
         message.extend_from_slice(&length.to_le_bytes());
         message.extend_from_slice(&payload);
-        
+
         message
     }
 
@@ -420,7 +459,7 @@ mod tests {
     fn test_receiver_setup_parsing() {
         let message = create_valid_receiver_setup_message();
         let mut parser = SbfParser::new();
-        
+
         match parser.consume(&message) {
             Some(Messages::ReceiverSetup(setup)) => {
                 assert_eq!(setup.tow, Some(490403000));
@@ -472,7 +511,7 @@ mod tests {
             // Initialize parser.
             let mut parser = SbfParser::new();
 
-            
+
             // Process the input.
             match parser.consume(test_input.as_slice()) {
                 Some(message) => {
@@ -494,17 +533,17 @@ mod tests {
         #[test]
         fn test_receiver_setup_with_noise(noise in proptest::collection::vec(any::<u8>(), 0..10000)) {
             let valid_msg = create_valid_receiver_setup_message();
-            
+
             let insert_index = if noise.is_empty() { 0 } else { noise.len() / 2 };
-            
+
             let mut test_input = Vec::new();
             test_input.extend_from_slice(&noise[..insert_index]);
             test_input.extend_from_slice(&valid_msg);
             test_input.extend_from_slice(&noise[insert_index..]);
-            
+
             // Initialize parser.
             let mut parser = SbfParser::new();
-            
+
             // Process the input.
             match parser.consume(test_input.as_slice()) {
                 Some(Messages::ReceiverSetup(setup)) => {
