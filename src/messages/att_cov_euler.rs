@@ -28,7 +28,7 @@ impl AttCovEuler {
     // Error codes for baselines (bits 0-1 and 2-3)
     pub const ERROR_NO_ERROR: u8 = 0;
     pub const ERROR_NOT_ENOUGH_MEASUREMENTS: u8 = 1;
-    
+
     // Bit 7 flag
     pub const ERROR_ATTITUDE_NOT_REQUESTED: u8 = 0x80;
 }

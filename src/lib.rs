@@ -12,8 +12,8 @@ use binrw::binrw;
 
 extern crate alloc;
 
-pub mod parser;
 pub mod messages;
+pub mod parser;
 
 #[cfg(feature = "std")]
 #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
@@ -24,7 +24,7 @@ mod mega_test;
 
 // Constants for DO_NOT_USE values
 const DO_NOT_USE_I2: i16 = -32768;
-const DO_NOT_USE_U1: u8  = 255;
+const DO_NOT_USE_U1: u8 = 255;
 const DO_NOT_USE_U2: u16 = 65535;
 const DO_NOT_USE_U4: u32 = 4294967295;
 const DO_NOT_USE_F4: f32 = -2e10;
@@ -32,38 +32,15 @@ const DO_NOT_USE_F8: f64 = -2e10;
 
 // Re-export all message types at crate level
 pub use messages::{
-    MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2,
-    MeasExtra, MeasExtraChannelSub,
-    Meas3Ranges, Meas3Doppler,
-    DiffCorrIn,
-    INSSupport,
-    INSNavGeod, INSNavGeodPosStdDev, INSNavGeodAtt, INSNavGeodAttStdDev,
-    INSNavGeodVel, INSNavGeodVelStdDev, INSNavGeodPosCov, INSNavGeodVelCov,
-    INSNavGeodAttCov,
-    AttEuler, AttCovEuler,
-    ExtSensorMeas, ExtSensorMeasSet, ExtSensorMeasAcceleration,
-    ExtSensorMeasAngularRate, ExtSensorMeasVelocity, ExtSensorMeasInfo,
-    ExtSensorMeasZeroVelocityFlag, ExtSensorMeasSetType,
-    QualityInd,
-    ImuSetup,
-    ReceiverSetup,
-    GEORawL1, GEONav,
-    PosCovGeodetic,
-    PVTGeodetic,
-    ReceiverStatus, AGCState,
-    ExtSensorStatus,
-    GALIon,
-    GALUtc,
-    GPSIon,
-    GPSUtc,
-    VelSensorSetup,
-    ExtSensorInfo,
-    GALNav,
-    GALGstGps,
-    GPSNav,
-    Commands,
-    BDSIon,
-    GPSCNav,
+    AGCState, AttCovEuler, AttEuler, BDSIon, Commands, DiffCorrIn, ExtSensorInfo, ExtSensorMeas,
+    ExtSensorMeasAcceleration, ExtSensorMeasAngularRate, ExtSensorMeasInfo, ExtSensorMeasSet,
+    ExtSensorMeasSetType, ExtSensorMeasVelocity, ExtSensorMeasZeroVelocityFlag, ExtSensorStatus,
+    GALGstGps, GALIon, GALNav, GALUtc, GEONav, GEORawL1, GPSCNav, GPSIon, GPSNav, GPSUtc,
+    INSNavGeod, INSNavGeodAtt, INSNavGeodAttCov, INSNavGeodAttStdDev, INSNavGeodPosCov,
+    INSNavGeodPosStdDev, INSNavGeodVel, INSNavGeodVelCov, INSNavGeodVelStdDev, INSSupport,
+    ImuSetup, Meas3Doppler, Meas3Ranges, MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2,
+    MeasExtra, MeasExtraChannelSub, PVTGeodetic, PosCovGeodetic, QualityInd, ReceiverSetup,
+    ReceiverStatus, VelSensorSetup,
 };
 
 #[binrw]

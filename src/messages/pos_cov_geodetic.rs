@@ -44,7 +44,7 @@ impl PosCovGeodetic {
     pub const MODE_MOVING_BASE_RTK_FIXED: u8 = 7;
     pub const MODE_MOVING_BASE_RTK_FLOAT: u8 = 8;
     pub const MODE_PPP: u8 = 10;
-    
+
     // Error codes
     pub const ERROR_NONE: u8 = 0;
     pub const ERROR_NOT_ENOUGH_MEAS: u8 = 1;

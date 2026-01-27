@@ -1,5 +1,5 @@
-use binrw::binrw;
 use alloc::vec::Vec;
+use binrw::binrw;
 
 // GPSNav Block 5891
 #[binrw]
@@ -54,7 +54,7 @@ impl GPSNav {
     pub const L2_RESERVED: u8 = 0;
     pub const L2_P_CODE: u8 = 1;
     pub const L2_CA_CODE: u8 = 2;
-    
+
     // L2 data flag
     pub const L2_NAV_DATA_OFF: u8 = 0;
     pub const L2_NAV_DATA_ON: u8 = 1;

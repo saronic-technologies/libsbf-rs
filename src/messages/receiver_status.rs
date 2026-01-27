@@ -1,5 +1,5 @@
-use binrw::binrw;
 use alloc::vec::Vec;
+use binrw::binrw;
 
 // ReceiverStatus Block 4014
 #[binrw]
@@ -42,7 +42,7 @@ impl ReceiverStatus {
     pub const EXT_ERROR_DIFFCORR: u8 = 0x02;
     pub const EXT_ERROR_EXTSENSOR: u8 = 0x04;
     pub const EXT_ERROR_SETUP: u8 = 0x08;
-    
+
     // RxState bits
     pub const STATE_ACTIVE_ANTENNA: u32 = 0x00000002;
     pub const STATE_EXT_FREQ: u32 = 0x00000004;
@@ -61,7 +61,7 @@ impl ReceiverStatus {
     pub const STATE_PPS_IN_CAL: u32 = 0x00010000;
     pub const STATE_DIFFCORR_IN: u32 = 0x00020000;
     pub const STATE_INTERNET: u32 = 0x00040000;
-    
+
     // RxError bits
     pub const ERROR_SOFTWARE: u32 = 0x00000008;
     pub const ERROR_WATCHDOG: u32 = 0x00000010;
@@ -90,11 +90,11 @@ impl AGCState {
     pub const FRONTEND_B3: u8 = 12;
     pub const FRONTEND_S_BAND: u8 = 13;
     pub const FRONTEND_B3_E6: u8 = 14;
-    
+
     pub fn frontend_code(&self) -> u8 {
         self.frontend_id & 0x1F
     }
-    
+
     pub fn antenna_id(&self) -> u8 {
         (self.frontend_id >> 5) & 0x07
     }
