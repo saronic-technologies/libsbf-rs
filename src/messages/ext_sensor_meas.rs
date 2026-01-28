@@ -11,7 +11,7 @@ pub struct ExtSensorMeas {
     pub wnc: Option<u16>,
     pub n: u8,
     pub sb_length: u8,
-    #[br(count = n)]
+    #[br(count = usize::from(n))]
     pub ext_sensor_meas_set: Vec<ExtSensorMeasSet>,
 }
 

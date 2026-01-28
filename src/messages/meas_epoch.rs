@@ -15,7 +15,7 @@ pub struct MeasEpoch {
     pub common_flags: u8,
     pub cum_clk_jumps: u8,
     pub rev1: u8,
-    #[br(count = n1)]
+    #[br(count = usize::from(n1))]
     pub channel_type1: Vec<MeasEpochChannelType1>,
 }
 
@@ -38,7 +38,7 @@ pub struct MeasEpochChannelType1 {
     pub obs_info: u8,
     pub n2: u8,
     #[br(align_after = 4)]
-    #[br(count = n2)]
+    #[br(count = usize::from(n2))]
     pub channel_type2: Vec<MeasEpochChannelType2>,
 }
 

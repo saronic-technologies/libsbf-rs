@@ -291,6 +291,12 @@ pub struct SbfParser {
     buf: Vec<u8>,
 }
 
+impl Default for SbfParser {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SbfParser {
     pub fn new() -> Self {
         Self { buf: Vec::new() }
@@ -333,6 +339,7 @@ impl SbfParser {
 
 mod tests {
     use super::*;
+    use crate::QualityIndicator;
     use alloc::vec::Vec;
     use proptest::prelude::*;
 
@@ -342,15 +349,11 @@ mod tests {
         184, 244, 58, 29, 56, 9, 7, 0, 11, 10, 12, 10, 1, 0, 2, 0, 21, 10, 31, 0, 0, 0, 0, 0,
     ];
 
-    fn get_valid_quality_ind() -> QualityInd {
-        QualityInd {
-            tow: Some(490403000),
-            wnc: Some(2360),
-            n: 7,
-            reserved: 0,
-            indicators: alloc::vec![2571, 2572, 1, 2, 2581, 31, 0],
-            padding: alloc::vec![0, 0],
-        }
+    fn assert_valid_quality_ind(qi: &QualityInd) {
+        assert_eq!(qi.tow, Some(490403000));
+        assert_eq!(qi.wnc, Some(2360));
+        let expected: Vec<QualityIndicator> = [2571u16, 2572, 1, 2, 2581, 31, 0].map(QualityIndicator::from).to_vec();
+        assert_eq!(qi.indicators, expected);
     }
 
     // Helper function to create ReceiverSetup test payload
@@ -515,8 +518,8 @@ mod tests {
             // Process the input.
             match parser.consume(test_input.as_slice()) {
                 Some(message) => {
-                    if let Messages::QualityInd(qi) = message {
-                        prop_assert_eq!(qi, get_valid_quality_ind());
+                    if let Messages::QualityInd(ref qi) = message {
+                        assert_valid_quality_ind(qi);
                     } else {
                         prop_assert!(false, "Parsed to wrong Septentrio Message: {:?}", message);
                     }

@@ -12,7 +12,7 @@ pub struct MeasExtra {
     pub n: u8,
     pub sb_length: u8,
     pub doppler_var_factor: f32,
-    #[br(count = n)]
+    #[br(count = usize::from(n))]
     pub channel_sub: Vec<MeasExtraChannelSub>,
 }
 

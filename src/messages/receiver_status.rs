@@ -1,9 +1,56 @@
 use alloc::vec::Vec;
-use binrw::binrw;
+use binrw::BinRead;
+use bitflags::bitflags;
+
+bitflags! {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct ExtError: u8 {
+        const SIS = 0x01;
+        const DIFF_CORR = 0x02;
+        const EXT_SENSOR = 0x04;
+        const SETUP = 0x08;
+    }
+}
+
+bitflags! {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct RxState: u32 {
+        const ACTIVE_ANTENNA = 1 << 1;
+        const EXT_FREQ = 1 << 2;
+        const EXT_TIME = 1 << 3;
+        const WN_SET = 1 << 4;
+        const TOW_SET = 1 << 5;
+        const FINE_TIME = 1 << 6;
+        const INTERNAL_DISK_ACTIVITY = 1 << 7;
+        const INTERNAL_DISK_FULL = 1 << 8;
+        const INTERNAL_DISK_MOUNTED = 1 << 9;
+        const INT_ANT = 1 << 10;
+        const REFOUT_LOCKED = 1 << 11;
+        const EXTERNAL_DISK_ACTIVITY = 1 << 13;
+        const EXTERNAL_DISK_FULL = 1 << 14;
+        const EXTERNAL_DISK_MOUNTED = 1 << 15;
+        const PPS_IN_CAL = 1 << 16;
+        const DIFFCORR_IN = 1 << 17;
+        const INTERNET = 1 << 18;
+    }
+}
+
+bitflags! {
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct RxError: u32 {
+        const SOFTWARE = 1 << 3;
+        const WATCHDOG = 1 << 4;
+        const ANTENNA = 1 << 5;
+        const CONGESTION = 1 << 6;
+        const MISSED_EVENT = 1 << 8;
+        const CPU_OVERLOAD = 1 << 9;
+        const INVALID_CONFIG = 1 << 10;
+        const OUT_OF_GEOFENCE = 1 << 11;
+    }
+}
 
 // ReceiverStatus Block 4014
-#[binrw]
-#[derive(Debug)]
+#[derive(Debug, BinRead)]
 pub struct ReceiverStatus {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,
@@ -11,91 +58,78 @@ pub struct ReceiverStatus {
     pub wnc: Option<u16>,
     #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) })]
     pub cpu_load: Option<u8>,
-    pub ext_error: u8,
+    #[br(map = |x: u8| ExtError::from_bits_truncate(x))]
+    pub ext_error: ExtError,
     pub up_time: u32,
-    pub rx_state: u32,
-    pub rx_error: u32,
+    #[br(map = |x: u32| RxState::from_bits_truncate(x))]
+    pub rx_state: RxState,
+    #[br(map = |x: u32| RxError::from_bits_truncate(x))]
+    pub rx_error: RxError,
     pub n: u8,
     pub sb_length: u8,
     pub cmd_count: u8,
     pub temperature: u8,
-    #[br(count = n)]
+    #[br(count = usize::from(n))]
     pub agc_state: Vec<AGCState>,
     #[br(parse_with = binrw::helpers::until_eof)]
     pub padding: Vec<u8>,
 }
 
-#[binrw]
-#[derive(Debug)]
+#[derive(Debug, BinRead)]
 pub struct AGCState {
     pub frontend_id: u8,
     #[br(map = |x: i8| if x == -128 { None } else { Some(x) })]
     pub gain: Option<i8>,
     pub sample_var: u8,
     pub blanking_stat: u8,
-    // Note: padding handled by parent based on sb_length
-}
-
-impl ReceiverStatus {
-    // External Error bits
-    pub const EXT_ERROR_SIS: u8 = 0x01;
-    pub const EXT_ERROR_DIFFCORR: u8 = 0x02;
-    pub const EXT_ERROR_EXTSENSOR: u8 = 0x04;
-    pub const EXT_ERROR_SETUP: u8 = 0x08;
-
-    // RxState bits
-    pub const STATE_ACTIVE_ANTENNA: u32 = 0x00000002;
-    pub const STATE_EXT_FREQ: u32 = 0x00000004;
-    pub const STATE_EXT_TIME: u32 = 0x00000008;
-    pub const STATE_WN_SET: u32 = 0x00000010;
-    pub const STATE_TOW_SET: u32 = 0x00000020;
-    pub const STATE_FINE_TIME: u32 = 0x00000040;
-    pub const STATE_INTERNAL_DISK_ACTIVITY: u32 = 0x00000080;
-    pub const STATE_INTERNAL_DISK_FULL: u32 = 0x00000100;
-    pub const STATE_INTERNAL_DISK_MOUNTED: u32 = 0x00000200;
-    pub const STATE_INT_ANT: u32 = 0x00000400;
-    pub const STATE_REFOUT_LOCKED: u32 = 0x00000800;
-    pub const STATE_EXTERNAL_DISK_ACTIVITY: u32 = 0x00002000;
-    pub const STATE_EXTERNAL_DISK_FULL: u32 = 0x00004000;
-    pub const STATE_EXTERNAL_DISK_MOUNTED: u32 = 0x00008000;
-    pub const STATE_PPS_IN_CAL: u32 = 0x00010000;
-    pub const STATE_DIFFCORR_IN: u32 = 0x00020000;
-    pub const STATE_INTERNET: u32 = 0x00040000;
-
-    // RxError bits
-    pub const ERROR_SOFTWARE: u32 = 0x00000008;
-    pub const ERROR_WATCHDOG: u32 = 0x00000010;
-    pub const ERROR_ANTENNA: u32 = 0x00000020;
-    pub const ERROR_CONGESTION: u32 = 0x00000040;
-    pub const ERROR_MISSED_EVENT: u32 = 0x00000100;
-    pub const ERROR_CPU_OVERLOAD: u32 = 0x00000200;
-    pub const ERROR_INVALID_CONFIG: u32 = 0x00000400;
-    pub const ERROR_OUT_OF_GEOFENCE: u32 = 0x00000800;
 }
 
 impl AGCState {
-    // Frontend codes (bits 0-4)
-    pub const FRONTEND_GPS_L1_E1: u8 = 0;
-    pub const FRONTEND_GLO_L1: u8 = 1;
-    pub const FRONTEND_E6: u8 = 2;
-    pub const FRONTEND_GPS_L2: u8 = 3;
-    pub const FRONTEND_GLO_L2: u8 = 4;
-    pub const FRONTEND_L5_E5A_B2A: u8 = 5;
-    pub const FRONTEND_E5B_B2B: u8 = 6;
-    pub const FRONTEND_E5_AB: u8 = 7;
-    pub const FRONTEND_COMBINED_L1: u8 = 8;
-    pub const FRONTEND_COMBINED_L2: u8 = 9;
-    pub const FRONTEND_MSS_LBAND: u8 = 10;
-    pub const FRONTEND_B1: u8 = 11;
-    pub const FRONTEND_B3: u8 = 12;
-    pub const FRONTEND_S_BAND: u8 = 13;
-    pub const FRONTEND_B3_E6: u8 = 14;
-
     pub fn frontend_code(&self) -> u8 {
         self.frontend_id & 0x1F
     }
 
     pub fn antenna_id(&self) -> u8 {
         (self.frontend_id >> 5) & 0x07
+    }
+}
+
+impl ReceiverStatus {
+    // RxError helper methods
+    pub fn software_error(&self) -> bool {
+        self.rx_error.contains(RxError::SOFTWARE)
+    }
+
+    pub fn watchdog_error(&self) -> bool {
+        self.rx_error.contains(RxError::WATCHDOG)
+    }
+
+    pub fn antenna_error(&self) -> bool {
+        self.rx_error.contains(RxError::ANTENNA)
+    }
+
+    pub fn congestion_error(&self) -> bool {
+        self.rx_error.contains(RxError::CONGESTION)
+    }
+
+    pub fn cpu_overload_error(&self) -> bool {
+        self.rx_error.contains(RxError::CPU_OVERLOAD)
+    }
+
+    // ExtError helper methods
+    pub fn sis_error(&self) -> bool {
+        self.ext_error.contains(ExtError::SIS)
+    }
+
+    pub fn diff_corr_error(&self) -> bool {
+        self.ext_error.contains(ExtError::DIFF_CORR)
+    }
+
+    pub fn ext_sensor_error(&self) -> bool {
+        self.ext_error.contains(ExtError::EXT_SENSOR)
+    }
+
+    pub fn setup_error(&self) -> bool {
+        self.ext_error.contains(ExtError::SETUP)
     }
 }
