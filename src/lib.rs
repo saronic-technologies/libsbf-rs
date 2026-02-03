@@ -45,6 +45,9 @@ pub use messages::{
     ReceiverStatus, RxError, RxState, VelSensorSetup, WACorrFlags,
 };
 
+// Re-export datagram parser
+pub use parser::{parse_datagram, DatagramError};
+
 #[binrw]
 #[derive(Debug)]
 struct Id {

@@ -22,6 +22,21 @@ pub enum Error {
     BinRWError(binrw::Error),
 }
 
+/// Error type for single-datagram parsing via [`parse_datagram`].
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DatagramError {
+    /// Not enough data to parse a complete message.
+    Incomplete,
+    /// No sync sequence ("$@") found in the input.
+    NoSync,
+    /// CRC validation failed.
+    InvalidCrc,
+    /// Invalid header (bad length, unsupported block ID).
+    InvalidHeader,
+    /// Failed to deserialize the message payload.
+    InvalidPayload,
+}
+
 enum ParseError {
     IncompleteData,
     InvalidHeader,
@@ -335,6 +350,172 @@ impl SbfParser {
     }
 }
 
+/// Parse a single SBF message from a datagram buffer.
+///
+/// This is designed for UDP datagrams where each packet contains exactly one
+/// complete SBF message. Unlike [`SbfParser`] which handles streaming data,
+/// this function expects the sync sequence to be at the start of the buffer.
+///
+/// # Example
+///
+/// ```no_run
+/// use libsbf::parser::parse_datagram;
+/// use std::net::UdpSocket;
+///
+/// let socket = UdpSocket::bind("0.0.0.0:28785").unwrap();
+/// let mut buf = [0u8; 65535];
+///
+/// loop {
+///     let (len, _src) = socket.recv_from(&mut buf).unwrap();
+///     match parse_datagram(&buf[..len]) {
+///         Ok(msg) => println!("{:?}", msg),
+///         Err(e) => eprintln!("Parse error: {:?}", e),
+///     }
+/// }
+/// ```
+pub fn parse_datagram(datagram: &[u8]) -> core::result::Result<Messages, DatagramError> {
+    const MIN_MESSAGE_SIZE: usize = 8; // 2 sync + 2 crc + 2 block_id + 2 length
+
+    if datagram.len() < MIN_MESSAGE_SIZE {
+        return Err(DatagramError::Incomplete);
+    }
+
+    // Expect sync at start for datagrams
+    if &datagram[0..2] != b"$@" {
+        return Err(DatagramError::NoSync);
+    }
+
+    // Parse header
+    let header_slice = &datagram[2..8];
+    let h = Header::read_le(&mut Cursor::new(header_slice))
+        .map_err(|_| DatagramError::InvalidHeader)?;
+
+    if h.length % 4 != 0 || h.length < 8 {
+        return Err(DatagramError::InvalidHeader);
+    }
+
+    let msg_kind = h.block_id.message_type();
+    if let MessageKind::Unsupported = msg_kind {
+        return Err(DatagramError::InvalidHeader);
+    }
+
+    // Check we have the full message
+    let total_len = h.length as usize;
+    if datagram.len() < total_len {
+        return Err(DatagramError::Incomplete);
+    }
+
+    // Validate CRC (covers block_id + length + payload)
+    let crc_data = &datagram[4..total_len];
+    let calculated_crc = State::<XMODEM>::calculate(crc_data);
+    if h.crc != calculated_crc {
+        return Err(DatagramError::InvalidCrc);
+    }
+
+    // Parse payload
+    let payload = &datagram[8..total_len];
+    let mut cursor = Cursor::new(payload);
+
+    let msg = match msg_kind {
+        MessageKind::MeasExtra => Messages::MeasExtra(
+            MeasExtra::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::GALNav => Messages::GALNav(
+            GALNav::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::PVTGeodetic => Messages::PVTGeodetic(
+            PVTGeodetic::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::ReceiverStatus => Messages::ReceiverStatus(
+            ReceiverStatus::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::Commands => Messages::Commands(
+            Commands::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::GEORawL1 => Messages::GEORawL1(
+            GEORawL1::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::MeasEpoch => Messages::MeasEpoch(
+            MeasEpoch::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::GALIon => Messages::GALIon(
+            GALIon::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::GALUtc => Messages::GALUtc(
+            GALUtc::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::GALGstGps => Messages::GALGstGps(
+            GALGstGps::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::GPSCNav => Messages::GPSCNav(
+            GPSCNav::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::Meas3Ranges => Messages::Meas3Ranges(
+            Meas3Ranges::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::Meas3Doppler => Messages::Meas3Doppler(
+            Meas3Doppler::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::BDSIon => Messages::BDSIon(
+            BDSIon::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::INSSupport => Messages::INSSupport(
+            INSSupport::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::QualityInd => Messages::QualityInd(
+            QualityInd::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::INSNavGeod => Messages::INSNavGeod(
+            INSNavGeod::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::VelSensorSetup => Messages::VelSensorSetup(
+            VelSensorSetup::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::AttEuler => Messages::AttEuler(
+            AttEuler::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::AttCovEuler => Messages::AttCovEuler(
+            AttCovEuler::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::DiffCorrIn => Messages::DiffCorrIn(
+            DiffCorrIn::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::ExtSensorMeas => Messages::ExtSensorMeas(
+            ExtSensorMeas::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::ExtSensorStatus => Messages::ExtSensorStatus(
+            ExtSensorStatus::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::ExtSensorInfo => Messages::ExtSensorInfo(
+            ExtSensorInfo::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::ImuSetup => Messages::ImuSetup(
+            ImuSetup::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::ReceiverSetup => Messages::ReceiverSetup(
+            ReceiverSetup::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::GEONav => Messages::GEONav(
+            GEONav::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::GPSIon => Messages::GPSIon(
+            GPSIon::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::GPSNav => Messages::GPSNav(
+            GPSNav::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::GPSUtc => Messages::GPSUtc(
+            GPSUtc::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::PosCovGeodetic => Messages::PosCovGeodetic(
+            PosCovGeodetic::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::Unsupported => unreachable!(),
+    };
+
+    Ok(msg)
+}
+
 #[cfg(test)]
 
 mod tests {
@@ -508,6 +689,51 @@ mod tests {
             }
         }
         v
+    }
+
+    #[test]
+    fn test_parse_datagram_valid() {
+        let mut datagram = Vec::new();
+        datagram.extend_from_slice(VALID_SYNC);
+        datagram.extend_from_slice(VALID_QUALITY_IND_HEADER);
+        datagram.extend_from_slice(VALID_QUALITY_IND_PAYLOAD);
+
+        let result = parse_datagram(&datagram);
+        assert!(result.is_ok(), "Expected Ok, got {:?}", result);
+
+        if let Ok(Messages::QualityInd(qi)) = result {
+            assert_valid_quality_ind(&qi);
+        } else {
+            panic!("Expected QualityInd message, got {:?}", result);
+        }
+    }
+
+    #[test]
+    fn test_parse_datagram_no_sync() {
+        let datagram = b"XX\x00\x00\x00\x00\x00\x00";
+        let result = parse_datagram(datagram);
+        assert!(matches!(result, Err(DatagramError::NoSync)));
+    }
+
+    #[test]
+    fn test_parse_datagram_incomplete() {
+        let datagram = b"$@\x00\x00"; // Only 4 bytes, need at least 8
+        let result = parse_datagram(datagram);
+        assert!(matches!(result, Err(DatagramError::Incomplete)));
+    }
+
+    #[test]
+    fn test_parse_datagram_bad_crc() {
+        let mut datagram = Vec::new();
+        datagram.extend_from_slice(VALID_SYNC);
+        datagram.extend_from_slice(VALID_QUALITY_IND_HEADER);
+        datagram.extend_from_slice(VALID_QUALITY_IND_PAYLOAD);
+        // Corrupt the CRC (bytes 2-3)
+        datagram[2] = 0xFF;
+        datagram[3] = 0xFF;
+
+        let result = parse_datagram(&datagram);
+        assert!(matches!(result, Err(DatagramError::InvalidCrc)));
     }
 
     proptest! {
