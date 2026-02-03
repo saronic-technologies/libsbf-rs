@@ -22,6 +22,10 @@ pub enum Error {
     BinRWError(binrw::Error),
 }
 
+/// Maximum SBF message size that fits in a UDP payload.
+/// UDP max datagram = 65535, UDP header = 8, so max payload = 65527.
+pub const MAX_UDP_PAYLOAD: usize = 65527;
+
 /// Error type for single-datagram parsing via [`parse_datagram`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DatagramError {
@@ -35,6 +39,8 @@ pub enum DatagramError {
     InvalidHeader,
     /// Failed to deserialize the message payload.
     InvalidPayload,
+    /// Message length exceeds max UDP payload size (65527 bytes).
+    ExceedsMaxUdpPayload(u16),
 }
 
 enum ParseError {
@@ -392,6 +398,10 @@ pub fn parse_datagram(datagram: &[u8]) -> core::result::Result<Messages, Datagra
 
     if h.length % 4 != 0 || h.length < 8 {
         return Err(DatagramError::InvalidHeader);
+    }
+
+    if h.length as usize > MAX_UDP_PAYLOAD {
+        return Err(DatagramError::ExceedsMaxUdpPayload(h.length));
     }
 
     let msg_kind = h.block_id.message_type();

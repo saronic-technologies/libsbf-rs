@@ -46,7 +46,7 @@ pub use messages::{
 };
 
 // Re-export datagram parser
-pub use parser::{parse_datagram, DatagramError};
+pub use parser::{parse_datagram, DatagramError, MAX_UDP_PAYLOAD};
 
 #[binrw]
 #[derive(Debug)]
