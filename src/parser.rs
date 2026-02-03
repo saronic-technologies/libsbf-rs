@@ -22,8 +22,9 @@ pub enum Error {
     BinRWError(binrw::Error),
 }
 
-/// Maximum SBF message size that fits in a UDP payload.
-/// UDP max datagram = 65535, UDP header = 8, so max payload = 65527.
+/// Maximum SBF message size that fits in a single UDP datagram.
+/// UDP datagram max = 65535 bytes, minus 8-byte UDP header = 65527 byte payload.
+/// SBF messages (including their 8-byte header) must fit within this.
 pub const MAX_UDP_PAYLOAD: usize = 65527;
 
 /// Error type for single-datagram parsing via [`parse_datagram`].
@@ -744,6 +745,23 @@ mod tests {
 
         let result = parse_datagram(&datagram);
         assert!(matches!(result, Err(DatagramError::InvalidCrc)));
+    }
+
+    #[test]
+    fn test_parse_datagram_exceeds_max_udp() {
+        // Craft a header with length > MAX_UDP_PAYLOAD (65527)
+        // Length field is at bytes 6-7 (little endian)
+        let length: u16 = 65528; // Just over the limit
+        let block_id: u16 = 4082; // QualityInd
+
+        let mut datagram = Vec::new();
+        datagram.extend_from_slice(b"$@"); // sync
+        datagram.extend_from_slice(&[0x00, 0x00]); // CRC (doesn't matter, length check comes first)
+        datagram.extend_from_slice(&block_id.to_le_bytes());
+        datagram.extend_from_slice(&length.to_le_bytes());
+
+        let result = parse_datagram(&datagram);
+        assert!(matches!(result, Err(DatagramError::ExceedsMaxUdpPayload(65528))));
     }
 
     proptest! {
