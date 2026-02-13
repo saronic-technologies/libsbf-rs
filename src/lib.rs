@@ -42,7 +42,7 @@ pub use messages::{
     INSSupport, ImuSetup, Meas3Doppler, Meas3Ranges, MeasEpoch, MeasEpochChannelType1,
     MeasEpochChannelType2, MeasExtra, MeasExtraChannelSub, PVTGeodetic, PosCovGeodetic, PvtError,
     PvtMode, PvtModeFlags, QualityInd, QualityIndicator, RaimIntegrity, ReceiverSetup,
-    ReceiverStatus, RxError, RxState, VelSensorSetup, WACorrFlags,
+    RFBand, RFStatus, ReceiverStatus, RxError, RxState, VelSensorSetup, WACorrFlags,
 };
 
 // Re-export datagram parser
@@ -131,6 +131,7 @@ define_messages!(
     AttCovEuler => 5939,
     DiffCorrIn => 5919,
     ExtSensorMeas => 4050,
+    RFStatus => 4092,
     QualityInd => 4082,
     ExtSensorInfo => 4222,
     ImuSetup => 4224,
