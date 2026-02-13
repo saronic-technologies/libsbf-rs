@@ -9,7 +9,7 @@ use crate::{
     ExtSensorStatus, GALGstGps, GALIon, GALNav, GALUtc, GEONav, GEORawL1, GPSCNav, GPSIon, GPSNav,
     GPSUtc, Header, INSNavGeod, INSSupport, ImuSetup, Meas3Doppler, Meas3Ranges, MeasEpoch,
     MeasExtra, MessageKind, Messages, PVTGeodetic, PosCovGeodetic, QualityInd, ReceiverSetup,
-    ReceiverStatus, VelSensorSetup,
+    RFStatus, ReceiverStatus, VelSensorSetup,
 };
 
 use crc16::*;
@@ -203,6 +203,12 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
             let ins_support =
                 INSSupport::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::INSSupport(ins_support)
+        }
+        MessageKind::RFStatus => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let rf_status =
+                RFStatus::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::RFStatus(rf_status)
         }
         MessageKind::QualityInd => {
             let mut body_cursor = Cursor::new(payload.as_slice());
@@ -472,6 +478,9 @@ pub fn parse_datagram(datagram: &[u8]) -> core::result::Result<Messages, Datagra
         ),
         MessageKind::INSSupport => Messages::INSSupport(
             INSSupport::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::RFStatus => Messages::RFStatus(
+            RFStatus::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
         ),
         MessageKind::QualityInd => Messages::QualityInd(
             QualityInd::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,

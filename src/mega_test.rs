@@ -14,7 +14,7 @@ mod tests {
 
         let sbf_reader = SbfReader::new(input_stream);
 
-        let mut message_counts: HashMap<&str, usize> = HashMap::new();
+        let mut message_counts: HashMap<String, usize> = HashMap::new();
         let mut total_messages = 0;
         let mut parse_errors = 0;
 
@@ -22,42 +22,8 @@ mod tests {
             match msg_result {
                 Ok(msg) => {
                     total_messages += 1;
-
-                    let msg_type = match msg {
-                        Messages::MeasExtra(_) => "MeasExtra",
-                        Messages::GALNav(_) => "GALNav",
-                        Messages::PVTGeodetic(_) => "PVTGeodetic",
-                        Messages::ReceiverStatus(_) => "ReceiverStatus",
-                        Messages::Commands(_) => "Commands",
-                        Messages::GEORawL1(_) => "GEORawL1",
-                        Messages::MeasEpoch(_) => "MeasEpoch",
-                        Messages::GALIon(_) => "GALIon",
-                        Messages::GALUtc(_) => "GALUtc",
-                        Messages::GALGstGps(_) => "GALGstGps",
-                        Messages::GPSCNav(_) => "GPSCNav",
-                        Messages::Meas3Ranges(_) => "Meas3Ranges",
-                        Messages::Meas3Doppler(_) => "Meas3Doppler",
-                        Messages::BDSIon(_) => "BDSIon",
-                        Messages::INSSupport(_) => "INSSupport",
-                        Messages::QualityInd(_) => "QualityInd",
-                        Messages::INSNavGeod(_) => "INSNavGeod",
-                        Messages::VelSensorSetup(_) => "VelSensorSetup",
-                        Messages::AttEuler(_) => "AttEuler",
-                        Messages::AttCovEuler(_) => "AttCovEuler",
-                        Messages::DiffCorrIn(_) => "DiffCorrIn",
-                        Messages::ExtSensorMeas(_) => "ExtSensorMeas",
-                        Messages::ExtSensorStatus(_) => "ExtSensorStatus",
-                        Messages::ExtSensorInfo(_) => "ExtSensorInfo",
-                        Messages::ImuSetup(_) => "ImuSetup",
-                        Messages::ReceiverSetup(_) => "ReceiverSetup",
-                        Messages::GEONav(_) => "GEONav",
-                        Messages::GPSIon(_) => "GPSIon",
-                        Messages::GPSNav(_) => "GPSNav",
-                        Messages::GPSUtc(_) => "GPSUtc",
-                        Messages::PosCovGeodetic(_) => "PosCovGeodetic",
-                        Messages::Unsupported(_) => "Unsupported",
-                    };
-
+                    let debug = format!("{msg:?}");
+                    let msg_type = debug.split('(').next().unwrap().to_string();
                     *message_counts.entry(msg_type).or_insert(0) += 1;
                 }
                 Err(e) => {
@@ -142,7 +108,7 @@ mod tests {
 
         // Print summary
         let mut sorted_types: Vec<_> = message_counts.iter().collect();
-        sorted_types.sort_by_key(|&(name, _)| *name);
+        sorted_types.sort_by(|a, b| a.0.cmp(b.0));
 
         for (msg_type, count) in sorted_types {
             println!("  {}: {}", msg_type, count);
