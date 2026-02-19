@@ -42,7 +42,7 @@ fn main() -> anyhow::Result<()> {
         Box::new(File::open(args.input)?)
     };
     
-    let sbf_reader = SbfReader::new(reader);
+    let sbf_reader = SbfReader::try_new(reader, "test")?;
     let mut stats: HashMap<&str, usize> = HashMap::new();
     let mut unsupported_blocks: HashMap<u16, usize> = HashMap::new();
     let mut att_cov_errors: HashMap<u8, usize> = HashMap::new();

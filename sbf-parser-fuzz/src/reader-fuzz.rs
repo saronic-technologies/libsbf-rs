@@ -31,7 +31,7 @@ fn test_sbf_reader(data: &[u8]) {
     }
     
     // Process all messages from the SbfReader
-    let sbf_reader = SbfReader::new(&mut reader);
+    let sbf_reader = SbfReader::try_new(&mut reader, "test").unwrap();
     let mut message_count = 0;
     
     for result in sbf_reader {

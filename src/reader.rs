@@ -1,7 +1,7 @@
 use crate::Messages;
 use crate::parser::SbfParser;
 
-use std::io::Read;
+use std::{fs::File, io::{Read, Write}};
 
 // NOTE: May make this tunable. The std reader is going to be on user
 // space linux and in many cases users will have the memory.
@@ -19,7 +19,7 @@ const BUFFER_SIZE: usize = 1024 * 8;
 
 /// fn main() -> anyhow::Result<()> {
 ///     let stream = TcpStream::connect("127.0.0.1:8080")?;
-///     let sbf_reader = SbfReader::new(stream);
+///     let sbf_reader = SbfReader::try_new(stream).unwrap();
 ///     for m in sbf_reader {
 ///         eprintln!("{:?}", m);
 ///     }
@@ -31,15 +31,18 @@ pub struct SbfReader<R: Read> {
     reader: R,
     parser: SbfParser,
     drain_internal: bool,
+    dumper: File,
 }
 
 impl<R: Read> SbfReader<R> {
-    pub fn new(reader: R) -> Self {
-        Self {
+    pub fn try_new(reader: R, suffix: &str) -> std::io::Result<Self> {
+        std::fs::create_dir_all("/var/log/sbfd")?;
+        Ok(Self {
             reader,
             parser: SbfParser::new(),
             drain_internal: false,
-        }
+            dumper: File::create(&format!("/var/log/sbfd/sbfd_{suffix}.raw"))?,
+        })
     }
 }
 
@@ -57,6 +60,9 @@ impl<R: Read> Iterator for SbfReader<R> {
                     match self.reader.read(&mut buffer) {
                         Ok(br) => {
                             tracing::debug!("Successfully read {br} bytes from reader");
+                            if br > 0 {
+                                let _ = self.dumper.write_all(&buffer[..br]).inspect_err(|e| eprintln!("[libsbf-hack] Error: unable to write packet to file: {e}. Skipping"));
+                            }
                             (br, br == 0)
                         }
                         Err(e) => {
@@ -145,7 +151,7 @@ mod tests {
             let mut reader = TrackingReader::new(size);
             let total_bytes = reader.total_bytes();
             
-            let sbf_reader = SbfReader::new(&mut reader);
+            let sbf_reader = SbfReader::try_new(&mut reader, "test").unwrap();
             
             // Consume all messages (valid or invalid)
             let mut message_count = 0;
@@ -180,7 +186,7 @@ mod tests {
         let correct_file = std::fs::File::open("test-files/correct_sbf_output.log")?;
         let mut cf_lines = std::io::BufReader::new(correct_file).lines();
 
-        let sbf_reader = SbfReader::new(input_stream);
+        let sbf_reader = SbfReader::try_new(input_stream, "test").unwrap();
 
         for m in sbf_reader {
             match m? {

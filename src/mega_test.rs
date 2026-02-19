@@ -12,7 +12,7 @@ mod tests {
         let input_stream = File::open("test-files/mega_test.sbf")
             .expect("Failed to open mega_test.sbf - make sure test file exists");
         
-        let sbf_reader = SbfReader::new(input_stream);
+        let sbf_reader = SbfReader::try_new(input_stream, "test").unwrap();
         
         let mut message_counts: HashMap<&str, usize> = HashMap::new();
         let mut total_messages = 0;
@@ -122,7 +122,7 @@ mod tests {
         let input_stream = File::open("test-files/mega_test.sbf")
             .expect("Failed to open mega_test.sbf");
         
-        let sbf_reader = SbfReader::new(input_stream);
+        let sbf_reader = SbfReader::try_new(input_stream, "test").unwrap();
         
         let mut found_receiver_setup = false;
         let mut found_gps_nav = false;
