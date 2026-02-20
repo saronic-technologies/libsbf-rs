@@ -1,5 +1,7 @@
 use binrw::binrw;
 
+use super::att_euler::BaselineError;
+
 // AttCovEuler Block 5939
 #[binrw]
 #[derive(Debug)]
@@ -9,7 +11,7 @@ pub struct AttCovEuler {
     #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
     pub wnc: Option<u16>,
     pub reserved: u8,
-    pub error: u8,
+    error_raw: u8,
     #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub cov_head_head: Option<f32>,
     #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
@@ -25,10 +27,18 @@ pub struct AttCovEuler {
 }
 
 impl AttCovEuler {
-    // Error codes for baselines (bits 0-1 and 2-3)
-    pub const ERROR_NO_ERROR: u8 = 0;
-    pub const ERROR_NOT_ENOUGH_MEASUREMENTS: u8 = 1;
+    /// Error code for Main-Aux1 baseline (bits 0-1).
+    pub fn main_aux1_error(&self) -> BaselineError {
+        BaselineError::from(self.error_raw & 0x03)
+    }
 
-    // Bit 7 flag
-    pub const ERROR_ATTITUDE_NOT_REQUESTED: u8 = 0x80;
+    /// Error code for Main-Aux2 baseline (bits 2-3).
+    pub fn main_aux2_error(&self) -> BaselineError {
+        BaselineError::from((self.error_raw >> 2) & 0x03)
+    }
+
+    /// Bit 7: Returns true if attitude was not requested by user.
+    pub fn not_requested(&self) -> bool {
+        self.error_raw & (1 << 7) != 0
+    }
 }

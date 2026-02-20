@@ -1,5 +1,7 @@
 use binrw::binrw;
 
+use super::pvt_geodetic::{PvtError, PvtMode, PvtModeFlags};
+
 // PosCovGeodetic Block 5906
 #[binrw]
 #[derive(Debug)]
@@ -8,8 +10,8 @@ pub struct PosCovGeodetic {
     pub tow: Option<u32>,
     #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
     pub wnc: Option<u16>,
-    pub mode: u8,
-    pub error: u8,
+    mode_raw: u8,
+    error_raw: u8,
     #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub cov_latlat: Option<f32>,
     #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
@@ -33,28 +35,18 @@ pub struct PosCovGeodetic {
 }
 
 impl PosCovGeodetic {
-    // Mode bits 0-3: PVT solution type
-    pub const MODE_NO_PVT: u8 = 0;
-    pub const MODE_STANDALONE: u8 = 1;
-    pub const MODE_DIFFERENTIAL: u8 = 2;
-    pub const MODE_FIXED: u8 = 3;
-    pub const MODE_RTK_FIXED: u8 = 4;
-    pub const MODE_RTK_FLOAT: u8 = 5;
-    pub const MODE_SBAS: u8 = 6;
-    pub const MODE_MOVING_BASE_RTK_FIXED: u8 = 7;
-    pub const MODE_MOVING_BASE_RTK_FLOAT: u8 = 8;
-    pub const MODE_PPP: u8 = 10;
+    /// PVT mode (bits 0-3 of mode).
+    pub fn pvt_mode(&self) -> PvtMode {
+        PvtMode::from(self.mode_raw)
+    }
 
-    // Error codes
-    pub const ERROR_NONE: u8 = 0;
-    pub const ERROR_NOT_ENOUGH_MEAS: u8 = 1;
-    pub const ERROR_NOT_ENOUGH_EPH: u8 = 2;
-    pub const ERROR_DOP_TOO_LARGE: u8 = 3;
-    pub const ERROR_RESIDUALS_TOO_LARGE: u8 = 4;
-    pub const ERROR_NO_CONVERGENCE: u8 = 5;
-    pub const ERROR_NOT_ENOUGH_AFTER_OUTLIER: u8 = 6;
-    pub const ERROR_POSITION_PROHIBITED: u8 = 7;
-    pub const ERROR_NOT_ENOUGH_DIFF_CORR: u8 = 8;
-    pub const ERROR_BASE_COORDS_UNAVAILABLE: u8 = 9;
-    pub const ERROR_AMBIGUITIES_NOT_FIXED: u8 = 10;
+    /// Mode flags (bits 6-7 of mode).
+    pub fn mode_flags(&self) -> PvtModeFlags {
+        PvtModeFlags::from_bits_truncate(self.mode_raw)
+    }
+
+    /// PVT error code.
+    pub fn error(&self) -> PvtError {
+        PvtError::from(self.error_raw)
+    }
 }

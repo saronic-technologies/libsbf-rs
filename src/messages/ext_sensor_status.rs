@@ -1,5 +1,153 @@
 use alloc::vec::Vec;
 use binrw::binrw;
+use core::fmt;
+
+/// Connection port / external sensor source.
+///
+/// Used by ExtSensorStatus, ExtSensorInfo, and VelSensorSetup to identify the
+/// receiver port an external sensor is connected to.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[repr(u8)]
+pub enum ConnectionPort {
+    #[default]
+    Com1 = 0,
+    Com2 = 1,
+    Com3 = 2,
+    Com4 = 3,
+    Gpio = 4,
+    Usb1 = 5,
+    Usb2 = 6,
+    Ip10 = 7,
+    Ip11 = 8,
+    Ip12 = 9,
+    Ip13 = 10,
+    Ip14 = 11,
+    Ip15 = 12,
+    Ip16 = 13,
+    Ip17 = 14,
+    Ips1 = 15,
+    Ips2 = 16,
+    Ips3 = 17,
+    Ips4 = 18,
+    Ips5 = 19,
+    Ipr1 = 20,
+    Ipr2 = 21,
+    Ipr3 = 22,
+    Ipr4 = 23,
+    Ipr5 = 24,
+    InternalSpi = 32,
+    Unknown,
+}
+
+impl From<u8> for ConnectionPort {
+    fn from(value: u8) -> Self {
+        match value {
+            0 => ConnectionPort::Com1,
+            1 => ConnectionPort::Com2,
+            2 => ConnectionPort::Com3,
+            3 => ConnectionPort::Com4,
+            4 => ConnectionPort::Gpio,
+            5 => ConnectionPort::Usb1,
+            6 => ConnectionPort::Usb2,
+            7 => ConnectionPort::Ip10,
+            8 => ConnectionPort::Ip11,
+            9 => ConnectionPort::Ip12,
+            10 => ConnectionPort::Ip13,
+            11 => ConnectionPort::Ip14,
+            12 => ConnectionPort::Ip15,
+            13 => ConnectionPort::Ip16,
+            14 => ConnectionPort::Ip17,
+            15 => ConnectionPort::Ips1,
+            16 => ConnectionPort::Ips2,
+            17 => ConnectionPort::Ips3,
+            18 => ConnectionPort::Ips4,
+            19 => ConnectionPort::Ips5,
+            20 => ConnectionPort::Ipr1,
+            21 => ConnectionPort::Ipr2,
+            22 => ConnectionPort::Ipr3,
+            23 => ConnectionPort::Ipr4,
+            24 => ConnectionPort::Ipr5,
+            32 => ConnectionPort::InternalSpi,
+            _ => ConnectionPort::Unknown,
+        }
+    }
+}
+
+impl fmt::Display for ConnectionPort {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ConnectionPort::Com1 => write!(f, "COM1"),
+            ConnectionPort::Com2 => write!(f, "COM2"),
+            ConnectionPort::Com3 => write!(f, "COM3"),
+            ConnectionPort::Com4 => write!(f, "COM4"),
+            ConnectionPort::Gpio => write!(f, "GPIO"),
+            ConnectionPort::Usb1 => write!(f, "USB1"),
+            ConnectionPort::Usb2 => write!(f, "USB2"),
+            ConnectionPort::Ip10 => write!(f, "IP10"),
+            ConnectionPort::Ip11 => write!(f, "IP11"),
+            ConnectionPort::Ip12 => write!(f, "IP12"),
+            ConnectionPort::Ip13 => write!(f, "IP13"),
+            ConnectionPort::Ip14 => write!(f, "IP14"),
+            ConnectionPort::Ip15 => write!(f, "IP15"),
+            ConnectionPort::Ip16 => write!(f, "IP16"),
+            ConnectionPort::Ip17 => write!(f, "IP17"),
+            ConnectionPort::Ips1 => write!(f, "IPS1"),
+            ConnectionPort::Ips2 => write!(f, "IPS2"),
+            ConnectionPort::Ips3 => write!(f, "IPS3"),
+            ConnectionPort::Ips4 => write!(f, "IPS4"),
+            ConnectionPort::Ips5 => write!(f, "IPS5"),
+            ConnectionPort::Ipr1 => write!(f, "IPR1"),
+            ConnectionPort::Ipr2 => write!(f, "IPR2"),
+            ConnectionPort::Ipr3 => write!(f, "IPR3"),
+            ConnectionPort::Ipr4 => write!(f, "IPR4"),
+            ConnectionPort::Ipr5 => write!(f, "IPR5"),
+            ConnectionPort::InternalSpi => write!(f, "Internal SPI"),
+            ConnectionPort::Unknown => write!(f, "Unknown"),
+        }
+    }
+}
+
+/// External sensor model.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[repr(u8)]
+pub enum ExtSensorModel {
+    #[default]
+    Unknown = 0,
+    SbgEllipse = 2,
+    SbgEllipse2 = 5,
+    Vn100 = 7,
+    Adis1650x = 10,
+    ZeroVelocity = 20,
+    VelocityInput = 21,
+}
+
+impl From<u8> for ExtSensorModel {
+    fn from(value: u8) -> Self {
+        match value {
+            2 => ExtSensorModel::SbgEllipse,
+            5 => ExtSensorModel::SbgEllipse2,
+            7 => ExtSensorModel::Vn100,
+            10 => ExtSensorModel::Adis1650x,
+            20 => ExtSensorModel::ZeroVelocity,
+            21 => ExtSensorModel::VelocityInput,
+            _ => ExtSensorModel::Unknown,
+        }
+    }
+}
+
+impl fmt::Display for ExtSensorModel {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ExtSensorModel::Unknown => write!(f, "Unknown"),
+            ExtSensorModel::SbgEllipse => write!(f, "SBG Ellipse"),
+            ExtSensorModel::SbgEllipse2 => write!(f, "SBG Ellipse 2"),
+            ExtSensorModel::Vn100 => write!(f, "VN-100"),
+            ExtSensorModel::Adis1650x => write!(f, "ADIS1650x"),
+            ExtSensorModel::ZeroVelocity => write!(f, "Zero Velocity"),
+            ExtSensorModel::VelocityInput => write!(f, "Velocity Input"),
+        }
+    }
+}
 
 // ExtSensorStatus Block 4223
 #[binrw]
@@ -16,42 +164,6 @@ pub struct ExtSensorStatus {
 }
 
 impl ExtSensorStatus {
-    // Source constants
-    pub const SOURCE_COM1: u8 = 0;
-    pub const SOURCE_COM2: u8 = 1;
-    pub const SOURCE_COM3: u8 = 2;
-    pub const SOURCE_COM4: u8 = 3;
-    pub const SOURCE_GPIO: u8 = 4;
-    pub const SOURCE_USB1: u8 = 5;
-    pub const SOURCE_USB2: u8 = 6;
-    pub const SOURCE_IP10: u8 = 7;
-    pub const SOURCE_IP11: u8 = 8;
-    pub const SOURCE_IP12: u8 = 9;
-    pub const SOURCE_IP13: u8 = 10;
-    pub const SOURCE_IP14: u8 = 11;
-    pub const SOURCE_IP15: u8 = 12;
-    pub const SOURCE_IP16: u8 = 13;
-    pub const SOURCE_IP17: u8 = 14;
-    pub const SOURCE_IPS1: u8 = 15;
-    pub const SOURCE_IPS2: u8 = 16;
-    pub const SOURCE_IPS3: u8 = 17;
-    pub const SOURCE_IPS4: u8 = 18;
-    pub const SOURCE_IPS5: u8 = 19;
-    pub const SOURCE_IPR1: u8 = 20;
-    pub const SOURCE_IPR2: u8 = 21;
-    pub const SOURCE_IPR3: u8 = 22;
-    pub const SOURCE_IPR4: u8 = 23;
-    pub const SOURCE_IPR5: u8 = 24;
-    pub const SOURCE_INTERNAL_SPI: u8 = 32;
-
-    // Sensor model constants
-    pub const MODEL_SBG_ELLIPSE: u8 = 2;
-    pub const MODEL_SBG_ELLIPSE2: u8 = 5;
-    pub const MODEL_VN100: u8 = 7;
-    pub const MODEL_ADIS1650X: u8 = 10;
-    pub const MODEL_ZERO_VELOCITY: u8 = 20;
-    pub const MODEL_VELOCITY_INPUT: u8 = 21;
-
     // ADIS1650x status flags (byte 0)
     pub const ADIS_ERROR: u8 = 0x01;
     pub const ADIS_SENSOR_FAILURE: u8 = 0x02;
