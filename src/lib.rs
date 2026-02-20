@@ -23,6 +23,7 @@ pub mod reader;
 mod mega_test;
 
 // Constants for DO_NOT_USE values
+const DO_NOT_USE_I1: i8 = -128;
 const DO_NOT_USE_I2: i16 = -32768;
 const DO_NOT_USE_U1: u8 = 255;
 const DO_NOT_USE_U2: u16 = 65535;
@@ -32,17 +33,20 @@ const DO_NOT_USE_F8: f64 = -2e10;
 
 // Re-export all message types at crate level
 pub use messages::{
-    AGCState, AttCovEuler, AttEuler, AttitudeMode, BDSIon, BaselineError, Commands, Datum,
-    DiffCorrIn, DiffCorrType, ExtError, ExtSensorInfo, ExtSensorMeas, ExtSensorMeasAcceleration,
-    ExtSensorMeasAngularRate, ExtSensorMeasInfo, ExtSensorMeasSet, ExtSensorMeasSetType,
-    ExtSensorMeasVelocity, ExtSensorMeasZeroVelocityFlag, ExtSensorStatus, GALGstGps, GALIon,
-    GALNav, GALUtc, GEONav, GEORawL1, GPSCNav, GPSIon, GPSNav, GPSUtc, GnssMode, INSCouplingMode,
-    INSError, INSNavGeod, INSNavGeodAtt, INSNavGeodAttCov, INSNavGeodAttStdDev, INSNavGeodPosCov,
-    INSNavGeodPosStdDev, INSNavGeodVel, INSNavGeodVelCov, INSNavGeodVelStdDev, INSSolutionLocation,
-    INSSupport, ImuSetup, Meas3Doppler, Meas3Ranges, MeasEpoch, MeasEpochChannelType1,
-    MeasEpochChannelType2, MeasExtra, MeasExtraChannelSub, PVTGeodetic, PosCovGeodetic, PvtError,
-    PvtMode, PvtModeFlags, QualityInd, QualityIndicator, RaimIntegrity, ReceiverSetup,
-    RFBand, RFStatus, ReceiverStatus, RxError, RxState, VelSensorSetup, WACorrFlags,
+    AGCState, AttCovEuler, AttEuler, AttitudeMode, AuxAntPositionSub, AuxAntPositions, BDSIon,
+    BaselineError, Commands, Datum, DiffCorrIn, DiffCorrType, ExtError, ExtSensorInfo,
+    ExtSensorMeas, ExtSensorMeasAcceleration, ExtSensorMeasAngularRate, ExtSensorMeasInfo,
+    ExtSensorMeasSet, ExtSensorMeasSetType, ExtSensorMeasVelocity, ExtSensorMeasZeroVelocityFlag,
+    ExtSensorStatus, GALGstGps, GALIon, GALNav, GALUtc, GEONav, GEORawL1, GPSCNav, GPSIon, GPSNav,
+    GPSUtc, GnssMode, INSCouplingMode, INSError, INSNavCart, INSNavCartAtt, INSNavCartAttCov,
+    INSNavCartAttStdDev, INSNavCartPosCov, INSNavCartPosStdDev, INSNavCartVel, INSNavCartVelCov,
+    INSNavCartVelStdDev, INSNavGeod, INSNavGeodAtt, INSNavGeodAttCov, INSNavGeodAttStdDev,
+    INSNavGeodPosCov, INSNavGeodPosStdDev, INSNavGeodVel, INSNavGeodVelCov, INSNavGeodVelStdDev,
+    INSSolutionLocation, INSSupport, ImuSetup, Meas3Doppler, Meas3Ranges, MeasEpoch,
+    MeasEpochChannelType1, MeasEpochChannelType2, MeasExtra, MeasExtraChannelSub, NavCart, PVTCartesian,
+    PVTGeodetic, PosCovCartesian, PosCovGeodetic, PvtError, PvtMode, PvtModeFlags, QualityInd,
+    QualityIndicator, RFBand, RFStatus, RaimIntegrity, ReceiverSetup, ReceiverStatus, RxError,
+    RxState, VelCovCartesian, VelSensorSetup, WACorrFlags,
 };
 
 // Re-export datagram parser
@@ -111,6 +115,7 @@ macro_rules! define_messages {
 define_messages!(
     MeasExtra => 4000,
     GALNav => 4002,
+    PVTCartesian => 4006,
     PVTGeodetic => 4007,
     ReceiverStatus => 4014,
     Commands => 4015,
@@ -123,12 +128,15 @@ define_messages!(
     INSSupport => 4077,
     Meas3Ranges => 4109,
     Meas3Doppler => 4111,
+    NavCart => 4272,
     BDSIon => 4120,
     ExtSensorStatus => 4223,
+    INSNavCart => 4225,
     INSNavGeod => 4226,
     VelSensorSetup => 4244,
     AttEuler => 5938,
     AttCovEuler => 5939,
+    AuxAntPositions => 5942,
     DiffCorrIn => 5919,
     ExtSensorMeas => 4050,
     RFStatus => 4092,
@@ -140,7 +148,9 @@ define_messages!(
     GPSIon => 5893,
     GPSNav => 5891,
     GPSUtc => 5894,
+    PosCovCartesian => 5905,
     PosCovGeodetic => 5906,
+    VelCovCartesian => 5907,
 );
 
 pub fn is_sync(bytes: &[u8; 2]) -> bool {
