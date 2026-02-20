@@ -41,7 +41,7 @@ pub use ext_sensor_meas::{
     ExtSensorMeas, ExtSensorMeasAcceleration, ExtSensorMeasAngularRate, ExtSensorMeasInfo,
     ExtSensorMeasSet, ExtSensorMeasSetType, ExtSensorMeasVelocity, ExtSensorMeasZeroVelocityFlag,
 };
-pub use ext_sensor_status::ExtSensorStatus;
+pub use ext_sensor_status::{ConnectionPort, ExtSensorModel, ExtSensorStatus};
 pub use gal_gst_gps::GALGstGps;
 pub use gal_ion::GALIon;
 pub use gal_nav::GALNav;
