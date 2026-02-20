@@ -1,5 +1,6 @@
 pub mod att_cov_euler;
 pub mod att_euler;
+pub mod aux_ant_positions;
 pub mod bds_ion;
 pub mod commands;
 pub mod diff_corr_in;
@@ -17,22 +18,28 @@ pub mod gps_ion;
 pub mod gps_nav;
 pub mod gps_utc;
 pub mod imu_setup;
+pub mod ins_nav_cart;
 pub mod ins_nav_geod;
 pub mod ins_support;
 pub mod meas3_doppler;
+pub mod nav_cart;
 pub mod meas3_ranges;
 pub mod meas_epoch;
 pub mod meas_extra;
+pub mod pos_cov_cartesian;
 pub mod pos_cov_geodetic;
+pub mod pvt_cartesian;
 pub mod pvt_geodetic;
 pub mod quality_ind;
 pub mod receiver_setup;
 pub mod receiver_status;
 pub mod rf_status;
+pub mod vel_cov_cartesian;
 pub mod vel_sensor_setup;
 
 pub use att_cov_euler::AttCovEuler;
 pub use att_euler::{AttEuler, AttitudeMode, BaselineError};
+pub use aux_ant_positions::{AuxAntPositionSub, AuxAntPositions};
 pub use bds_ion::BDSIon;
 pub use commands::Commands;
 pub use diff_corr_in::DiffCorrIn;
@@ -53,6 +60,10 @@ pub use gps_ion::GPSIon;
 pub use gps_nav::GPSNav;
 pub use gps_utc::GPSUtc;
 pub use imu_setup::ImuSetup;
+pub use ins_nav_cart::{
+    INSNavCart, INSNavCartAtt, INSNavCartAttCov, INSNavCartAttStdDev, INSNavCartPosCov,
+    INSNavCartPosStdDev, INSNavCartVel, INSNavCartVelCov, INSNavCartVelStdDev,
+};
 pub use ins_nav_geod::{
     GnssMode, INSCouplingMode, INSError, INSNavGeod, INSNavGeodAtt, INSNavGeodAttCov,
     INSNavGeodAttStdDev, INSNavGeodPosCov, INSNavGeodPosStdDev, INSNavGeodVel, INSNavGeodVelCov,
@@ -60,10 +71,13 @@ pub use ins_nav_geod::{
 };
 pub use ins_support::INSSupport;
 pub use meas3_doppler::Meas3Doppler;
+pub use nav_cart::NavCart;
 pub use meas3_ranges::Meas3Ranges;
 pub use meas_epoch::{MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2};
 pub use meas_extra::{MeasExtra, MeasExtraChannelSub};
+pub use pos_cov_cartesian::PosCovCartesian;
 pub use pos_cov_geodetic::PosCovGeodetic;
+pub use pvt_cartesian::PVTCartesian;
 pub use pvt_geodetic::{
     Datum, DiffCorrType, PVTGeodetic, PvtError, PvtMode, PvtModeFlags, RaimIntegrity, WACorrFlags,
 };
@@ -71,4 +85,5 @@ pub use quality_ind::{QualityInd, QualityIndicator};
 pub use receiver_setup::ReceiverSetup;
 pub use receiver_status::{AGCState, ExtError, ReceiverStatus, RxError, RxState};
 pub use rf_status::{RFBand, RFStatus};
+pub use vel_cov_cartesian::VelCovCartesian;
 pub use vel_sensor_setup::VelSensorSetup;

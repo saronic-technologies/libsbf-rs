@@ -5,11 +5,12 @@ use binrw::io::Cursor;
 use binrw::BinRead;
 
 use crate::{
-    AttCovEuler, AttEuler, BDSIon, Commands, DiffCorrIn, ExtSensorInfo, ExtSensorMeas,
-    ExtSensorStatus, GALGstGps, GALIon, GALNav, GALUtc, GEONav, GEORawL1, GPSCNav, GPSIon, GPSNav,
-    GPSUtc, Header, INSNavGeod, INSSupport, ImuSetup, Meas3Doppler, Meas3Ranges, MeasEpoch,
-    MeasExtra, MessageKind, Messages, PVTGeodetic, PosCovGeodetic, QualityInd, ReceiverSetup,
-    RFStatus, ReceiverStatus, VelSensorSetup,
+    AttCovEuler, AttEuler, AuxAntPositions, BDSIon, Commands, DiffCorrIn, ExtSensorInfo,
+    ExtSensorMeas, ExtSensorStatus, GALGstGps, GALIon, GALNav, GALUtc, GEONav, GEORawL1, GPSCNav,
+    GPSIon, GPSNav, GPSUtc, Header, INSNavCart, INSNavGeod, INSSupport, ImuSetup, Meas3Doppler,
+    Meas3Ranges, MeasEpoch, MeasExtra, MessageKind, Messages, NavCart, PVTCartesian, PVTGeodetic,
+    PosCovCartesian, PosCovGeodetic, QualityInd, RFStatus, ReceiverSetup, ReceiverStatus,
+    VelCovCartesian, VelSensorSetup,
 };
 
 use crc16::*;
@@ -192,6 +193,12 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
                 Meas3Doppler::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::Meas3Doppler(meas3_doppler)
         }
+        MessageKind::NavCart => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let nav_cart =
+                NavCart::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::NavCart(nav_cart)
+        }
         MessageKind::BDSIon => {
             let mut body_cursor = Cursor::new(payload.as_slice());
             let bds_ion =
@@ -300,11 +307,41 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
                 GPSUtc::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::GPSUtc(gps_utc)
         }
+        MessageKind::PVTCartesian => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let pvt_cartesian = PVTCartesian::read_le(&mut body_cursor)
+                .map_err(|_| ParseError::InvalidPayload)?;
+            Messages::PVTCartesian(pvt_cartesian)
+        }
+        MessageKind::INSNavCart => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let ins_nav_cart = INSNavCart::read_le(&mut body_cursor)
+                .map_err(|_| ParseError::InvalidPayload)?;
+            Messages::INSNavCart(ins_nav_cart)
+        }
+        MessageKind::AuxAntPositions => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let aux_ant_positions = AuxAntPositions::read_le(&mut body_cursor)
+                .map_err(|_| ParseError::InvalidPayload)?;
+            Messages::AuxAntPositions(aux_ant_positions)
+        }
+        MessageKind::PosCovCartesian => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let pos_cov_cart = PosCovCartesian::read_le(&mut body_cursor)
+                .map_err(|_| ParseError::InvalidPayload)?;
+            Messages::PosCovCartesian(pos_cov_cart)
+        }
         MessageKind::PosCovGeodetic => {
             let mut body_cursor = Cursor::new(payload.as_slice());
             let pos_cov = PosCovGeodetic::read_le(&mut body_cursor)
                 .map_err(|_| ParseError::InvalidPayload)?;
             Messages::PosCovGeodetic(pos_cov)
+        }
+        MessageKind::VelCovCartesian => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let vel_cov_cart = VelCovCartesian::read_le(&mut body_cursor)
+                .map_err(|_| ParseError::InvalidPayload)?;
+            Messages::VelCovCartesian(vel_cov_cart)
         }
         MessageKind::Unsupported => {
             // This should never be reached because we reject unsupported blocks above
@@ -473,6 +510,9 @@ pub fn parse_datagram(datagram: &[u8]) -> core::result::Result<Messages, Datagra
         MessageKind::Meas3Doppler => Messages::Meas3Doppler(
             Meas3Doppler::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
         ),
+        MessageKind::NavCart => Messages::NavCart(
+            NavCart::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
         MessageKind::BDSIon => Messages::BDSIon(
             BDSIon::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
         ),
@@ -527,8 +567,23 @@ pub fn parse_datagram(datagram: &[u8]) -> core::result::Result<Messages, Datagra
         MessageKind::GPSUtc => Messages::GPSUtc(
             GPSUtc::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
         ),
+        MessageKind::PVTCartesian => Messages::PVTCartesian(
+            PVTCartesian::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::INSNavCart => Messages::INSNavCart(
+            INSNavCart::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::AuxAntPositions => Messages::AuxAntPositions(
+            AuxAntPositions::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::PosCovCartesian => Messages::PosCovCartesian(
+            PosCovCartesian::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
         MessageKind::PosCovGeodetic => Messages::PosCovGeodetic(
             PosCovGeodetic::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::VelCovCartesian => Messages::VelCovCartesian(
+            VelCovCartesian::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
         ),
         MessageKind::Unsupported => unreachable!(),
     };
