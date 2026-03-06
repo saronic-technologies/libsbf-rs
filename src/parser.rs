@@ -230,6 +230,18 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
                 INSNavGeod::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::INSNavGeod(ins_nav_geod)
         }
+        MessageKind::ExtEventINSNavCart => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let msg = ExtEventINSNavCart::read_le(&mut body_cursor)
+                .map_err(|_| ParseError::InvalidPayload)?;
+            Messages::ExtEventINSNavCart(msg)
+        }
+        MessageKind::ExtEventINSNavGeod => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let msg = ExtEventINSNavGeod::read_le(&mut body_cursor)
+                .map_err(|_| ParseError::InvalidPayload)?;
+            Messages::ExtEventINSNavGeod(msg)
+        }
         MessageKind::VelSensorSetup => {
             let mut body_cursor = Cursor::new(payload.as_slice());
             let vel_sensor_setup = VelSensorSetup::read_le(&mut body_cursor)
@@ -331,18 +343,6 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
             let ins_nav_cart = INSNavCart::read_le(&mut body_cursor)
                 .map_err(|_| ParseError::InvalidPayload)?;
             Messages::INSNavCart(ins_nav_cart)
-        }
-        MessageKind::ExtEventINSNavCart => {
-            let mut body_cursor = Cursor::new(payload.as_slice());
-            let msg = ExtEventINSNavCart::read_le(&mut body_cursor)
-                .map_err(|_| ParseError::InvalidPayload)?;
-            Messages::ExtEventINSNavCart(msg)
-        }
-        MessageKind::ExtEventINSNavGeod => {
-            let mut body_cursor = Cursor::new(payload.as_slice());
-            let msg = ExtEventINSNavGeod::read_le(&mut body_cursor)
-                .map_err(|_| ParseError::InvalidPayload)?;
-            Messages::ExtEventINSNavGeod(msg)
         }
         MessageKind::AuxAntPositions => {
             let mut body_cursor = Cursor::new(payload.as_slice());
@@ -565,6 +565,12 @@ pub fn parse_datagram(datagram: &[u8]) -> core::result::Result<Messages, Datagra
         MessageKind::INSNavGeod => Messages::INSNavGeod(
             INSNavGeod::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
         ),
+        MessageKind::ExtEventINSNavCart => Messages::ExtEventINSNavCart(
+            ExtEventINSNavCart::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::ExtEventINSNavGeod => Messages::ExtEventINSNavGeod(
+            ExtEventINSNavGeod::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
         MessageKind::VelSensorSetup => Messages::VelSensorSetup(
             VelSensorSetup::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
         ),
@@ -615,12 +621,6 @@ pub fn parse_datagram(datagram: &[u8]) -> core::result::Result<Messages, Datagra
         ),
         MessageKind::INSNavCart => Messages::INSNavCart(
             INSNavCart::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
-        ),
-        MessageKind::ExtEventINSNavCart => Messages::ExtEventINSNavCart(
-            ExtEventINSNavCart::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
-        ),
-        MessageKind::ExtEventINSNavGeod => Messages::ExtEventINSNavGeod(
-            ExtEventINSNavGeod::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
         ),
         MessageKind::AuxAntPositions => Messages::AuxAntPositions(
             AuxAntPositions::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
