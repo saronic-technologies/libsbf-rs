@@ -12,7 +12,7 @@ pub struct BaseVectorCart {
     pub wnc: Option<u16>,
     pub n: u8,
     pub sb_length: u8,
-    #[br(count = n)]
+    #[br(count = usize::from(n))]
     pub vectors: Vec<VectorInfoCart>,
 }
 
