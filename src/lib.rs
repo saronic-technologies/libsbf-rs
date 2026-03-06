@@ -34,7 +34,7 @@ const DO_NOT_USE_F8: f64 = -2e10;
 // Re-export all message types at crate level
 pub use messages::{
     AGCState, AttCovEuler, AttEuler, AttitudeMode, AuxAntPositionSub, AuxAntPositions, BDSIon,
-    BaselineError, Commands, Datum, DiffCorrIn, DiffCorrType, ExtError, ExtSensorInfo,
+    BaselineError, Commands, Datum, DiffCorrIn, DiffCorrType, EndOfMeas, ExtError, ExtSensorInfo,
     ExtSensorMeas, ExtSensorMeasAcceleration, ExtSensorMeasAngularRate, ExtSensorMeasInfo,
     ExtSensorMeasSet, ExtSensorMeasSetType, ExtSensorMeasVelocity, ExtSensorMeasZeroVelocityFlag,
     ExtSensorStatus, GALGstGps, GALIon, GALNav, GALUtc, GEONav, GEORawL1, GPSCNav, GPSIon, GPSNav,
@@ -151,6 +151,7 @@ define_messages!(
     PosCovCartesian => 5905,
     PosCovGeodetic => 5906,
     VelCovCartesian => 5907,
+    EndOfMeas => 5922,
 );
 
 pub fn is_sync(bytes: &[u8; 2]) -> bool {

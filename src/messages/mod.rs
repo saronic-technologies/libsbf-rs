@@ -4,6 +4,7 @@ pub mod aux_ant_positions;
 pub mod bds_ion;
 pub mod commands;
 pub mod diff_corr_in;
+pub mod end_of_meas;
 pub mod ext_sensor_info;
 pub mod ext_sensor_meas;
 pub mod ext_sensor_status;
@@ -43,6 +44,7 @@ pub use aux_ant_positions::{AuxAntPositionSub, AuxAntPositions};
 pub use bds_ion::BDSIon;
 pub use commands::Commands;
 pub use diff_corr_in::DiffCorrIn;
+pub use end_of_meas::EndOfMeas;
 pub use ext_sensor_info::ExtSensorInfo;
 pub use ext_sensor_meas::{
     ExtSensorMeas, ExtSensorMeasAcceleration, ExtSensorMeasAngularRate, ExtSensorMeasInfo,
