@@ -47,6 +47,7 @@ mod tests {
             "BDSIon",
             "Commands",
             "DiffCorrIn",
+            "EndOfMeas",
             "ExtSensorInfo",
             "ExtSensorMeas",
             "ExtSensorStatus",
@@ -76,7 +77,7 @@ mod tests {
         ];
 
         // Check that we have at least 27 different message types
-        // (INSNavGeod might be missing if the file wasn't updated)
+        // (INSNavGeod and EndOfMeas might be missing if the file wasn't updated)
         let unique_types = message_counts.len();
         assert!(
             unique_types >= 27,
