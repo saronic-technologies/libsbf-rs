@@ -5,11 +5,12 @@ use binrw::io::Cursor;
 use binrw::BinRead;
 
 use crate::{
-    AttCovEuler, AttEuler, AuxAntPositions, BDSIon, Commands, DiffCorrIn, EndOfMeas, ExtSensorInfo,
-    ExtSensorMeas, ExtSensorStatus, GALGstGps, GALIon, GALNav, GALUtc, GEONav, GEORawL1, GPSCNav,
-    GPSIon, GPSNav, GPSUtc, Header, INSNavCart, INSNavGeod, INSSupport, ImuSetup, Meas3Doppler,
+    AttCovEuler, AttEuler, AuxAntPositions, BaseVectorCart, BDSIon, Commands, DiffCorrIn,
+    EndOfMeas, ExtEvent, ExtEventINSNavCart, ExtEventINSNavGeod, ExtSensorInfo, ExtSensorMeas,
+    ExtSensorStatus, GALGstGps, GALIon, GALNav, GALUtc, GEONav, GEORawL1, GPSCNav, GPSIon,
+    GPSNav, GPSUtc, Header, INSNavCart, INSNavGeod, INSSupport, ImuSetup, Meas3Doppler,
     Meas3Ranges, MeasEpoch, MeasExtra, MessageKind, Messages, NavCart, PVTCartesian, PVTGeodetic,
-    PosCovCartesian, PosCovGeodetic, QualityInd, RFStatus, ReceiverSetup, ReceiverStatus,
+    PosCart, PosCovCartesian, PosCovGeodetic, QualityInd, RFStatus, ReceiverSetup, ReceiverStatus,
     VelCovCartesian, VelSensorSetup,
 };
 
@@ -307,6 +308,18 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
                 GPSUtc::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::GPSUtc(gps_utc)
         }
+        MessageKind::BaseVectorCart => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let base_vector_cart = BaseVectorCart::read_le(&mut body_cursor)
+                .map_err(|_| ParseError::InvalidPayload)?;
+            Messages::BaseVectorCart(base_vector_cart)
+        }
+        MessageKind::PosCart => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let pos_cart =
+                PosCart::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::PosCart(pos_cart)
+        }
         MessageKind::PVTCartesian => {
             let mut body_cursor = Cursor::new(payload.as_slice());
             let pvt_cartesian = PVTCartesian::read_le(&mut body_cursor)
@@ -318,6 +331,18 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
             let ins_nav_cart = INSNavCart::read_le(&mut body_cursor)
                 .map_err(|_| ParseError::InvalidPayload)?;
             Messages::INSNavCart(ins_nav_cart)
+        }
+        MessageKind::ExtEventINSNavCart => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let msg = ExtEventINSNavCart::read_le(&mut body_cursor)
+                .map_err(|_| ParseError::InvalidPayload)?;
+            Messages::ExtEventINSNavCart(msg)
+        }
+        MessageKind::ExtEventINSNavGeod => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let msg = ExtEventINSNavGeod::read_le(&mut body_cursor)
+                .map_err(|_| ParseError::InvalidPayload)?;
+            Messages::ExtEventINSNavGeod(msg)
         }
         MessageKind::AuxAntPositions => {
             let mut body_cursor = Cursor::new(payload.as_slice());
@@ -348,6 +373,12 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
             let end_of_meas = EndOfMeas::read_le(&mut body_cursor)
                 .map_err(|_| ParseError::InvalidPayload)?;
             Messages::EndOfMeas(end_of_meas)
+        }
+        MessageKind::ExtEvent => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let ext_event =
+                ExtEvent::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::ExtEvent(ext_event)
         }
         MessageKind::Unsupported => {
             // This should never be reached because we reject unsupported blocks above
@@ -573,11 +604,23 @@ pub fn parse_datagram(datagram: &[u8]) -> core::result::Result<Messages, Datagra
         MessageKind::GPSUtc => Messages::GPSUtc(
             GPSUtc::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
         ),
+        MessageKind::BaseVectorCart => Messages::BaseVectorCart(
+            BaseVectorCart::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::PosCart => Messages::PosCart(
+            PosCart::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
         MessageKind::PVTCartesian => Messages::PVTCartesian(
             PVTCartesian::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
         ),
         MessageKind::INSNavCart => Messages::INSNavCart(
             INSNavCart::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::ExtEventINSNavCart => Messages::ExtEventINSNavCart(
+            ExtEventINSNavCart::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::ExtEventINSNavGeod => Messages::ExtEventINSNavGeod(
+            ExtEventINSNavGeod::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
         ),
         MessageKind::AuxAntPositions => Messages::AuxAntPositions(
             AuxAntPositions::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
@@ -593,6 +636,9 @@ pub fn parse_datagram(datagram: &[u8]) -> core::result::Result<Messages, Datagra
         ),
         MessageKind::EndOfMeas => Messages::EndOfMeas(
             EndOfMeas::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::ExtEvent => Messages::ExtEvent(
+            ExtEvent::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
         ),
         MessageKind::Unsupported => unreachable!(),
     };

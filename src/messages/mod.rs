@@ -1,10 +1,14 @@
 pub mod att_cov_euler;
 pub mod att_euler;
 pub mod aux_ant_positions;
+pub mod base_vector_cart;
 pub mod bds_ion;
 pub mod commands;
 pub mod diff_corr_in;
 pub mod end_of_meas;
+pub mod ext_event;
+pub mod ext_event_ins_nav_cart;
+pub mod ext_event_ins_nav_geod;
 pub mod ext_sensor_info;
 pub mod ext_sensor_meas;
 pub mod ext_sensor_status;
@@ -23,10 +27,11 @@ pub mod ins_nav_cart;
 pub mod ins_nav_geod;
 pub mod ins_support;
 pub mod meas3_doppler;
-pub mod nav_cart;
 pub mod meas3_ranges;
+pub mod nav_cart;
 pub mod meas_epoch;
 pub mod meas_extra;
+pub mod pos_cart;
 pub mod pos_cov_cartesian;
 pub mod pos_cov_geodetic;
 pub mod pvt_cartesian;
@@ -41,10 +46,20 @@ pub mod vel_sensor_setup;
 pub use att_cov_euler::AttCovEuler;
 pub use att_euler::{AttEuler, AttitudeMode, BaselineError};
 pub use aux_ant_positions::{AuxAntPositionSub, AuxAntPositions};
+pub use base_vector_cart::{BaseVectorCart, VectorInfoCart};
 pub use bds_ion::BDSIon;
 pub use commands::Commands;
 pub use diff_corr_in::DiffCorrIn;
 pub use end_of_meas::EndOfMeas;
+pub use ext_event::{EventPolarity, EventSource, ExtEvent};
+pub use ext_event_ins_nav_cart::{
+    ExtEventINSNavCart, ExtEventINSNavCartAtt, ExtEventINSNavCartAttStdDev,
+    ExtEventINSNavCartPosStdDev, ExtEventINSNavCartVel, ExtEventINSNavCartVelStdDev,
+};
+pub use ext_event_ins_nav_geod::{
+    ExtEventINSNavGeod, ExtEventINSNavGeodAtt, ExtEventINSNavGeodAttStdDev,
+    ExtEventINSNavGeodPosStdDev, ExtEventINSNavGeodVel, ExtEventINSNavGeodVelStdDev,
+};
 pub use ext_sensor_info::ExtSensorInfo;
 pub use ext_sensor_meas::{
     ExtSensorMeas, ExtSensorMeasAcceleration, ExtSensorMeasAngularRate, ExtSensorMeasInfo,
@@ -77,6 +92,7 @@ pub use nav_cart::NavCart;
 pub use meas3_ranges::Meas3Ranges;
 pub use meas_epoch::{MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2};
 pub use meas_extra::{MeasExtra, MeasExtraChannelSub};
+pub use pos_cart::PosCart;
 pub use pos_cov_cartesian::PosCovCartesian;
 pub use pos_cov_geodetic::PosCovGeodetic;
 pub use pvt_cartesian::PVTCartesian;
