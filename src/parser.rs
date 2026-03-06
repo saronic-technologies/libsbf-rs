@@ -5,7 +5,7 @@ use binrw::io::Cursor;
 use binrw::BinRead;
 
 use crate::{
-    AttCovEuler, AttEuler, AuxAntPositions, BDSIon, Commands, DiffCorrIn, ExtSensorInfo,
+    AttCovEuler, AttEuler, AuxAntPositions, BDSIon, Commands, DiffCorrIn, EndOfMeas, ExtSensorInfo,
     ExtSensorMeas, ExtSensorStatus, GALGstGps, GALIon, GALNav, GALUtc, GEONav, GEORawL1, GPSCNav,
     GPSIon, GPSNav, GPSUtc, Header, INSNavCart, INSNavGeod, INSSupport, ImuSetup, Meas3Doppler,
     Meas3Ranges, MeasEpoch, MeasExtra, MessageKind, Messages, NavCart, PVTCartesian, PVTGeodetic,
@@ -343,6 +343,12 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
                 .map_err(|_| ParseError::InvalidPayload)?;
             Messages::VelCovCartesian(vel_cov_cart)
         }
+        MessageKind::EndOfMeas => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let end_of_meas = EndOfMeas::read_le(&mut body_cursor)
+                .map_err(|_| ParseError::InvalidPayload)?;
+            Messages::EndOfMeas(end_of_meas)
+        }
         MessageKind::Unsupported => {
             // This should never be reached because we reject unsupported blocks above
             unreachable!("Unsupported block should have been rejected earlier")
@@ -584,6 +590,9 @@ pub fn parse_datagram(datagram: &[u8]) -> core::result::Result<Messages, Datagra
         ),
         MessageKind::VelCovCartesian => Messages::VelCovCartesian(
             VelCovCartesian::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::EndOfMeas => Messages::EndOfMeas(
+            EndOfMeas::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
         ),
         MessageKind::Unsupported => unreachable!(),
     };
