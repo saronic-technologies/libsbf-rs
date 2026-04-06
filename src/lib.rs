@@ -34,7 +34,7 @@ const DO_NOT_USE_F8: f64 = -2e10;
 // Re-export all message types at crate level
 pub use messages::{
     AGCState, AttCovEuler, AttEuler, AttitudeMode, AuxAntPositionSub, AuxAntPositions,
-    BaseVectorCart, BaselineError, BDSIon, Commands, Datum, DiffCorrIn, DiffCorrType, EndOfMeas,
+    BaseVectorCart, BaselineError, BDSIon, Commands, DOP, Datum, DiffCorrIn, DiffCorrType, EndOfMeas,
     EventPolarity, EventSource, ExtError, ExtEvent, ExtEventINSNavCart, ExtEventINSNavCartAtt,
     ExtEventINSNavCartAttStdDev, ExtEventINSNavCartPosStdDev, ExtEventINSNavCartVel,
     ExtEventINSNavCartVelStdDev, ExtEventINSNavGeod, ExtEventINSNavGeodAtt,
@@ -119,6 +119,7 @@ macro_rules! define_messages {
 
 define_messages!(
     MeasExtra => 4000,
+    DOP => 4001,
     GALNav => 4002,
     PVTCartesian => 4006,
     PVTGeodetic => 4007,
