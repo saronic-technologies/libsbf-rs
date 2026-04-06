@@ -41,6 +41,7 @@ pub mod receiver_setup;
 pub mod receiver_status;
 pub mod rf_status;
 pub mod vel_cov_cartesian;
+pub mod vel_cov_geodetic;
 pub mod vel_sensor_setup;
 
 pub use att_cov_euler::AttCovEuler;
@@ -104,4 +105,5 @@ pub use receiver_setup::ReceiverSetup;
 pub use receiver_status::{AGCState, ExtError, ReceiverStatus, RxError, RxState};
 pub use rf_status::{RFBand, RFStatus};
 pub use vel_cov_cartesian::VelCovCartesian;
+pub use vel_cov_geodetic::VelCovGeodetic;
 pub use vel_sensor_setup::VelSensorSetup;

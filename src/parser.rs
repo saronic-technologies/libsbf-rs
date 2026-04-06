@@ -11,7 +11,7 @@ use crate::{
     GPSNav, GPSUtc, Header, INSNavCart, INSNavGeod, INSSupport, ImuSetup, Meas3Doppler,
     Meas3Ranges, MeasEpoch, MeasExtra, MessageKind, Messages, NavCart, PVTCartesian, PVTGeodetic,
     PosCart, PosCovCartesian, PosCovGeodetic, QualityInd, RFStatus, ReceiverSetup, ReceiverStatus,
-    VelCovCartesian, VelSensorSetup,
+    VelCovCartesian, VelCovGeodetic, VelSensorSetup,
 };
 
 use crc16::*;
@@ -368,6 +368,12 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
                 .map_err(|_| ParseError::InvalidPayload)?;
             Messages::VelCovCartesian(vel_cov_cart)
         }
+        MessageKind::VelCovGeodetic => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let vel_cov_geod = VelCovGeodetic::read_le(&mut body_cursor)
+                .map_err(|_| ParseError::InvalidPayload)?;
+            Messages::VelCovGeodetic(vel_cov_geod)
+        }
         MessageKind::EndOfMeas => {
             let mut body_cursor = Cursor::new(payload.as_slice());
             let end_of_meas = EndOfMeas::read_le(&mut body_cursor)
@@ -633,6 +639,9 @@ pub fn parse_datagram(datagram: &[u8]) -> core::result::Result<Messages, Datagra
         ),
         MessageKind::VelCovCartesian => Messages::VelCovCartesian(
             VelCovCartesian::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::VelCovGeodetic => Messages::VelCovGeodetic(
+            VelCovGeodetic::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
         ),
         MessageKind::EndOfMeas => Messages::EndOfMeas(
             EndOfMeas::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,

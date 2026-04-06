@@ -51,7 +51,7 @@ pub use messages::{
     MeasExtra, MeasExtraChannelSub, NavCart, PVTCartesian, PVTGeodetic, PosCart, PosCovCartesian,
     PosCovGeodetic, PvtError, PvtMode, PvtModeFlags, QualityInd, QualityIndicator, RFBand,
     RFStatus, RaimIntegrity, ReceiverSetup, ReceiverStatus, RxError, RxState, VectorInfoCart,
-    VelCovCartesian, VelSensorSetup, WACorrFlags,
+    VelCovCartesian, VelCovGeodetic, VelSensorSetup, WACorrFlags,
 };
 
 // Re-export datagram parser
@@ -160,6 +160,7 @@ define_messages!(
     PosCovCartesian => 5905,
     PosCovGeodetic => 5906,
     VelCovCartesian => 5907,
+    VelCovGeodetic => 5908,
     EndOfMeas => 5922,
     ExtEvent => 5924,
 );
