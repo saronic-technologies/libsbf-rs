@@ -5,8 +5,7 @@ use libsbf::{
     Messages,
 };
 use std::{
-    cmp::Reverse,
-    collections::HashMap,
+    collections::BTreeMap,
     fmt::{Display, Formatter, Result as FmtResult},
     fs::File,
     io::{self, Read},
@@ -84,19 +83,17 @@ impl Display for MessageStats {
     }
 }
 
-fn print_summary(stats: &HashMap<&'static str, MessageStats>, elapsed_secs: f64) {
+fn print_summary(stats: &BTreeMap<&'static str, MessageStats>, elapsed_secs: f64) {
     let total: u64 = stats.values().map(|s| s.count).sum();
-    let mut sorted: Vec<_> = stats.iter().collect();
-    sorted.sort_by_key(|b| Reverse(b.1.count));
     info!("Stats for the last {elapsed_secs:.1}s:");
-    info!("  Total: {total}");
-    for (msg_type, s) in sorted {
+    info!("  Total: {total} messages");
+    for (msg_type, s) in stats {
         info!("  {msg_type}: {s}");
     }
 }
 
 fn run(reader: SbfReader<impl Read>, interval: Option<f64>, verbose: bool) -> Result<()> {
-    let mut stats: HashMap<&'static str, MessageStats> = HashMap::new();
+    let mut stats: BTreeMap<&'static str, MessageStats> = BTreeMap::new();
     let mut window_start = Instant::now();
 
     for result in reader {
@@ -137,27 +134,17 @@ fn main() -> Result<()> {
     let interval = (!args.verbose).then_some(args.interval);
 
     // Pure digits → UDP, host:port (no slash before colon) → TCP, otherwise file
-    if args.input.chars().all(|c| c.is_ascii_digit()) {
+    let (reader, interval): (Box<dyn Read>, Option<f64>) = if args.input.chars().all(|c| c.is_ascii_digit()) {
         let port: u16 = args.input.parse()?;
         let timeout = args.timeout.unwrap_or(args.interval / 2.0);
         info!("Listening on UDP port {port} (timeout {timeout:.1}s)");
-        run(
-            SbfReader::new(UdpReader::try_new(port, Duration::from_secs_f64(timeout))?),
-            interval,
-            args.verbose,
-        )
+        (Box::new(UdpReader::try_new(port, Duration::from_secs_f64(timeout))?), interval)
+    } else if args.input.find(':').is_some_and(|c| !args.input[..c].contains('/')) {
+        info!("Connecting to TCP: {}", args.input);
+        (Box::new(TcpStream::connect(&args.input)?), interval)
     } else {
-        let (reader, interval): (Box<dyn Read>, Option<f64>) = if args
-            .input
-            .find(':')
-            .is_some_and(|c| !args.input[..c].contains('/'))
-        {
-            info!("Connecting to TCP: {}", args.input);
-            (Box::new(TcpStream::connect(&args.input)?), interval)
-        } else {
-            info!("Reading from file: {}", args.input);
-            (Box::new(File::open(&args.input)?), None)
-        };
-        run(SbfReader::new(reader), interval, args.verbose)
-    }
+        info!("Reading from file: {}", args.input);
+        (Box::new(File::open(&args.input)?), None)
+    };
+    run(SbfReader::new(reader), interval, args.verbose)
 }
