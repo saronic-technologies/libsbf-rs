@@ -43,6 +43,9 @@
             rust-bin.stable.latest.default
             valgrind
           ];
+          env = {
+            RUST_LOG = "info";
+          };
         };
       }
     );
