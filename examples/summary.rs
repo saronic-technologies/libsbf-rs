@@ -86,7 +86,7 @@ impl Display for MessageStats {
 fn print_summary(stats: &BTreeMap<&'static str, MessageStats>, elapsed_secs: f64) {
     let total: u64 = stats.values().map(|s| s.count).sum();
     info!("Stats for the last {elapsed_secs:.1}s:");
-    info!("  Total: {total} messages");
+    info!("Total: {total} messages");
     for (msg_type, s) in stats {
         info!("  {msg_type}: {s}");
     }
@@ -106,13 +106,11 @@ fn run(reader: SbfReader<impl Read>, interval: Option<f64>, verbose: bool) -> Re
             .and_modify(|s| s.update(&msg))
             .or_insert_with(|| MessageStats::new(&msg));
 
-        if !verbose {
-            let elapsed = window_start.elapsed().as_secs_f64();
-            if interval.is_some_and(|i| elapsed >= i) {
-                print_summary(&stats, elapsed);
-                stats.clear();
-                window_start = Instant::now();
-            }
+        let elapsed = window_start.elapsed().as_secs_f64();
+        if interval.is_some_and(|i| elapsed >= i) {
+            print_summary(&stats, elapsed);
+            stats.clear();
+            window_start = Instant::now();
         }
     }
 
