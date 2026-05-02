@@ -21,6 +21,7 @@ anyhow = "1.0.75"
 arbitrary = { version = "1.4.1", features = ["derive"] }
 clap = { version = "4.0", features = ["derive"] }
 crc16 = "0.4.0"
+hifitime = "4"
 libsbf = { path = ".", features = [ "std" ] }
 proptest = "1.6.0"
 tracing-subscriber = { version = "0.3.19", features = ["env-filter"] }
