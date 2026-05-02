@@ -7,9 +7,10 @@ use libsbf::{
 use std::{
     collections::BTreeMap,
     fmt::{Display, Formatter, Result as FmtResult},
-    fs::File,
-    io::{self, Read},
+    fs::{self, File, OpenOptions},
+    io::{self, BufWriter, Read, Write},
     net::TcpStream,
+    path::{Path, PathBuf},
     time::{Duration, Instant},
 };
 use tracing::info;
@@ -32,6 +33,10 @@ struct Args {
     /// Summary interval in seconds; ignored in verbose mode (TCP/UDP only)
     #[arg(short, long, default_value_t = 10.0)]
     interval: f64,
+
+    /// Path to write a raw SBF recording; fails if the file already exists
+    #[arg(short, long)]
+    record: Option<PathBuf>,
 
     /// UDP read timeout in seconds; defaults to half the interval (UDP only)
     #[arg(short, long)]
@@ -88,6 +93,16 @@ impl Display for MessageStats {
     }
 }
 
+fn open_recording(path: &Path) -> Result<BufWriter<File>> {
+    if let Some(parent) = path.parent() {
+        if !parent.as_os_str().is_empty() {
+            fs::create_dir_all(parent)?;
+        }
+    }
+    let file = OpenOptions::new().write(true).create_new(true).open(path)?;
+    Ok(BufWriter::new(file))
+}
+
 fn print_summary(stats: &BTreeMap<&'static str, MessageStats>, elapsed_secs: f64) {
     let total: u64 = stats.values().map(|s| s.count).sum();
     info!("Stats for the last {elapsed_secs:.1}s:");
@@ -97,12 +112,22 @@ fn print_summary(stats: &BTreeMap<&'static str, MessageStats>, elapsed_secs: f64
     }
 }
 
-fn run(reader: SbfReader<impl Read>, interval: Option<f64>, verbose: bool) -> Result<()> {
+fn run(
+    mut reader: SbfReader<impl Read>,
+    interval: Option<f64>,
+    verbose: bool,
+    mut recording: Option<BufWriter<File>>,
+) -> Result<()> {
     let mut stats: BTreeMap<&'static str, MessageStats> = BTreeMap::new();
     let mut window_start = Instant::now();
 
-    for result in reader {
+    while let Some(result) = reader.next() {
         let msg = result?;
+        if let Some(rec) = recording.as_mut() {
+            if let Some(raw) = reader.last_raw_bytes() {
+                rec.write_all(raw)?;
+            }
+        }
         if verbose {
             println!("{msg:?}");
         }
@@ -136,18 +161,32 @@ fn main() -> Result<()> {
 
     let interval = (!args.verbose).then_some(args.interval);
 
+    let path = args.record.as_deref();
+    let recording = path
+        .map(open_recording)
+        .transpose()?
+        .inspect(|_| info!("Recording to file {:?}", path.unwrap()));
+
     // Pure digits → UDP, host:port (no slash before colon) → TCP, otherwise file
-    let (reader, interval): (Box<dyn Read>, Option<f64>) = if args.input.chars().all(|c| c.is_ascii_digit()) {
-        let port: u16 = args.input.parse()?;
-        let timeout = args.timeout.unwrap_or(args.interval / 2.0);
-        info!("Listening on UDP port {port} (timeout {timeout:.1}s)");
-        (Box::new(UdpReader::try_new(port, Duration::from_secs_f64(timeout))?), interval)
-    } else if args.input.find(':').is_some_and(|c| !args.input[..c].contains('/')) {
-        info!("Connecting to TCP: {}", args.input);
-        (Box::new(TcpStream::connect(&args.input)?), interval)
-    } else {
-        info!("Reading from file: {}", args.input);
-        (Box::new(File::open(&args.input)?), None)
-    };
-    run(SbfReader::new(reader), interval, args.verbose)
+    let (reader, interval): (Box<dyn Read>, Option<f64>) =
+        if args.input.chars().all(|c| c.is_ascii_digit()) {
+            let port: u16 = args.input.parse()?;
+            let timeout = args.timeout.unwrap_or(args.interval / 2.0);
+            info!("Listening on UDP port {port} (timeout {timeout:.1}s)");
+            (
+                Box::new(UdpReader::try_new(port, Duration::from_secs_f64(timeout))?),
+                interval,
+            )
+        } else if args
+            .input
+            .find(':')
+            .is_some_and(|c| !args.input[..c].contains('/'))
+        {
+            info!("Connecting to TCP: {}", args.input);
+            (Box::new(TcpStream::connect(&args.input)?), interval)
+        } else {
+            info!("Reading from file: {}", args.input);
+            (Box::new(File::open(&args.input)?), None)
+        };
+    run(SbfReader::new(reader), interval, args.verbose, recording)
 }

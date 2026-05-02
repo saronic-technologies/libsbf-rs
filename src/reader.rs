@@ -44,6 +44,10 @@ impl<R: Read> SbfReader<R> {
             drain_internal: false,
         }
     }
+
+    pub fn last_raw_bytes(&self) -> Option<&[u8]> {
+        self.parser.last_raw_bytes()
+    }
 }
 
 impl<R: Read> Iterator for SbfReader<R> {
@@ -161,7 +165,7 @@ mod tests {
     };
     use std::{
         fs::{read, File},
-        io::{self, BufRead, BufReader, Read},
+        io::{self, BufRead, BufReader, Cursor, Read, Write},
         net::UdpSocket,
         sync::{Arc, Barrier},
         time::Duration,
@@ -379,6 +383,34 @@ mod tests {
 
         let sbf_reader = SbfReader::new(BarrierReader { inner: &mut reader, barrier });
         check_parse(sbf_reader, &mut cf_lines);
+        Ok(())
+    }
+
+    #[test]
+    fn raw_bytes_in_reader() -> Result<()> {
+        const SYNC: &[u8] = &[36, 64];
+        const QUALITY_IND_HEADER: &[u8] = &[134, 98, 242, 15, 32, 0];
+        const QUALITY_IND_PAYLOAD: &[u8] = &[
+            184, 244, 58, 29, 56, 9, 7, 0, 11, 10, 12, 10, 1, 0, 2, 0, 21, 10, 31, 0, 0, 0, 0, 0,
+        ];
+
+        let mut input = Vec::new();
+        for _ in 0..3 {
+            input.extend_from_slice(SYNC);
+            input.extend_from_slice(QUALITY_IND_HEADER);
+            input.extend_from_slice(QUALITY_IND_PAYLOAD);
+        }
+
+        let mut recording = Cursor::new(Vec::new());
+        let mut reader = SbfReader::new(input.as_slice());
+        while let Some(result) = reader.next() {
+            result?;
+            if let Some(raw) = reader.last_raw_bytes() {
+                recording.write_all(raw)?;
+            }
+        }
+
+        assert_eq!(recording.into_inner(), input);
         Ok(())
     }
 }
