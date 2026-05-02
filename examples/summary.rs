@@ -1,5 +1,6 @@
 use anyhow::Result;
 use clap::Parser;
+use hifitime::{Epoch, TimeScale};
 use libsbf::{
     reader::{SbfReader, UdpReader},
     Messages,
@@ -103,13 +104,24 @@ fn open_recording(path: &Path) -> Result<BufWriter<File>> {
     Ok(BufWriter::new(file))
 }
 
-fn print_summary(stats: &BTreeMap<&'static str, MessageStats>, elapsed_secs: f64) {
+fn print_summary(
+    stats: &BTreeMap<&'static str, MessageStats>,
+    elapsed_secs: f64,
+    min_epoch: Option<Epoch>,
+    max_epoch: Option<Epoch>,
+) {
     let total: u64 = stats.values().map(|s| s.count).sum();
-    info!("Stats for the last {elapsed_secs:.1}s:");
+    if let (Some(min), Some(max)) = (min_epoch, max_epoch) {
+        let duration = max - min;
+        info!("Stats for the last {duration} ({min} - {max}):");
+    } else {
+        info!("Stats:");
+    }
     info!("Total: {total} messages");
     for s in stats.values() {
         info!("  {s}");
     }
+    info!("Wall-clock time: {elapsed_secs:.1}s");
 }
 
 fn run(
@@ -120,6 +132,8 @@ fn run(
 ) -> Result<()> {
     let mut stats: BTreeMap<&'static str, MessageStats> = BTreeMap::new();
     let mut window_start = Instant::now();
+    let mut window_min_epoch: Option<Epoch> = None;
+    let mut window_max_epoch: Option<Epoch> = None;
 
     while let Some(result) = reader.next() {
         let msg = result?;
@@ -131,6 +145,12 @@ fn run(
         if verbose {
             println!("{msg:?}");
         }
+        if let (Some(wnc), Some(tow)) = (msg.wnc(), msg.tow()) {
+            let epoch =
+                Epoch::from_time_of_week(wnc as u32, tow as u64 * 1_000_000, TimeScale::GPST);
+            window_min_epoch = Some(window_min_epoch.map_or(epoch, |m| m.min(epoch)));
+            window_max_epoch = Some(window_max_epoch.map_or(epoch, |m| m.max(epoch)));
+        }
         stats
             .entry(msg.type_name())
             .and_modify(|s| s.update(&msg))
@@ -138,14 +158,21 @@ fn run(
 
         let elapsed = window_start.elapsed().as_secs_f64();
         if interval.is_some_and(|i| elapsed >= i) {
-            print_summary(&stats, elapsed);
+            print_summary(&stats, elapsed, window_min_epoch, window_max_epoch);
             stats.clear();
+            window_min_epoch = None;
+            window_max_epoch = None;
             window_start = Instant::now();
         }
     }
 
     if !stats.is_empty() {
-        print_summary(&stats, window_start.elapsed().as_secs_f64());
+        print_summary(
+            &stats,
+            window_start.elapsed().as_secs_f64(),
+            window_min_epoch,
+            window_max_epoch,
+        );
     }
 
     Ok(())
