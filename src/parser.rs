@@ -46,7 +46,7 @@ enum ParseError {
     SyncNotFound,
 }
 
-type Result<T> = core::result::Result<(T, usize), ParseError>;
+type Result<T> = core::result::Result<(T, usize, usize), ParseError>;
 
 // Constants for our parser.
 const MIN_MESSAGE_SIZE: usize = 8; // 2 sync bytes + 6 header bytes
@@ -91,11 +91,8 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
 
     // Build the message.
     let payload_start = header_end;
-    let payload = input[payload_start..payload_start + (h.length as usize) - 8].to_vec();
-    let mut full_block = Vec::with_capacity(4 + payload.len());
-    full_block.extend_from_slice(&header[2..]);
-    full_block.extend_from_slice(&payload);
-    let crc = State::<XMODEM>::calculate(full_block.as_slice());
+    let payload = &input[payload_start..payload_start + (h.length as usize) - 8];
+    let crc = State::<XMODEM>::calculate(&input[sync_index + 4..sync_index + total_size]);
 
     if h.crc != crc {
         debug!("Invalid CRC for {:?}", h.block_id.message_type());
@@ -107,17 +104,19 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
         debug!("Unsupported Block ID: {:?}", h.block_id);
         return Ok((
             Messages::Unsupported(h.block_id.block_number()),
-            sync_index + total_size,
+            sync_index,
+            total_size,
         ));
     }
 
-    let res = Messages::parse_body(msg_kind, &payload).map_err(|_| ParseError::InvalidPayload)?;
+    let res = Messages::parse_body(msg_kind, payload).map_err(|_| ParseError::InvalidPayload)?;
 
-    Ok((res, sync_index + total_size))
+    Ok((res, sync_index, total_size))
 }
 
 pub struct SbfParser {
     buf: Vec<u8>,
+    last_raw: Vec<u8>,
 }
 
 impl Default for SbfParser {
@@ -128,7 +127,18 @@ impl Default for SbfParser {
 
 impl SbfParser {
     pub fn new() -> Self {
-        Self { buf: Vec::new() }
+        Self {
+            buf: Vec::new(),
+            last_raw: Vec::new(),
+        }
+    }
+
+    pub fn last_raw_bytes(&self) -> Option<&[u8]> {
+        if self.last_raw.is_empty() {
+            None
+        } else {
+            Some(&self.last_raw)
+        }
     }
 
     /// Consume bytes and attempt to parse the message. If we can't
@@ -139,9 +149,10 @@ impl SbfParser {
         loop {
             debug!("Internal Buffer Size: {}", self.buf.len());
             match parse_message(&self.buf) {
-                Ok((msg, bytes_consumed)) => {
+                Ok((msg, msg_start, total_size)) => {
                     debug!("draining the buffer");
-                    self.buf.drain(0..bytes_consumed);
+                    self.buf.drain(0..msg_start);
+                    self.last_raw = self.buf.drain(0..total_size).collect();
                     return Some(msg);
                 }
                 Err(ParseError::IncompleteData) => {
@@ -275,7 +286,9 @@ mod tests {
     fn assert_valid_quality_ind(qi: &QualityInd) {
         assert_eq!(qi.tow, Some(490403000));
         assert_eq!(qi.wnc, Some(2360));
-        let expected: Vec<QualityIndicator> = [2571u16, 2572, 1, 2, 2581, 31, 0].map(QualityIndicator::from).to_vec();
+        let expected: Vec<QualityIndicator> = [2571u16, 2572, 1, 2, 2581, 31, 0]
+            .map(QualityIndicator::from)
+            .to_vec();
         assert_eq!(qi.indicators, expected);
     }
 
