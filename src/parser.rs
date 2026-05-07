@@ -110,13 +110,6 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
         return Err(ParseError::InvalidCRC);
     }
 
-    // Header is structurally valid and the CRC checks out. If the
-    // block ID isn't one we have a typed payload parser for, surface
-    // it as `Messages::Unsupported(block_number)` rather than an
-    // error. Callers walking a multi-block datagram can then skip
-    // these by `total_size` and keep parsing — the alternative
-    // (error here) caused a hard resync that mistook payload bytes
-    // for sync words.
     let msg_kind = h.block_id.message_type();
     if let MessageKind::Unsupported = msg_kind {
         debug!("Unsupported Block ID: {:?}", h.block_id);
@@ -520,10 +513,6 @@ pub fn parse_datagram(datagram: &[u8]) -> core::result::Result<Messages, Datagra
         return Err(DatagramError::InvalidCrc);
     }
 
-    // Header is structurally valid and the CRC checks out. If the
-    // block ID isn't one we have a typed payload parser for, surface
-    // it as `Messages::Unsupported(block_number)` so callers can skip
-    // it by length without re-syncing.
     let msg_kind = h.block_id.message_type();
     if let MessageKind::Unsupported = msg_kind {
         return Ok(Messages::Unsupported(h.block_id.block_number()));
@@ -916,11 +905,6 @@ mod tests {
         assert!(matches!(result, Err(DatagramError::ExceedsMaxUdpPayload(65528))));
     }
 
-    /// Block ID without a typed parser (e.g. the upstream firmware
-    /// added a new block) must surface as `Messages::Unsupported(id)`
-    /// once the header + CRC validate. Returning an error on these
-    /// would force callers walking a multi-block datagram to resync,
-    /// which mistakes payload bytes for sync words and cascades.
     #[test]
     fn test_parse_datagram_unsupported_block_returns_ok() {
         // Block 1000 is in the SBF range but not in MessageKind.
@@ -947,9 +931,6 @@ mod tests {
         }
     }
 
-    /// Unsupported block with a corrupted CRC must still error — the
-    /// CRC gate guards the length we'd skip past, so a bad CRC means
-    /// we can't trust the framing.
     #[test]
     fn test_parse_datagram_unsupported_block_bad_crc_errors() {
         let block_id: u16 = 1000;
