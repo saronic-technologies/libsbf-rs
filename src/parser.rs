@@ -38,7 +38,7 @@ pub enum DatagramError {
     NoSync,
     /// CRC validation failed.
     InvalidCrc,
-    /// Invalid header (bad length, unsupported block ID).
+    /// Invalid header (bad length).
     InvalidHeader,
     /// Failed to deserialize the message payload.
     InvalidPayload,
@@ -90,11 +90,6 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
         return Err(ParseError::InvalidHeader);
     }
 
-    if let MessageKind::Unsupported = h.block_id.message_type() {
-        debug!("Unsupported Block ID: {:?}", h.block_id);
-        return Err(ParseError::InvalidHeader);
-    }
-
     // Ensure we have the complete payload.
     let total_size = 2 + 6 + (h.length as usize) - 8;
     if input.len() < sync_index + total_size {
@@ -115,7 +110,23 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
         return Err(ParseError::InvalidCRC);
     }
 
-    let res = match h.block_id.message_type() {
+    // Header is structurally valid and the CRC checks out. If the
+    // block ID isn't one we have a typed payload parser for, surface
+    // it as `Messages::Unsupported(block_number)` rather than an
+    // error. Callers walking a multi-block datagram can then skip
+    // these by `total_size` and keep parsing — the alternative
+    // (error here) caused a hard resync that mistook payload bytes
+    // for sync words.
+    let msg_kind = h.block_id.message_type();
+    if let MessageKind::Unsupported = msg_kind {
+        debug!("Unsupported Block ID: {:?}", h.block_id);
+        return Ok((
+            Messages::Unsupported(h.block_id.block_number()),
+            sync_index + total_size,
+        ));
+    }
+
+    let res = match msg_kind {
         MessageKind::MeasExtra => {
             let mut body_cursor = Cursor::new(payload.as_slice());
             let meas_extra =
@@ -392,8 +403,8 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
             Messages::ExtEvent(ext_event)
         }
         MessageKind::Unsupported => {
-            // This should never be reached because we reject unsupported blocks above
-            unreachable!("Unsupported block should have been rejected earlier")
+            // Early-returned above as `Ok(Messages::Unsupported(_))`.
+            unreachable!("Unsupported block should have been surfaced earlier")
         }
     };
 
@@ -496,11 +507,6 @@ pub fn parse_datagram(datagram: &[u8]) -> core::result::Result<Messages, Datagra
         return Err(DatagramError::ExceedsMaxUdpPayload(h.length));
     }
 
-    let msg_kind = h.block_id.message_type();
-    if let MessageKind::Unsupported = msg_kind {
-        return Err(DatagramError::InvalidHeader);
-    }
-
     // Check we have the full message
     let total_len = h.length as usize;
     if datagram.len() < total_len {
@@ -512,6 +518,15 @@ pub fn parse_datagram(datagram: &[u8]) -> core::result::Result<Messages, Datagra
     let calculated_crc = State::<XMODEM>::calculate(crc_data);
     if h.crc != calculated_crc {
         return Err(DatagramError::InvalidCrc);
+    }
+
+    // Header is structurally valid and the CRC checks out. If the
+    // block ID isn't one we have a typed payload parser for, surface
+    // it as `Messages::Unsupported(block_number)` so callers can skip
+    // it by length without re-syncing.
+    let msg_kind = h.block_id.message_type();
+    if let MessageKind::Unsupported = msg_kind {
+        return Ok(Messages::Unsupported(h.block_id.block_number()));
     }
 
     // Parse payload
@@ -657,6 +672,7 @@ pub fn parse_datagram(datagram: &[u8]) -> core::result::Result<Messages, Datagra
         MessageKind::ExtEvent => Messages::ExtEvent(
             ExtEvent::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
         ),
+        // Early-returned above as `Ok(Messages::Unsupported(_))`.
         MessageKind::Unsupported => unreachable!(),
     };
 
@@ -898,6 +914,57 @@ mod tests {
 
         let result = parse_datagram(&datagram);
         assert!(matches!(result, Err(DatagramError::ExceedsMaxUdpPayload(65528))));
+    }
+
+    /// Block ID without a typed parser (e.g. the upstream firmware
+    /// added a new block) must surface as `Messages::Unsupported(id)`
+    /// once the header + CRC validate. Returning an error on these
+    /// would force callers walking a multi-block datagram to resync,
+    /// which mistakes payload bytes for sync words and cascades.
+    #[test]
+    fn test_parse_datagram_unsupported_block_returns_ok() {
+        // Block 1000 is in the SBF range but not in MessageKind.
+        let block_id: u16 = 1000;
+        let payload = [0u8; 8]; // arbitrary, length must be multiple of 4
+        let length: u16 = (payload.len() + 8) as u16;
+
+        let mut crc_data = Vec::new();
+        crc_data.extend_from_slice(&block_id.to_le_bytes());
+        crc_data.extend_from_slice(&length.to_le_bytes());
+        crc_data.extend_from_slice(&payload);
+        let crc = State::<XMODEM>::calculate(&crc_data);
+
+        let mut datagram = Vec::new();
+        datagram.extend_from_slice(b"$@");
+        datagram.extend_from_slice(&crc.to_le_bytes());
+        datagram.extend_from_slice(&block_id.to_le_bytes());
+        datagram.extend_from_slice(&length.to_le_bytes());
+        datagram.extend_from_slice(&payload);
+
+        match parse_datagram(&datagram) {
+            Ok(Messages::Unsupported(id)) => assert_eq!(id, block_id),
+            other => panic!("expected Ok(Unsupported({block_id})), got {other:?}"),
+        }
+    }
+
+    /// Unsupported block with a corrupted CRC must still error — the
+    /// CRC gate guards the length we'd skip past, so a bad CRC means
+    /// we can't trust the framing.
+    #[test]
+    fn test_parse_datagram_unsupported_block_bad_crc_errors() {
+        let block_id: u16 = 1000;
+        let payload = [0u8; 8];
+        let length: u16 = (payload.len() + 8) as u16;
+
+        let mut datagram = Vec::new();
+        datagram.extend_from_slice(b"$@");
+        datagram.extend_from_slice(&[0xFF, 0xFF]); // bad CRC
+        datagram.extend_from_slice(&block_id.to_le_bytes());
+        datagram.extend_from_slice(&length.to_le_bytes());
+        datagram.extend_from_slice(&payload);
+
+        let result = parse_datagram(&datagram);
+        assert!(matches!(result, Err(DatagramError::InvalidCrc)));
     }
 
     proptest! {

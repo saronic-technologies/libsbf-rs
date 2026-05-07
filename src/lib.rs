@@ -109,6 +109,13 @@ macro_rules! define_messages {
         }
 
         /// Detailed enum that holds the associated payload.
+        ///
+        /// `Unsupported(block_number)` is returned for SBF blocks
+        /// whose header is structurally valid and whose CRC checks
+        /// out, but whose block ID is one this crate does not yet
+        /// have a typed payload parser for. Callers walking a multi-
+        /// block stream should skip these by their declared length
+        /// rather than treating them as parse errors.
         #[derive(Debug)]
         pub enum Messages {
             $( $variant($variant), )+
