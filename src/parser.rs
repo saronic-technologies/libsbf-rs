@@ -1,13 +1,10 @@
 extern crate alloc;
-use alloc::vec::Vec;
-
-use binrw::io::Cursor;
-use binrw::BinRead;
 
 use crate::{Header, MessageKind, Messages};
 
+use alloc::vec::Vec;
+use binrw::{io::Cursor, BinRead};
 use crc16::*;
-
 use tracing::debug;
 
 #[derive(Debug)]
