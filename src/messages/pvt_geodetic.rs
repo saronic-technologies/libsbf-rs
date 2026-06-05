@@ -18,7 +18,9 @@ pub enum PvtMode {
     Sbas = 6,
     MovingBaseRtkFixed = 7,
     MovingBaseRtkFloat = 8,
-    Ppp = 10,
+    PppFixed = 9,
+    PppFloat = 10,
+    RtkFloatFixed = 11,
     #[num_enum(catch_all)]
     Unknown(u8),
 }
@@ -35,7 +37,9 @@ impl From<u8> for PvtMode {
             6 => PvtMode::Sbas,
             7 => PvtMode::MovingBaseRtkFixed,
             8 => PvtMode::MovingBaseRtkFloat,
-            10 => PvtMode::Ppp,
+            9 => PvtMode::PppFixed,
+            10 => PvtMode::PppFloat,
+            11 => PvtMode::RtkFloatFixed,
             x => PvtMode::Unknown(x),
         }
     }
@@ -53,7 +57,9 @@ impl fmt::Display for PvtMode {
             PvtMode::Sbas => write!(f, "SBAS"),
             PvtMode::MovingBaseRtkFixed => write!(f, "Moving Base RTK Fixed"),
             PvtMode::MovingBaseRtkFloat => write!(f, "Moving Base RTK Float"),
-            PvtMode::Ppp => write!(f, "PPP"),
+            PvtMode::PppFixed => write!(f, "PPP Fixed"),
+            PvtMode::PppFloat => write!(f, "PPP Float"),
+            PvtMode::RtkFloatFixed => write!(f, "RTK Float with WL Fixed"),
             PvtMode::Unknown(x) => write!(f, "Unknown({x})"),
         }
     }
