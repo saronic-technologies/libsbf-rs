@@ -29,8 +29,7 @@
             rev = "v${version}";
             hash = "sha256-JMQYa8UL+QAo8D8T13BEvrrhy4c/fiSozFDTPdGS5ME=";
           };
-          useFetchCargoVendor = true;
-          cargoHash = "sha256-RCqjrrgHUMEf0rK1XH352plPoS8jKoo6lp7J9RakX/o=";
+          cargoLock.lockFile = "${src}/Cargo.lock";
 
           doCheck = false;
         };
