@@ -33,9 +33,35 @@
 
           doCheck = false;
         };
+
+        cargoToml = builtins.fromTOML (builtins.readFile ./Cargo.toml);
+
+        summary = rustPlatform.buildRustPackage {
+          pname = "summary";
+          inherit (cargoToml.package) version;
+          src = ./.;
+          cargoLock.lockFile = ./Cargo.lock;
+          cargoBuildFlags = [ "--example" "summary" ];
+          doCheck = false;
+          # cargo puts the example under target/**/release/examples/, which the
+          # default install hook skips because it is not a declared bin.
+          installPhase = ''
+            runHook preInstall
+            bin=$(find target -type f -name summary -path '*/release/examples/*' | head -n1)
+            install -Dm755 "$bin" "$out/bin/summary"
+            runHook postInstall
+          '';
+        };
       in
       with pkgs;
       {
+        packages.summary = summary;
+
+        apps.summary = {
+          type = "app";
+          program = "${summary}/bin/summary";
+        };
+
         devShells.default = mkShell {
           nativeBuildInputs = [
             cargo-afl
