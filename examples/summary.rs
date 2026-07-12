@@ -22,8 +22,11 @@ struct Args {
     /// Input source: file path, TCP address (`host:port`), or UDP port number
     ///
     /// Examples:
+    ///
     ///   - `/path/to/file.sbf` — read from file, print final summary
+    ///
     ///   - `192.168.1.100:5555` — connect via TCP, print summary each interval
+    ///
     ///   - `5555` — listen on UDP port, print summary each interval
     input: String,
 
