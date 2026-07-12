@@ -6,7 +6,7 @@ use super::pvt_geodetic::{Datum, PvtMode};
 
 // ExtEventINSNavGeod Block 4230
 // Same structure as INSNavGeod, but at external event time.
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct ExtEventINSNavGeod {
     #[br(map = |x| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,
@@ -46,7 +46,7 @@ pub struct ExtEventINSNavGeod {
     pub vel_std_dev: Option<ExtEventINSNavGeodVelStdDev>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct ExtEventINSNavGeodPosStdDev {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub longitude_std_dev: Option<f32>,
@@ -56,7 +56,7 @@ pub struct ExtEventINSNavGeodPosStdDev {
     pub height_std_dev: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct ExtEventINSNavGeodAtt {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub heading: Option<f32>,
@@ -66,7 +66,7 @@ pub struct ExtEventINSNavGeodAtt {
     pub roll: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct ExtEventINSNavGeodAttStdDev {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub heading_std_dev: Option<f32>,
@@ -76,7 +76,7 @@ pub struct ExtEventINSNavGeodAttStdDev {
     pub roll_std_dev: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct ExtEventINSNavGeodVel {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub ve: Option<f32>,
@@ -86,7 +86,7 @@ pub struct ExtEventINSNavGeodVel {
     pub vu: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct ExtEventINSNavGeodVelStdDev {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub ve_std_dev: Option<f32>,

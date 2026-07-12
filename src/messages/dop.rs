@@ -2,7 +2,7 @@ use binrw::binrw;
 
 // DOP Block 4001
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct DOP {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,

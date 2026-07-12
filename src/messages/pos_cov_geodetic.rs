@@ -4,7 +4,7 @@ use super::pvt_geodetic::{PvtError, PvtMode, PvtModeFlags};
 
 // PosCovGeodetic Block 5906
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct PosCovGeodetic {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,

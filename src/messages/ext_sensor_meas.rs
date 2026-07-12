@@ -3,7 +3,7 @@ use binrw::binrw;
 
 // External Sensor Measurement Block 4050
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ExtSensorMeas {
     #[br(map = |x| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,
@@ -26,7 +26,7 @@ pub enum ExtSensorMeasSetType {
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ExtSensorMeasSet {
     pub source: u8,
     pub sensor_model: u8,
@@ -46,7 +46,7 @@ pub struct ExtSensorMeasSet {
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ExtSensorMeasAcceleration {
     #[br(map = |x| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
     pub ax: Option<f64>,
@@ -57,7 +57,7 @@ pub struct ExtSensorMeasAcceleration {
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ExtSensorMeasAngularRate {
     #[br(map = |x| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
     pub wx: Option<f64>,
@@ -68,7 +68,7 @@ pub struct ExtSensorMeasAngularRate {
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ExtSensorMeasVelocity {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub vx: Option<f32>,
@@ -85,7 +85,7 @@ pub struct ExtSensorMeasVelocity {
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ExtSensorMeasInfo {
     #[br(map = |x| if x == crate::DO_NOT_USE_I2 { None } else { Some(x) })]
     pub sensor_temp: Option<i16>,
@@ -93,7 +93,7 @@ pub struct ExtSensorMeasInfo {
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ExtSensorMeasZeroVelocityFlag {
     pub zero_v_flag: f64,
     pub _reserved: [u8; 16],

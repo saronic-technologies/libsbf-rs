@@ -3,7 +3,7 @@ use binrw::binrw;
 
 // GALGstGps Block 4032
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct GALGstGps {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,

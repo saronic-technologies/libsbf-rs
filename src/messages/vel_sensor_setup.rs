@@ -3,7 +3,7 @@ use binrw::binrw;
 
 // VelSensorSetup Block 4244
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct VelSensorSetup {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,

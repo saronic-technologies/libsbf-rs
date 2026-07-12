@@ -8,7 +8,7 @@ use super::pvt_geodetic::{
 
 // NavCart Block 4272
 // Combined PVTCartesian + AttEuler + DOP + ReceiverTime fields.
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct NavCart {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,

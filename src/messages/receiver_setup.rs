@@ -2,7 +2,7 @@ use binrw::binrw;
 
 // Receiver Setup Block 5902
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ReceiverSetup {
     #[br(map = |x| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,

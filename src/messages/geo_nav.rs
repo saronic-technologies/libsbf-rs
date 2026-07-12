@@ -2,7 +2,7 @@ use binrw::binrw;
 
 // GEONav Block 5896
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct GEONav {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,

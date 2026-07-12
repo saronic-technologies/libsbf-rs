@@ -3,7 +3,7 @@ use binrw::binrw;
 
 // GPSIon Block 5893
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct GPSIon {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,

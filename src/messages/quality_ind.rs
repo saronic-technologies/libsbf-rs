@@ -37,7 +37,7 @@ impl From<u16> for QualityIndicator {
 }
 
 // Quality Indicator Block 4082
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct QualityInd {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,

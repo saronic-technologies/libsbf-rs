@@ -109,7 +109,7 @@ macro_rules! define_messages {
         }
 
         /// Detailed enum that holds the associated payload.
-        #[derive(Debug)]
+        #[derive(Clone, Debug)]
         pub enum Messages {
             $( $variant($variant), )+
             Unsupported(u16),

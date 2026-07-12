@@ -3,7 +3,7 @@ use binrw::binrw;
 
 // GALNav Block 4002
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct GALNav {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,

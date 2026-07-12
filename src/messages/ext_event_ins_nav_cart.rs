@@ -6,7 +6,7 @@ use super::pvt_geodetic::{Datum, PvtMode};
 
 // ExtEventINSNavCart Block 4229
 // Same structure as INSNavCart, but at external event time.
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct ExtEventINSNavCart {
     #[br(map = |x| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,
@@ -44,7 +44,7 @@ pub struct ExtEventINSNavCart {
     pub vel_std_dev: Option<ExtEventINSNavCartVelStdDev>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct ExtEventINSNavCartPosStdDev {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub x_std_dev: Option<f32>,
@@ -54,7 +54,7 @@ pub struct ExtEventINSNavCartPosStdDev {
     pub z_std_dev: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct ExtEventINSNavCartAtt {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub heading: Option<f32>,
@@ -64,7 +64,7 @@ pub struct ExtEventINSNavCartAtt {
     pub roll: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct ExtEventINSNavCartAttStdDev {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub heading_std_dev: Option<f32>,
@@ -74,7 +74,7 @@ pub struct ExtEventINSNavCartAttStdDev {
     pub roll_std_dev: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct ExtEventINSNavCartVel {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub vx: Option<f32>,
@@ -84,7 +84,7 @@ pub struct ExtEventINSNavCartVel {
     pub vz: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct ExtEventINSNavCartVelStdDev {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub vx_std_dev: Option<f32>,

@@ -3,7 +3,7 @@ use binrw::binrw;
 
 // MeasEpoch Block 4027
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct MeasEpoch {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,
@@ -20,7 +20,7 @@ pub struct MeasEpoch {
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct MeasEpochChannelType1 {
     pub rx_channel: u8,
     pub type_field: u8,
@@ -43,7 +43,7 @@ pub struct MeasEpochChannelType1 {
 }
 
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct MeasEpochChannelType2 {
     pub type_field: u8,
     #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) })]

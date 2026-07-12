@@ -3,7 +3,7 @@ use binrw::binrw;
 
 // DiffCorrIn Block 5919
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct DiffCorrIn {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,

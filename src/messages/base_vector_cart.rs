@@ -4,7 +4,7 @@ use binrw::BinRead;
 use super::pvt_geodetic::{PvtError, PvtMode, PvtModeFlags};
 
 // BaseVectorCart Block 4043
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct BaseVectorCart {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,
@@ -17,7 +17,7 @@ pub struct BaseVectorCart {
 }
 
 // VectorInfoCart sub-block
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct VectorInfoCart {
     #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) })]
     pub nr_sv: Option<u8>,
