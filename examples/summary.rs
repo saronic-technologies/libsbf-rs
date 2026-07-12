@@ -43,8 +43,10 @@ struct Args {
 }
 
 const MS_PER_WEEK: u32 = 3600 * 24 * 7 * 1000;
+const NAME_WIDTH: usize = 20;
 
 struct MessageStats {
+    name: &'static str,
     count: u64,
     first_tow: Option<u32>,
     last_tow: Option<u32>,
@@ -54,6 +56,7 @@ impl MessageStats {
     fn new(msg: &Messages) -> Self {
         let tow = msg.tow();
         Self {
+            name: msg.type_name(),
             count: 1,
             first_tow: tow,
             last_tow: tow,
@@ -70,14 +73,14 @@ impl MessageStats {
 
 impl Display for MessageStats {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "{}", self.count)?;
+        write!(f, "{:<NAME_WIDTH$} {:>8}", self.name, self.count)?;
         if self.count >= 2 {
             if let (Some(first), Some(last)) = (self.first_tow, self.last_tow) {
                 if first != last {
                     let t = ((last + MS_PER_WEEK - first) % MS_PER_WEEK) as f64 / 1000.0;
                     let rate = (self.count - 1) as f64 / t;
                     let uncertainty = (rate / t).sqrt();
-                    write!(f, " ({rate:.2} ± {uncertainty:.2} Hz)")?;
+                    write!(f, " ({rate:>7.2} ± {uncertainty:>5.2} Hz)")?;
                 }
             }
         }
@@ -89,8 +92,8 @@ fn print_summary(stats: &BTreeMap<&'static str, MessageStats>, elapsed_secs: f64
     let total: u64 = stats.values().map(|s| s.count).sum();
     info!("Stats for the last {elapsed_secs:.1}s:");
     info!("Total: {total} messages");
-    for (msg_type, s) in stats {
-        info!("  {msg_type}: {s}");
+    for s in stats.values() {
+        info!("  {s}");
     }
 }
 
