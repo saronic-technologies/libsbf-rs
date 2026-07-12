@@ -42,6 +42,8 @@ struct Args {
     verbose: bool,
 }
 
+const MS_PER_WEEK: u32 = 3600 * 24 * 7 * 1000;
+
 struct MessageStats {
     count: u64,
     first_tow: Option<u32>,
@@ -71,10 +73,10 @@ impl Display for MessageStats {
         write!(f, "{}", self.count)?;
         if self.count >= 2 {
             if let (Some(first), Some(last)) = (self.first_tow, self.last_tow) {
-                if last > first {
-                    let t = (last - first) as f64 / 1000.0;
+                if first != last {
+                    let t = ((last + MS_PER_WEEK - first) % MS_PER_WEEK) as f64 / 1000.0;
                     let rate = (self.count - 1) as f64 / t;
-                    let uncertainty = 1.0 / t;
+                    let uncertainty = (rate / t).sqrt();
                     write!(f, " ({rate:.2} ± {uncertainty:.2} Hz)")?;
                 }
             }
