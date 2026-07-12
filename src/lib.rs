@@ -114,6 +114,29 @@ macro_rules! define_messages {
             $( $variant($variant), )+
             Unsupported(u16),
         }
+
+        impl Messages {
+            pub fn type_name(&self) -> &'static str {
+                match self {
+                    $( Messages::$variant(_) => stringify!($variant), )+
+                    Messages::Unsupported(_) => "Unsupported",
+                }
+            }
+
+            pub fn tow(&self) -> Option<u32> {
+                match self {
+                    $( Messages::$variant(m) => m.tow, )+
+                    Messages::Unsupported(_) => None,
+                }
+            }
+
+            pub fn wnc(&self) -> Option<u16> {
+                match self {
+                    $( Messages::$variant(m) => m.wnc, )+
+                    Messages::Unsupported(_) => None,
+                }
+            }
+        }
     };
 }
 
