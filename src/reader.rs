@@ -1,6 +1,6 @@
 use crate::{parser::SbfParser, Messages};
 use std::{
-    io::{self, Cursor, ErrorKind, Read},
+    io::{self, ErrorKind, Read},
     net::{SocketAddr, UdpSocket},
     time::Duration,
 };
@@ -104,7 +104,9 @@ impl<R: Read> Iterator for SbfReader<R> {
 #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
 pub struct UdpReader {
     socket: UdpSocket,
-    cursor: Cursor<Vec<u8>>,
+    buf: Vec<u8>,
+    pos: usize,
+    used: usize,
 }
 
 impl UdpReader {
@@ -117,28 +119,36 @@ impl UdpReader {
         socket.set_read_timeout(Some(timeout))?;
         Ok(Self {
             socket,
-            cursor: Cursor::new(Vec::with_capacity(UDP_BUFFER_SIZE)),
+            buf: vec![0u8; UDP_BUFFER_SIZE],
+            pos: 0,
+            used: 0,
         })
     }
 }
 
 impl Read for UdpReader {
     fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
-        if self.cursor.position() as usize >= self.cursor.get_ref().len() {
-            let inner = self.cursor.get_mut();
-            inner.resize(UDP_BUFFER_SIZE, 0);
-            match self.socket.recv(inner) {
-                Ok(n) => {
-                    inner.truncate(n);
-                    self.cursor.set_position(0);
+        if self.pos >= self.used {
+            loop {
+                match self.socket.recv(&mut self.buf) {
+                    // Zero-length datagrams are legal but carry no SBF data; skip them.
+                    Ok(0) => continue,
+                    Ok(n) => {
+                        self.used = n;
+                        self.pos = 0;
+                        break;
+                    }
+                    Err(e) if matches!(e.kind(), ErrorKind::WouldBlock | ErrorKind::TimedOut) => {
+                        return Ok(0);
+                    }
+                    Err(e) => return Err(e),
                 }
-                Err(e) if matches!(e.kind(), ErrorKind::WouldBlock | ErrorKind::TimedOut) => {
-                    return Ok(0);
-                }
-                Err(e) => return Err(e),
             }
         }
-        self.cursor.read(buf)
+        let to_copy = (self.used - self.pos).min(buf.len());
+        buf[..to_copy].copy_from_slice(&self.buf[self.pos..self.pos + to_copy]);
+        self.pos += to_copy;
+        Ok(to_copy)
     }
 }
 
@@ -276,6 +286,29 @@ mod tests {
         let mut buf = [0u8; 64];
         let n = reader.read(&mut buf).unwrap();
         assert_eq!(n, 0, "UdpReader should return EOF on timeout");
+    }
+
+    #[test]
+    fn test_udp_empty_datagram_skipped() {
+        let mut reader = UdpReader::try_new(0, Duration::from_millis(200)).unwrap();
+        let port = reader.local_addr().unwrap().port();
+        let sender = UdpSocket::bind("127.0.0.1:0").unwrap();
+
+        sender.send_to(&[], format!("127.0.0.1:{port}")).unwrap();
+        let data: Vec<u8> = (0..64).map(|i| i as u8).collect();
+        sender.send_to(&data, format!("127.0.0.1:{port}")).unwrap();
+
+        let mut received = Vec::new();
+        let mut buf = [0u8; 1024];
+        loop {
+            let n = reader.read(&mut buf).unwrap();
+            if n == 0 {
+                break;
+            }
+            received.extend_from_slice(&buf[..n]);
+        }
+
+        assert_eq!(received, data);
     }
 
     #[test]
