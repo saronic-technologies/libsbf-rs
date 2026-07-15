@@ -162,109 +162,107 @@ mod tests {
         let mut found_comment = false;
         let mut found_meas_epoch = false;
 
-        for msg_result in sbf_reader {
-            if let Ok(msg) = msg_result {
-                match msg {
-                    Messages::ReceiverSetup(setup) => {
-                        // Verify ReceiverSetup has expected data
-                        assert!(setup.tow.is_some(), "ReceiverSetup should have TOW");
-                        assert!(setup.wnc.is_some(), "ReceiverSetup should have WNc");
+        for msg in sbf_reader.flatten() {
+            match msg {
+                Messages::ReceiverSetup(setup) => {
+                    // Verify ReceiverSetup has expected data
+                    assert!(setup.tow.is_some(), "ReceiverSetup should have TOW");
+                    assert!(setup.wnc.is_some(), "ReceiverSetup should have WNc");
 
-                        // Check marker name starts with expected prefix
-                        let marker_str = std::str::from_utf8(&setup.marker_name[..4]).unwrap_or("");
-                        assert_eq!(marker_str, "SEPT", "Expected SEPT marker name prefix");
+                    // Check marker name starts with expected prefix
+                    let marker_str = std::str::from_utf8(&setup.marker_name[..4]).unwrap_or("");
+                    assert_eq!(marker_str, "SEPT", "Expected SEPT marker name prefix");
 
-                        // Verify location is reasonable (Belgium coordinates)
-                        if let Some(lat) = setup.latitude {
-                            assert!(
-                                lat > 0.87 && lat < 0.89,
-                                "Latitude should be ~50.8 degrees N"
-                            );
-                        }
-
-                        found_receiver_setup = true;
-                    }
-                    Messages::GPSNav(nav) => {
-                        // Verify GPS navigation message
-                        assert!(nav.tow.is_some(), "GPSNav should have TOW");
-                        assert!(nav.prn >= 1 && nav.prn <= 32, "GPS PRN should be 1-32");
+                    // Verify location is reasonable (Belgium coordinates)
+                    if let Some(lat) = setup.latitude {
                         assert!(
-                            nav.sqrt_a > 5000.0 && nav.sqrt_a < 6000.0,
-                            "GPS sqrt_a should be ~5153 (GPS orbit)"
+                            lat > 0.87 && lat < 0.89,
+                            "Latitude should be ~50.8 degrees N"
                         );
-                        found_gps_nav = true;
                     }
-                    Messages::ExtSensorMeas(ext) => {
-                        // Verify external sensor data
-                        assert!(ext.n > 0, "ExtSensorMeas should have sensor data");
-                        assert!(ext.sb_length > 0, "ExtSensorMeas should have data length");
-                        found_ext_sensor = true;
-                    }
-                    Messages::ChannelStatus(cs) => {
-                        assert!(cs.tow.is_some(), "ChannelStatus should have TOW");
-                        assert_eq!(
-                            cs.sat_info.len(),
-                            usize::from(cs.n),
-                            "ChannelStatus N should match its sub-block count"
-                        );
-                        if let Some(sat) = cs.sat_info.first() {
-                            assert_eq!(
-                                sat.state_info.len(),
-                                usize::from(sat.n2),
-                                "ChannelSatInfo N2 should match its state sub-block count"
-                            );
-                        }
-                        found_channel_status = true;
-                    }
-                    Messages::SatVisibility(sv) => {
-                        assert!(sv.tow.is_some(), "SatVisibility should have TOW");
-                        assert_eq!(
-                            sv.satellites.len(),
-                            usize::from(sv.n),
-                            "SatVisibility N should match its sub-block count"
-                        );
-                        found_sat_visibility = true;
-                    }
-                    Messages::DiskStatus(ds) => {
-                        assert!(ds.tow.is_some(), "DiskStatus should have TOW");
-                        assert_eq!(
-                            ds.disks.len(),
-                            usize::from(ds.n),
-                            "DiskStatus N should match its sub-block count"
-                        );
-                        found_disk_status = true;
-                    }
-                    Messages::ReceiverTime(rt) => {
-                        assert!(rt.tow.is_some(), "ReceiverTime should have TOW");
-                        assert!(rt.utc_year.is_some(), "ReceiverTime should have a UTC year");
-                        found_receiver_time = true;
-                    }
-                    Messages::Comment(c) => {
-                        assert_eq!(
-                            c.comment.len(),
-                            usize::from(c.comment_ln),
-                            "Comment length should match its byte count"
-                        );
-                        found_comment = true;
-                    }
-                    Messages::MeasEpoch(me) => {
-                        assert!(me.tow.is_some(), "MeasEpoch should have TOW");
-                        assert_eq!(
-                            me.channel_type1.len(),
-                            usize::from(me.n1),
-                            "MeasEpoch N1 should match its sub-block count"
-                        );
-                        if let Some(ct1) = me.channel_type1.first() {
-                            assert_eq!(
-                                ct1.channel_type2.len(),
-                                usize::from(ct1.n2),
-                                "ChannelType1 N2 should match its sub-block count"
-                            );
-                        }
-                        found_meas_epoch = true;
-                    }
-                    _ => {}
+
+                    found_receiver_setup = true;
                 }
+                Messages::GPSNav(nav) => {
+                    // Verify GPS navigation message
+                    assert!(nav.tow.is_some(), "GPSNav should have TOW");
+                    assert!(nav.prn >= 1 && nav.prn <= 32, "GPS PRN should be 1-32");
+                    assert!(
+                        nav.sqrt_a > 5000.0 && nav.sqrt_a < 6000.0,
+                        "GPS sqrt_a should be ~5153 (GPS orbit)"
+                    );
+                    found_gps_nav = true;
+                }
+                Messages::ExtSensorMeas(ext) => {
+                    // Verify external sensor data
+                    assert!(ext.n > 0, "ExtSensorMeas should have sensor data");
+                    assert!(ext.sb_length > 0, "ExtSensorMeas should have data length");
+                    found_ext_sensor = true;
+                }
+                Messages::ChannelStatus(cs) => {
+                    assert!(cs.tow.is_some(), "ChannelStatus should have TOW");
+                    assert_eq!(
+                        cs.sat_info.len(),
+                        usize::from(cs.n),
+                        "ChannelStatus N should match its sub-block count"
+                    );
+                    if let Some(sat) = cs.sat_info.first() {
+                        assert_eq!(
+                            sat.state_info.len(),
+                            usize::from(sat.n2),
+                            "ChannelSatInfo N2 should match its state sub-block count"
+                        );
+                    }
+                    found_channel_status = true;
+                }
+                Messages::SatVisibility(sv) => {
+                    assert!(sv.tow.is_some(), "SatVisibility should have TOW");
+                    assert_eq!(
+                        sv.satellites.len(),
+                        usize::from(sv.n),
+                        "SatVisibility N should match its sub-block count"
+                    );
+                    found_sat_visibility = true;
+                }
+                Messages::DiskStatus(ds) => {
+                    assert!(ds.tow.is_some(), "DiskStatus should have TOW");
+                    assert_eq!(
+                        ds.disks.len(),
+                        usize::from(ds.n),
+                        "DiskStatus N should match its sub-block count"
+                    );
+                    found_disk_status = true;
+                }
+                Messages::ReceiverTime(rt) => {
+                    assert!(rt.tow.is_some(), "ReceiverTime should have TOW");
+                    assert!(rt.utc_year.is_some(), "ReceiverTime should have a UTC year");
+                    found_receiver_time = true;
+                }
+                Messages::Comment(c) => {
+                    assert_eq!(
+                        c.comment.len(),
+                        usize::from(c.comment_ln),
+                        "Comment length should match its byte count"
+                    );
+                    found_comment = true;
+                }
+                Messages::MeasEpoch(me) => {
+                    assert!(me.tow.is_some(), "MeasEpoch should have TOW");
+                    assert_eq!(
+                        me.channel_type1.len(),
+                        usize::from(me.n1),
+                        "MeasEpoch N1 should match its sub-block count"
+                    );
+                    if let Some(ct1) = me.channel_type1.first() {
+                        assert_eq!(
+                            ct1.channel_type2.len(),
+                            usize::from(ct1.n2),
+                            "ChannelType1 N2 should match its sub-block count"
+                        );
+                    }
+                    found_meas_epoch = true;
+                }
+                _ => {}
             }
         }
 

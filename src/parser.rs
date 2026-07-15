@@ -761,7 +761,6 @@ pub fn parse_datagram(datagram: &[u8]) -> core::result::Result<Messages, Datagra
 }
 
 #[cfg(test)]
-
 mod tests {
     use super::*;
     use crate::QualityIndicator;
