@@ -34,7 +34,9 @@ const DO_NOT_USE_F8: f64 = -2e10;
 // Re-export all message types at crate level
 pub use messages::{
     AGCState, AttCovEuler, AttEuler, AttitudeMode, AuxAntPositionSub, AuxAntPositions,
-    BaseVectorCart, BaselineError, BDSIon, Commands, DOP, Datum, DiffCorrIn, DiffCorrType, EndOfMeas,
+    BaseVectorCart, BaseVectorGeod, BaselineError, BDSIon, ChannelSatInfo, ChannelStateInfo,
+    ChannelStatus, Commands, Comment, DOP, Datum, DiffCorrIn, DiffCorrType, DiskData, DiskStatus,
+    EndOfAtt, EndOfMeas, EndOfPVT,
     EventPolarity, EventSource, ExtError, ExtEvent, ExtEventINSNavCart, ExtEventINSNavCartAtt,
     ExtEventINSNavCartAttStdDev, ExtEventINSNavCartPosStdDev, ExtEventINSNavCartVel,
     ExtEventINSNavCartVelStdDev, ExtEventINSNavGeod, ExtEventINSNavGeodAtt,
@@ -50,8 +52,9 @@ pub use messages::{
     ImuSetup, Meas3Doppler, Meas3Ranges, MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2,
     MeasExtra, MeasExtraChannelSub, NavCart, PVTCartesian, PVTGeodetic, PosCart, PosCovCartesian,
     PosCovGeodetic, PvtError, PvtMode, PvtModeFlags, QualityInd, QualityIndicator, RFBand,
-    RFStatus, RaimIntegrity, ReceiverSetup, ReceiverStatus, RxError, RxState, VectorInfoCart,
-    VelCovCartesian, VelCovGeodetic, VelSensorSetup, WACorrFlags,
+    RFStatus, RaimIntegrity, ReceiverSetup, ReceiverStatus, ReceiverTime, RiseSet, RxError, RxMessage,
+    RxState, SatInfo, SatVisibility, VectorInfoCart, VectorInfoGeod, VelCovCartesian,
+    VelCovGeodetic, VelSensorSetup, WACorrFlags, XPPSOffset,
 };
 
 // Re-export datagram parser
@@ -187,6 +190,16 @@ define_messages!(
     VelCovGeodetic => 5908,
     EndOfMeas => 5922,
     ExtEvent => 5924,
+    SatVisibility => 4012,
+    ChannelStatus => 4013,
+    BaseVectorGeod => 4028,
+    DiskStatus => 4059,
+    RxMessage => 4103,
+    XPPSOffset => 5911,
+    ReceiverTime => 5914,
+    EndOfPVT => 5921,
+    Comment => 5936,
+    EndOfAtt => 5943,
 );
 
 pub fn is_sync(bytes: &[u8; 2]) -> bool {
