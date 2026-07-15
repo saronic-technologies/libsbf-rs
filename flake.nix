@@ -16,8 +16,8 @@
         };
 
         rustPlatform = pkgs.makeRustPlatform {
-          cargo = pkgs.rust-bin.nightly.latest.default;
-          rustc = pkgs.rust-bin.nightly.latest.default;
+          cargo = pkgs.rust-bin.stable.latest.default;
+          rustc = pkgs.rust-bin.stable.latest.default;
         };
 
         cargo-afl = rustPlatform.buildRustPackage rec {
@@ -40,7 +40,7 @@
           nativeBuildInputs = [
             cargo-afl
             llvmPackages.libllvm
-            rust-bin.nightly.latest.default
+            rust-bin.stable.latest.default
             valgrind
           ];
         };
