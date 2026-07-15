@@ -5,13 +5,15 @@ use binrw::io::Cursor;
 use binrw::BinRead;
 
 use crate::{
-    AttCovEuler, AttEuler, AuxAntPositions, BaseVectorCart, BDSIon, Commands, DiffCorrIn,
-    EndOfMeas, ExtEvent, ExtEventINSNavCart, ExtEventINSNavGeod, ExtSensorInfo, ExtSensorMeas,
+    AttCovEuler, AttEuler, AuxAntPositions, BaseVectorCart, BaseVectorGeod, BDSIon, ChannelStatus,
+    Commands, Comment, DiffCorrIn, DiskStatus, EndOfAtt, EndOfMeas, EndOfPVT, ExtEvent,
+    ExtEventINSNavCart, ExtEventINSNavGeod, ExtSensorInfo, ExtSensorMeas,
     ExtSensorStatus, GALGstGps, GALIon, GALNav, GALUtc, GEONav, GEORawL1, GPSCNav, GPSIon,
     GPSNav, GPSUtc, Header, INSNavCart, INSNavGeod, INSSupport, ImuSetup, Meas3Doppler,
     Meas3Ranges, MeasEpoch, MeasExtra, MessageKind, Messages, NavCart, PVTCartesian, PVTGeodetic,
     PosCart, PosCovCartesian, PosCovGeodetic, QualityInd, RFStatus, ReceiverSetup, ReceiverStatus,
-    VelCovCartesian, VelCovGeodetic, VelSensorSetup, DOP,
+    ReceiverTime, RxMessage, SatVisibility, VelCovCartesian, VelCovGeodetic, VelSensorSetup,
+    XPPSOffset, DOP,
 };
 
 use crc16::*;
@@ -395,6 +397,66 @@ fn parse_message(input: &[u8]) -> Result<Messages> {
                 ExtEvent::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
             Messages::ExtEvent(ext_event)
         }
+        MessageKind::SatVisibility => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let sat_visibility = SatVisibility::read_le(&mut body_cursor)
+                .map_err(|_| ParseError::InvalidPayload)?;
+            Messages::SatVisibility(sat_visibility)
+        }
+        MessageKind::ChannelStatus => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let channel_status = ChannelStatus::read_le(&mut body_cursor)
+                .map_err(|_| ParseError::InvalidPayload)?;
+            Messages::ChannelStatus(channel_status)
+        }
+        MessageKind::BaseVectorGeod => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let base_vector_geod = BaseVectorGeod::read_le(&mut body_cursor)
+                .map_err(|_| ParseError::InvalidPayload)?;
+            Messages::BaseVectorGeod(base_vector_geod)
+        }
+        MessageKind::DiskStatus => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let disk_status =
+                DiskStatus::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::DiskStatus(disk_status)
+        }
+        MessageKind::RxMessage => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let rx_message =
+                RxMessage::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::RxMessage(rx_message)
+        }
+        MessageKind::XPPSOffset => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let xpps_offset =
+                XPPSOffset::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::XPPSOffset(xpps_offset)
+        }
+        MessageKind::ReceiverTime => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let receiver_time = ReceiverTime::read_le(&mut body_cursor)
+                .map_err(|_| ParseError::InvalidPayload)?;
+            Messages::ReceiverTime(receiver_time)
+        }
+        MessageKind::EndOfPVT => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let end_of_pvt =
+                EndOfPVT::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::EndOfPVT(end_of_pvt)
+        }
+        MessageKind::Comment => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let comment =
+                Comment::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::Comment(comment)
+        }
+        MessageKind::EndOfAtt => {
+            let mut body_cursor = Cursor::new(payload.as_slice());
+            let end_of_att =
+                EndOfAtt::read_le(&mut body_cursor).map_err(|_| ParseError::InvalidPayload)?;
+            Messages::EndOfAtt(end_of_att)
+        }
         MessageKind::Unsupported => {
             // Early-returned above as `Ok(Messages::Unsupported(_))`.
             unreachable!("Unsupported block should have been surfaced earlier")
@@ -660,6 +722,36 @@ pub fn parse_datagram(datagram: &[u8]) -> core::result::Result<Messages, Datagra
         ),
         MessageKind::ExtEvent => Messages::ExtEvent(
             ExtEvent::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::SatVisibility => Messages::SatVisibility(
+            SatVisibility::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::ChannelStatus => Messages::ChannelStatus(
+            ChannelStatus::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::BaseVectorGeod => Messages::BaseVectorGeod(
+            BaseVectorGeod::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::DiskStatus => Messages::DiskStatus(
+            DiskStatus::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::RxMessage => Messages::RxMessage(
+            RxMessage::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::XPPSOffset => Messages::XPPSOffset(
+            XPPSOffset::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::ReceiverTime => Messages::ReceiverTime(
+            ReceiverTime::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::EndOfPVT => Messages::EndOfPVT(
+            EndOfPVT::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::Comment => Messages::Comment(
+            Comment::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
+        ),
+        MessageKind::EndOfAtt => Messages::EndOfAtt(
+            EndOfAtt::read_le(&mut cursor).map_err(|_| DatagramError::InvalidPayload)?,
         ),
         // Early-returned above as `Ok(Messages::Unsupported(_))`.
         MessageKind::Unsupported => unreachable!(),

@@ -44,10 +44,16 @@ mod tests {
         let expected_types = vec![
             "AttCovEuler",
             "AttEuler",
+            "BaseVectorGeod",
             "BDSIon",
+            "ChannelStatus",
             "Commands",
+            "Comment",
             "DiffCorrIn",
+            "DiskStatus",
+            "EndOfAtt",
             "EndOfMeas",
+            "EndOfPVT",
             "ExtSensorInfo",
             "ExtSensorMeas",
             "ExtSensorStatus",
@@ -73,6 +79,9 @@ mod tests {
             "QualityInd",
             "ReceiverSetup",
             "ReceiverStatus",
+            "ReceiverTime",
+            "RxMessage",
+            "SatVisibility",
             "VelSensorSetup",
         ];
 
@@ -103,6 +112,17 @@ mod tests {
             "Expected at least 5 Commands messages"
         );
 
+        // Counts for the other supported blocks in mega_test.sbf.
+        assert_eq!(message_counts.get("EndOfAtt").copied().unwrap_or(0), 1, "expected 1 EndOfAtt");
+        assert_eq!(message_counts.get("EndOfPVT").copied().unwrap_or(0), 2, "expected 2 EndOfPVT");
+        assert_eq!(message_counts.get("ReceiverTime").copied().unwrap_or(0), 2, "expected 2 ReceiverTime");
+        assert_eq!(message_counts.get("SatVisibility").copied().unwrap_or(0), 1, "expected 1 SatVisibility");
+        assert_eq!(message_counts.get("ChannelStatus").copied().unwrap_or(0), 1, "expected 1 ChannelStatus");
+        assert_eq!(message_counts.get("BaseVectorGeod").copied().unwrap_or(0), 1, "expected 1 BaseVectorGeod");
+        assert_eq!(message_counts.get("DiskStatus").copied().unwrap_or(0), 1, "expected 1 DiskStatus");
+        assert_eq!(message_counts.get("RxMessage").copied().unwrap_or(0), 1, "expected 1 RxMessage");
+        assert_eq!(message_counts.get("Comment").copied().unwrap_or(0), 1, "expected 1 Comment");
+
         println!("Mega test file validation passed!");
         println!("Total messages: {}", total_messages);
         println!("Unique message types: {}", unique_types);
@@ -128,6 +148,11 @@ mod tests {
         let mut found_receiver_setup = false;
         let mut found_gps_nav = false;
         let mut found_ext_sensor = false;
+        let mut found_channel_status = false;
+        let mut found_sat_visibility = false;
+        let mut found_disk_status = false;
+        let mut found_receiver_time = false;
+        let mut found_comment = false;
 
         for msg_result in sbf_reader {
             if let Ok(msg) = msg_result {
@@ -167,6 +192,53 @@ mod tests {
                         assert!(ext.sb_length > 0, "ExtSensorMeas should have data length");
                         found_ext_sensor = true;
                     }
+                    Messages::ChannelStatus(cs) => {
+                        assert!(cs.tow.is_some(), "ChannelStatus should have TOW");
+                        assert_eq!(
+                            cs.sat_info.len(),
+                            usize::from(cs.n),
+                            "ChannelStatus N should match its sub-block count"
+                        );
+                        if let Some(sat) = cs.sat_info.first() {
+                            assert_eq!(
+                                sat.state_info.len(),
+                                usize::from(sat.n2),
+                                "ChannelSatInfo N2 should match its state sub-block count"
+                            );
+                        }
+                        found_channel_status = true;
+                    }
+                    Messages::SatVisibility(sv) => {
+                        assert!(sv.tow.is_some(), "SatVisibility should have TOW");
+                        assert_eq!(
+                            sv.satellites.len(),
+                            usize::from(sv.n),
+                            "SatVisibility N should match its sub-block count"
+                        );
+                        found_sat_visibility = true;
+                    }
+                    Messages::DiskStatus(ds) => {
+                        assert!(ds.tow.is_some(), "DiskStatus should have TOW");
+                        assert_eq!(
+                            ds.disks.len(),
+                            usize::from(ds.n),
+                            "DiskStatus N should match its sub-block count"
+                        );
+                        found_disk_status = true;
+                    }
+                    Messages::ReceiverTime(rt) => {
+                        assert!(rt.tow.is_some(), "ReceiverTime should have TOW");
+                        assert!(rt.utc_year.is_some(), "ReceiverTime should have a UTC year");
+                        found_receiver_time = true;
+                    }
+                    Messages::Comment(c) => {
+                        assert_eq!(
+                            c.comment.len(),
+                            usize::from(c.comment_ln),
+                            "Comment length should match its byte count"
+                        );
+                        found_comment = true;
+                    }
                     _ => {}
                 }
             }
@@ -175,5 +247,10 @@ mod tests {
         assert!(found_receiver_setup, "Should find ReceiverSetup message");
         assert!(found_gps_nav, "Should find GPSNav message");
         assert!(found_ext_sensor, "Should find ExtSensorMeas message");
+        assert!(found_channel_status, "Should find ChannelStatus message");
+        assert!(found_sat_visibility, "Should find SatVisibility message");
+        assert!(found_disk_status, "Should find DiskStatus message");
+        assert!(found_receiver_time, "Should find ReceiverTime message");
+        assert!(found_comment, "Should find Comment message");
     }
 }
