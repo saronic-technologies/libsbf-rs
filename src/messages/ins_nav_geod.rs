@@ -1,9 +1,11 @@
+use super::{
+    att_euler::AttitudeMode,
+    pvt_geodetic::{Datum, PvtMode},
+};
 use crate::binrw_util;
 use binrw::binrw;
 use core::fmt;
 use num_enum::{FromPrimitive, IntoPrimitive};
-use super::att_euler::AttitudeMode;
-use super::pvt_geodetic::{Datum, PvtMode};
 
 /// Combined GNSS mode containing PVT mode (bits 0-3) and attitude mode (bits 4-7).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
