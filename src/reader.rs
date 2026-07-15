@@ -1,12 +1,15 @@
-use crate::parser::SbfParser;
-use crate::Messages;
-
-use std::io::Read;
+use crate::{parser::SbfParser, Messages};
+use std::{
+    io::{self, Cursor, ErrorKind, Read},
+    net::{SocketAddr, UdpSocket},
+    time::Duration,
+};
 
 // NOTE: May make this tunable. The std reader is going to be on user
 // space linux and in many cases users will have the memory.
 // 8K is the default size of the BufReader in rust.
 const BUFFER_SIZE: usize = 1024 * 8;
+const UDP_BUFFER_SIZE: usize = 65536;
 
 /// Read SBF data via a BuffReader and Iterator.
 ///
@@ -44,7 +47,7 @@ impl<R: Read> SbfReader<R> {
 }
 
 impl<R: Read> Iterator for SbfReader<R> {
-    type Item = Result<Messages, std::io::Error>;
+    type Item = io::Result<Messages>;
 
     fn next(&mut self) -> Option<Self::Item> {
         let mut buffer = [0u8; BUFFER_SIZE];
@@ -93,11 +96,92 @@ impl<R: Read> Iterator for SbfReader<R> {
     }
 }
 
+/// Read SBF data from UDP datagrams, presenting them as a byte stream.
+///
+/// Each UDP datagram is buffered internally so that [`SbfReader`] can consume
+/// it in chunks. Returns EOF (zero bytes) when the read timeout elapses with
+/// no data, allowing the caller to detect connection loss.
+#[cfg_attr(docsrs, doc(cfg(feature = "std")))]
+pub struct UdpReader {
+    socket: UdpSocket,
+    cursor: Cursor<Vec<u8>>,
+}
+
+impl UdpReader {
+    pub fn local_addr(&self) -> io::Result<SocketAddr> {
+        self.socket.local_addr()
+    }
+
+    pub fn try_new(port: u16, timeout: Duration) -> io::Result<Self> {
+        let socket = UdpSocket::bind(format!("0.0.0.0:{port}"))?;
+        socket.set_read_timeout(Some(timeout))?;
+        Ok(Self {
+            socket,
+            cursor: Cursor::new(Vec::with_capacity(UDP_BUFFER_SIZE)),
+        })
+    }
+}
+
+impl Read for UdpReader {
+    fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+        if self.cursor.position() as usize >= self.cursor.get_ref().len() {
+            let inner = self.cursor.get_mut();
+            inner.resize(UDP_BUFFER_SIZE, 0);
+            match self.socket.recv(inner) {
+                Ok(n) => {
+                    inner.truncate(n);
+                    self.cursor.set_position(0);
+                }
+                Err(e) if matches!(e.kind(), ErrorKind::WouldBlock | ErrorKind::TimedOut) => {
+                    return Ok(0);
+                }
+                Err(e) => return Err(e),
+            }
+        }
+        self.cursor.read(buf)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use anyhow::Result;
-    use libsbf::{reader::SbfReader, Messages};
-    use std::io::{BufRead, Read};
+    use libsbf::{
+        reader::{SbfReader, UdpReader},
+        Messages,
+    };
+    use std::{
+        fs::{read, File},
+        io::{self, BufRead, BufReader, Read},
+        net::UdpSocket,
+        sync::{Arc, Barrier},
+        time::Duration,
+    };
+
+    fn check_parse(
+        sbf_reader: impl Iterator<Item = io::Result<Messages>>,
+        cf_lines: &mut impl Iterator<Item = io::Result<String>>,
+    ) {
+        sbf_reader
+            .filter_map(|m| match m.expect("sbf parse error") {
+                Messages::INSNavGeod(v) => Some(format!("{:?}", v)),
+                Messages::AttEuler(v) => Some(format!("{:?}", v)),
+                Messages::ExtSensorMeas(v) => Some(format!("{:?}", v)),
+                _ => None,
+            })
+            .for_each(|parsed| {
+                let expected = cf_lines
+                    .next()
+                    .expect("expected output exhausted before messages")
+                    .expect("error reading expected output");
+                assert!(
+                    parsed == expected,
+                    "parsed line: {} did not match expected line: {}",
+                    parsed,
+                    expected
+                );
+            });
+        assert!(cf_lines.next().is_none(), "expected output was not fully consumed");
+    }
 
     #[test]
     fn test_random_data_consumption() {
@@ -124,7 +208,7 @@ mod tests {
         }
 
         impl Read for TrackingReader {
-            fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+            fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
                 let remaining = self.data.len() - self.position;
                 let to_read = buf.len().min(remaining);
 
@@ -176,53 +260,92 @@ mod tests {
 
     #[test]
     fn sbf_correct_parse() -> Result<()> {
-        let input_stream = std::fs::File::open("test-files/sbf_binary.log")?;
-        let correct_file = std::fs::File::open("test-files/correct_sbf_output.log")?;
-        let mut cf_lines = std::io::BufReader::new(correct_file).lines();
+        let input_stream = File::open("test-files/sbf_binary.log")?;
+        let correct_file = File::open("test-files/correct_sbf_output.log")?;
+        let mut cf_lines = BufReader::new(correct_file).lines();
 
         let sbf_reader = SbfReader::new(input_stream);
+        // TODO: Update Test to include IMUSetup
+        check_parse(sbf_reader, &mut cf_lines);
+        Ok(())
+    }
 
-        for m in sbf_reader {
-            match m? {
-                Messages::INSNavGeod(ins_nav_geod) => {
-                    let parsed = format!("{:?}", ins_nav_geod);
-                    let expected = cf_lines.next().unwrap()?;
-                    assert!(
-                        parsed == expected,
-                        "parsed line: {} did not match expected line: {}",
-                        parsed,
-                        expected
-                    );
+    #[test]
+    fn test_udp_timeout_returns_eof() {
+        let mut reader = UdpReader::try_new(0, Duration::from_millis(100)).unwrap();
+        let mut buf = [0u8; 64];
+        let n = reader.read(&mut buf).unwrap();
+        assert_eq!(n, 0, "UdpReader should return EOF on timeout");
+    }
+
+    #[test]
+    fn test_udp_random_data_consumption() {
+        let mut reader = UdpReader::try_new(0, Duration::from_millis(200)).unwrap();
+        let port = reader.local_addr().unwrap().port();
+        let sender = UdpSocket::bind("127.0.0.1:0").unwrap();
+
+        let datagram_sizes = [100usize, 1024, 8192, 16384];
+        let mut all_sent: Vec<u8> = Vec::new();
+        for &size in &datagram_sizes {
+            let data: Vec<u8> = (0..size).map(|i| (i % 256) as u8).collect();
+            sender.send_to(&data, format!("127.0.0.1:{port}")).unwrap();
+            all_sent.extend_from_slice(&data);
+        }
+
+        let mut received = Vec::new();
+        let mut buf = [0u8; 8192];
+        loop {
+            let n = reader.read(&mut buf).unwrap();
+            if n == 0 {
+                break;
+            }
+            received.extend_from_slice(&buf[..n]);
+        }
+
+        assert_eq!(received, all_sent);
+    }
+
+    #[test]
+    fn test_udp_correct_parse() -> Result<()> {
+        let mut reader = UdpReader::try_new(0, Duration::from_millis(200)).unwrap();
+        let port = reader.local_addr().unwrap().port();
+
+        let correct_file = File::open("test-files/correct_sbf_output.log")?;
+        let mut cf_lines = BufReader::new(correct_file).lines();
+
+        // sbf_binary.log (~1.1 MB) exceeds the OS UDP receive buffer (~208 KB).
+        // BarrierReader gates each recv: the sender only advances after the
+        // receiver has consumed the packet, so the OS buffer never accumulates
+        // more than one outstanding datagram.
+        struct BarrierReader<'a> {
+            inner: &'a mut UdpReader,
+            barrier: Arc<Barrier>,
+        }
+        impl Read for BarrierReader<'_> {
+            fn read(&mut self, buf: &mut [u8]) -> io::Result<usize> {
+                let n = self.inner.read(buf)?;
+                // Signal the sender that this packet has been consumed so it
+                // can send the next one without overflowing the OS buffer.
+                if n > 0 {
+                    self.barrier.wait();
                 }
-                Messages::AttEuler(att_euler) => {
-                    let parsed = format!("{:?}", att_euler);
-                    let expected = cf_lines.next().unwrap()?;
-                    assert!(
-                        parsed == expected,
-                        "parsed line: {} did not match expected line: {}",
-                        parsed,
-                        expected
-                    );
-                }
-                Messages::ExtSensorMeas(ext_sensor_meas) => {
-                    let parsed = format!("{:?}", ext_sensor_meas);
-                    let expected = cf_lines.next().unwrap()?;
-                    assert!(
-                        parsed == expected,
-                        "parsed line: {} did not match expected line: {}",
-                        parsed,
-                        expected
-                    );
-                }
-                // TODO: Update Test to include IMUSetup
-                // Messages::ImuSetup(imu_setup) => {
-                //     let parsed = format!("{:?}",imu_setup);
-                //     let expected = cf_lines.next().unwrap()?;
-                //     assert!(parsed == expected, "parsed line: {} did not match expected line: {}", parsed, expected);
-                // }
-                _ => continue,
+                Ok(n)
             }
         }
+
+        let data = read("test-files/sbf_binary.log")?;
+        let barrier = Arc::new(Barrier::new(2));
+        let sender_barrier = barrier.clone();
+        std::thread::spawn(move || {
+            let sender = UdpSocket::bind("127.0.0.1:0").unwrap();
+            for chunk in data.chunks(1024) {
+                sender.send_to(chunk, format!("127.0.0.1:{port}")).unwrap();
+                sender_barrier.wait();
+            }
+        });
+
+        let sbf_reader = SbfReader::new(BarrierReader { inner: &mut reader, barrier });
+        check_parse(sbf_reader, &mut cf_lines);
         Ok(())
     }
 }
