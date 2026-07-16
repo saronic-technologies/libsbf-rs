@@ -1,8 +1,13 @@
 #[cfg(test)]
 mod tests {
-    use crate::{reader::SbfReader, Messages};
+    use crate::{
+        AuxAntPositions, BaseVectorCart, BaseVectorGeod, ChannelStatus, Comment, DiskStatus,
+        ExtSensorMeas, MeasEpoch, MeasExtra, Messages, reader::SbfReader, ReceiverStatus, RFStatus,
+        RxMessage, SatVisibility,
+    };
+    use binrw::{io::Cursor, BinRead, BinWrite};
     use std::collections::HashMap;
-    use std::fs::File;
+    use std::fs::{self, File};
 
     #[test]
     fn test_mega_file_all_message_types() {
@@ -153,6 +158,7 @@ mod tests {
         let mut found_disk_status = false;
         let mut found_receiver_time = false;
         let mut found_comment = false;
+        let mut found_meas_epoch = false;
 
         for msg_result in sbf_reader {
             if let Ok(msg) = msg_result {
@@ -239,6 +245,22 @@ mod tests {
                         );
                         found_comment = true;
                     }
+                    Messages::MeasEpoch(me) => {
+                        assert!(me.tow.is_some(), "MeasEpoch should have TOW");
+                        assert_eq!(
+                            me.channel_type1.len(),
+                            usize::from(me.n1),
+                            "MeasEpoch N1 should match its sub-block count"
+                        );
+                        if let Some(ct1) = me.channel_type1.first() {
+                            assert_eq!(
+                                ct1.channel_type2.len(),
+                                usize::from(ct1.n2),
+                                "ChannelType1 N2 should match its sub-block count"
+                            );
+                        }
+                        found_meas_epoch = true;
+                    }
                     _ => {}
                 }
             }
@@ -252,5 +274,74 @@ mod tests {
         assert!(found_disk_status, "Should find DiskStatus message");
         assert!(found_receiver_time, "Should find ReceiverTime message");
         assert!(found_comment, "Should find Comment message");
+        assert!(found_meas_epoch, "Should find MeasEpoch message");
+    }
+
+    /// Reads every binrw block from the mega file, writes it back, and checks the
+    /// output reproduces the body up to any trailing padding. Padding is undefined
+    /// per SBF 4.1.5, so it is not reproduced.
+    #[test]
+    fn test_mega_file_roundtrip() {
+        fn round_trip<T>(body: &[u8], block: u16, count: &mut usize)
+        where
+            for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()>,
+        {
+            let value = T::read_le(&mut Cursor::new(body))
+                .unwrap_or_else(|e| panic!("block {block} failed to read: {e:?}"));
+            let mut out = Vec::new();
+            value
+                .write_le(&mut Cursor::new(&mut out))
+                .unwrap_or_else(|e| panic!("block {block} failed to write: {e:?}"));
+            assert!(
+                out.len() <= body.len(),
+                "block {block} wrote {} bytes, more than its {} byte body",
+                out.len(),
+                body.len()
+            );
+            assert_eq!(&out[..], &body[..out.len()], "block {block} did not round-trip");
+            *count += 1;
+        }
+
+        let data = fs::read("test-files/mega_test.sbf").expect("read mega_test.sbf");
+        let mut present: HashMap<u16, usize> = HashMap::new();
+        let mut round_tripped = 0usize;
+
+        let mut i = 0;
+        while i + 8 <= data.len() {
+            if data[i] != 0x24 || data[i + 1] != 0x40 {
+                i += 1;
+                continue;
+            }
+            let ident = u16::from_le_bytes([data[i + 4], data[i + 5]]);
+            let length = usize::from(u16::from_le_bytes([data[i + 6], data[i + 7]]));
+            if length < 8 || length % 4 != 0 || i + length > data.len() {
+                i += 1;
+                continue;
+            }
+            let block = ident & 0x1FFF;
+            let body = &data[i + 8..i + length];
+            match block {
+                4000 => round_trip::<MeasExtra>(body, block, &mut round_tripped),
+                4012 => round_trip::<SatVisibility>(body, block, &mut round_tripped),
+                4013 => round_trip::<ChannelStatus>(body, block, &mut round_tripped),
+                4014 => round_trip::<ReceiverStatus>(body, block, &mut round_tripped),
+                4027 => round_trip::<MeasEpoch>(body, block, &mut round_tripped),
+                4028 => round_trip::<BaseVectorGeod>(body, block, &mut round_tripped),
+                4043 => round_trip::<BaseVectorCart>(body, block, &mut round_tripped),
+                4050 => round_trip::<ExtSensorMeas>(body, block, &mut round_tripped),
+                4059 => round_trip::<DiskStatus>(body, block, &mut round_tripped),
+                4092 => round_trip::<RFStatus>(body, block, &mut round_tripped),
+                4103 => round_trip::<RxMessage>(body, block, &mut round_tripped),
+                5936 => round_trip::<Comment>(body, block, &mut round_tripped),
+                5942 => round_trip::<AuxAntPositions>(body, block, &mut round_tripped),
+                _ => {}
+            }
+            *present.entry(block).or_insert(0) += 1;
+            i += length;
+        }
+
+        assert!(round_tripped > 0, "no binrw blocks were round-tripped");
+        assert!(present.contains_key(&4013), "ChannelStatus should be present");
+        assert!(present.contains_key(&4027), "MeasEpoch should be present");
     }
 }

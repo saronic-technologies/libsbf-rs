@@ -132,6 +132,12 @@ impl Default for PvtError {
     }
 }
 
+impl From<PvtError> for u8 {
+    fn from(value: PvtError) -> Self {
+        value as u8
+    }
+}
+
 bitflags! {
     /// Wide Area correction flags (bits 0-4 of wa_corr_info).
     #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
