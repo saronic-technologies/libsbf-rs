@@ -2,8 +2,10 @@
 mod tests {
     use crate::{
         AuxAntPositions, BaseVectorCart, BaseVectorGeod, ChannelStatus, Comment, DiskStatus,
-        ExtSensorMeas, MeasEpoch, MeasExtra, Messages, reader::SbfReader, ReceiverStatus, RFStatus,
-        RxMessage, SatVisibility,
+        EndOfAtt, EndOfPVT, ExtEvent, ExtEventINSNavCart, ExtEventINSNavGeod, ExtSensorMeas,
+        INSNavCart, INSNavGeod, MeasEpoch, MeasExtra, Messages, NavCart, PVTCartesian, PVTGeodetic,
+        PosCart, QualityInd, RFStatus, ReceiverStatus, ReceiverTime, RxMessage, SatVisibility,
+        reader::SbfReader,
     };
     use binrw::{io::Cursor, BinRead, BinWrite};
     use std::collections::HashMap;
@@ -322,18 +324,31 @@ mod tests {
             let body = &data[i + 8..i + length];
             match block {
                 4000 => round_trip::<MeasExtra>(body, block, &mut round_tripped),
+                4006 => round_trip::<PVTCartesian>(body, block, &mut round_tripped),
+                4007 => round_trip::<PVTGeodetic>(body, block, &mut round_tripped),
                 4012 => round_trip::<SatVisibility>(body, block, &mut round_tripped),
                 4013 => round_trip::<ChannelStatus>(body, block, &mut round_tripped),
                 4014 => round_trip::<ReceiverStatus>(body, block, &mut round_tripped),
                 4027 => round_trip::<MeasEpoch>(body, block, &mut round_tripped),
                 4028 => round_trip::<BaseVectorGeod>(body, block, &mut round_tripped),
                 4043 => round_trip::<BaseVectorCart>(body, block, &mut round_tripped),
+                4044 => round_trip::<PosCart>(body, block, &mut round_tripped),
                 4050 => round_trip::<ExtSensorMeas>(body, block, &mut round_tripped),
                 4059 => round_trip::<DiskStatus>(body, block, &mut round_tripped),
+                4082 => round_trip::<QualityInd>(body, block, &mut round_tripped),
                 4092 => round_trip::<RFStatus>(body, block, &mut round_tripped),
                 4103 => round_trip::<RxMessage>(body, block, &mut round_tripped),
+                4225 => round_trip::<INSNavCart>(body, block, &mut round_tripped),
+                4226 => round_trip::<INSNavGeod>(body, block, &mut round_tripped),
+                4229 => round_trip::<ExtEventINSNavCart>(body, block, &mut round_tripped),
+                4230 => round_trip::<ExtEventINSNavGeod>(body, block, &mut round_tripped),
+                4272 => round_trip::<NavCart>(body, block, &mut round_tripped),
+                5914 => round_trip::<ReceiverTime>(body, block, &mut round_tripped),
+                5921 => round_trip::<EndOfPVT>(body, block, &mut round_tripped),
+                5924 => round_trip::<ExtEvent>(body, block, &mut round_tripped),
                 5936 => round_trip::<Comment>(body, block, &mut round_tripped),
                 5942 => round_trip::<AuxAntPositions>(body, block, &mut round_tripped),
+                5943 => round_trip::<EndOfAtt>(body, block, &mut round_tripped),
                 _ => {}
             }
             *present.entry(block).or_insert(0) += 1;

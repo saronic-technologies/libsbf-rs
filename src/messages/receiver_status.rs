@@ -1,4 +1,4 @@
-use crate::SubBlock;
+use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
@@ -54,14 +54,14 @@ bitflags! {
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ReceiverStatus {
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u32>| x.unwrap_or(crate::DO_NOT_USE_U4))]
+    #[br(map = binrw_util::map_u4)]
+    #[bw(map = binrw_util::unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u16>| x.unwrap_or(crate::DO_NOT_USE_U2))]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub wnc: Option<u16>,
-    #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u8>| x.unwrap_or(crate::DO_NOT_USE_U1))]
+    #[br(map = binrw_util::map_u1)]
+    #[bw(map = binrw_util::unmap_u1)]
     pub cpu_load: Option<u8>,
     #[br(map = |x: u8| ExtError::from_bits_truncate(x))]
     #[bw(map = |x: &ExtError| x.bits())]
@@ -77,10 +77,8 @@ pub struct ReceiverStatus {
     pub sb_length: u8,
     pub cmd_count: u8,
     pub temperature: u8,
-    #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) },
-         map = |v: Vec<SubBlock<AGCState>>| v.into_iter().map(SubBlock::into_inner).collect())]
-    #[bw(args_raw = (usize::from(*sb_length),),
-         map = |v: &Vec<AGCState>| v.iter().cloned().map(SubBlock::from).collect::<Vec<_>>())]
+    #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) }, map = binrw_util::unwrap_subblocks)]
+    #[bw(args_raw = (usize::from(*sb_length),), map = binrw_util::wrap_subblocks)]
     pub agc_state: Vec<AGCState>,
     #[br(parse_with = binrw::helpers::until_eof)]
     pub padding: Vec<u8>,
@@ -90,8 +88,8 @@ pub struct ReceiverStatus {
 #[derive(Clone, Debug)]
 pub struct AGCState {
     pub frontend_id: u8,
-    #[br(map = |x: i8| if x == -128 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<i8>| x.unwrap_or(-128))]
+    #[br(map = binrw_util::map_i1)]
+    #[bw(map = binrw_util::unmap_i1)]
     pub gain: Option<i8>,
     pub sample_var: u8,
     pub blanking_stat: u8,

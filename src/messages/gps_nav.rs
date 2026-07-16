@@ -1,3 +1,4 @@
+use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
 
@@ -5,13 +6,16 @@ use binrw::binrw;
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct GPSNav {
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u4)]
+    #[bw(map = binrw_util::unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub wnc: Option<u16>,
     pub prn: u8,
     pub reserved: u8,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub wn: Option<u16>,
     pub ca_or_p_on_l2: u8,
     pub ura: u8,

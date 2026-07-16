@@ -1,3 +1,4 @@
+use crate::binrw_util;
 use crate::{NestedBlock, NestedHeader, SubBlock};
 use alloc::vec::Vec;
 use binrw::binrw;
@@ -6,11 +7,11 @@ use binrw::binrw;
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct MeasEpoch {
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u32>| x.unwrap_or(crate::DO_NOT_USE_U4))]
+    #[br(map = binrw_util::map_u4)]
+    #[bw(map = binrw_util::unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u16>| x.unwrap_or(crate::DO_NOT_USE_U2))]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub wnc: Option<u16>,
     pub n1: u8,
     pub sb1_length: u8,
@@ -40,11 +41,11 @@ struct MeasEpochChannelType1Header {
     pub doppler: Option<i32>,
     pub carrier_lsb: u16,
     pub carrier_msb: i8,
-    #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u8>| x.unwrap_or(crate::DO_NOT_USE_U1))]
+    #[br(map = binrw_util::map_u1)]
+    #[bw(map = binrw_util::unmap_u1)]
     pub cn0: Option<u8>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u16>| x.unwrap_or(crate::DO_NOT_USE_U2))]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub lock_time: Option<u16>,
     pub obs_info: u8,
     pub n2: u8,
@@ -119,11 +120,11 @@ impl From<MeasEpochChannelType1> for NestedBlock<MeasEpochChannelType1Header, Me
 #[derive(Clone, Debug)]
 pub struct MeasEpochChannelType2 {
     pub type_field: u8,
-    #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u8>| x.unwrap_or(crate::DO_NOT_USE_U1))]
+    #[br(map = binrw_util::map_u1)]
+    #[bw(map = binrw_util::unmap_u1)]
     pub lock_time: Option<u8>,
-    #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u8>| x.unwrap_or(crate::DO_NOT_USE_U1))]
+    #[br(map = binrw_util::map_u1)]
+    #[bw(map = binrw_util::unmap_u1)]
     pub cn0: Option<u8>,
     pub offsets_msb: u8,
     pub carrier_msb: i8,
