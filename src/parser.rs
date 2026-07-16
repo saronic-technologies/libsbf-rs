@@ -38,82 +38,84 @@ pub enum DatagramError {
     ExceedsMaxUdpPayload(u16),
 }
 
-enum ParseError {
-    IncompleteData,
-    InvalidHeader,
-    InvalidCRC,
-    InvalidPayload,
-    SyncNotFound,
-}
+// 2 sync bytes + 6 header bytes.
+const MIN_MESSAGE_SIZE: usize = 8;
 
-type Result<T> = core::result::Result<(T, usize), ParseError>;
+/// Scan the buffer for the next complete message. Returns the message when one
+/// is found, together with the number of leading bytes to drain: the skipped
+/// bytes plus the message itself when found, or just the dead prefix otherwise.
+/// Any plausible partial message is left in place so a later call can complete
+/// it.
+fn parse_message(input: &[u8]) -> (Option<Messages>, usize) {
+    // Start of the earliest candidate that might still complete with more data.
+    let mut resume: Option<usize> = None;
+    let mut scan = 0;
 
-// Constants for our parser.
-const MIN_MESSAGE_SIZE: usize = 8; // 2 sync bytes + 6 header bytes
+    loop {
+        let Some(offset) = input[scan..].windows(2).position(|w| w == b"$@") else {
+            // No further sync. Drain up to the earliest pending candidate, or
+            // all but a trailing lone `$` that may begin the next sync.
+            let drain = resume.unwrap_or(match input.last() {
+                Some(b'$') => input.len() - 1,
+                _ => input.len(),
+            });
+            return (None, drain);
+        };
+        let sync = scan + offset;
 
-fn parse_message(input: &[u8]) -> Result<Messages> {
-    // Make sure the input isn't empty
-    if input.is_empty() {
-        debug!("Incomplete data, don't have enough for sync");
-        return Err(ParseError::IncompleteData);
+        // Not enough bytes for a header yet: this sync may head a real message
+        // still arriving, so wait and keep it.
+        if input.len() < sync + MIN_MESSAGE_SIZE {
+            return (None, resume.unwrap_or(sync));
+        }
+
+        let header: [u8; 6] = input[sync + 2..sync + 8].try_into().unwrap();
+        let Ok(h) = Header::read_le(&mut Cursor::new(&header)) else {
+            scan = sync + 2;
+            continue;
+        };
+
+        let length = h.length as usize;
+        if h.length < 8 || h.length % 4 != 0 {
+            debug!("Skipping sync with implausible length: {}", h.length);
+            scan = sync + 2;
+            continue;
+        }
+
+        // total_size == length: 2 sync + 6 header + (length - 8) payload.
+        if input.len() < sync + length {
+            // Plausible length but the body is not all here. Remember the
+            // earliest such candidate and keep looking for a complete message.
+            resume.get_or_insert(sync);
+            scan = sync + 2;
+            continue;
+        }
+
+        // The CRC covers the block id, length, and payload.
+        let crc = State::<XMODEM>::calculate(&input[sync + 4..sync + length]);
+        if h.crc != crc {
+            debug!("Skipping sync with bad CRC for {:?}", h.block_id.message_type());
+            scan = sync + 2;
+            continue;
+        }
+
+        let msg_kind = h.block_id.message_type();
+        if let MessageKind::Unsupported = msg_kind {
+            debug!("Unsupported Block ID: {:?}", h.block_id);
+            return (
+                Some(Messages::Unsupported(h.block_id.block_number())),
+                sync + length,
+            );
+        }
+
+        match Messages::parse_body(msg_kind, &input[sync + 8..sync + length]) {
+            Ok(msg) => return (Some(msg), sync + length),
+            Err(_) => {
+                debug!("Skipping sync with undecodable payload for {msg_kind:?}");
+                scan = sync + 2;
+            }
+        }
     }
-
-    // Find the sync sequence "$@".
-    let sync_index = input
-        .windows(2)
-        .position(|w| w == b"$@")
-        .ok_or(ParseError::SyncNotFound)?;
-
-    // Make sure there's enough data for sync, header, and payload.
-    if input.len() < sync_index + MIN_MESSAGE_SIZE {
-        debug!("Incomplete data, don't have enough for sync and header");
-        return Err(ParseError::IncompleteData);
-    }
-
-    // Extract and validate the header.
-    let header_start = sync_index + 2;
-    let header_end = header_start + 6;
-    let header_slice = &input[header_start..header_end];
-    let header: [u8; 6] = header_slice.try_into().unwrap();
-
-    let h = Header::read_le(&mut Cursor::new(&header)).map_err(|_| ParseError::InvalidHeader)?;
-    if h.length % 4 != 0 || h.length < 8 {
-        debug!("Invalid header length: {}", h.length);
-        return Err(ParseError::InvalidHeader);
-    }
-
-    // Ensure we have the complete payload.
-    let total_size = 2 + 6 + (h.length as usize) - 8;
-    if input.len() < sync_index + total_size {
-        debug!("Don't have full message.");
-        return Err(ParseError::IncompleteData);
-    }
-
-    // Build the message.
-    let payload_start = header_end;
-    let payload = input[payload_start..payload_start + (h.length as usize) - 8].to_vec();
-    let mut full_block = Vec::with_capacity(4 + payload.len());
-    full_block.extend_from_slice(&header[2..]);
-    full_block.extend_from_slice(&payload);
-    let crc = State::<XMODEM>::calculate(full_block.as_slice());
-
-    if h.crc != crc {
-        debug!("Invalid CRC for {:?}", h.block_id.message_type());
-        return Err(ParseError::InvalidCRC);
-    }
-
-    let msg_kind = h.block_id.message_type();
-    if let MessageKind::Unsupported = msg_kind {
-        debug!("Unsupported Block ID: {:?}", h.block_id);
-        return Ok((
-            Messages::Unsupported(h.block_id.block_number()),
-            sync_index + total_size,
-        ));
-    }
-
-    let res = Messages::parse_body(msg_kind, &payload).map_err(|_| ParseError::InvalidPayload)?;
-
-    Ok((res, sync_index + total_size))
 }
 
 pub struct SbfParser {
@@ -136,31 +138,10 @@ impl SbfParser {
     /// gurantee the whole buffer internal buffer is drained.
     pub fn consume(&mut self, input: &[u8]) -> Option<Messages> {
         self.buf.extend(input);
-        loop {
-            debug!("Internal Buffer Size: {}", self.buf.len());
-            match parse_message(&self.buf) {
-                Ok((msg, bytes_consumed)) => {
-                    debug!("draining the buffer");
-                    self.buf.drain(0..bytes_consumed);
-                    return Some(msg);
-                }
-                Err(ParseError::IncompleteData) => {
-                    debug!("Incomplete Data, feed us more!");
-                    return None;
-                }
-                Err(
-                    ParseError::InvalidCRC
-                    | ParseError::InvalidHeader
-                    | ParseError::InvalidPayload
-                    | ParseError::SyncNotFound,
-                ) => {
-                    debug!("Parse error, drain the buffer down");
-                    if !self.buf.is_empty() {
-                        self.buf.drain(0..1);
-                    }
-                }
-            }
-        }
+        debug!("Internal Buffer Size: {}", self.buf.len());
+        let (msg, drain) = parse_message(&self.buf);
+        self.buf.drain(0..drain);
+        msg
     }
 }
 
