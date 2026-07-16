@@ -1,22 +1,30 @@
+use crate::SubBlock;
 use alloc::vec::Vec;
-use binrw::BinRead;
+use binrw::binrw;
 
 // DiskStatus Block 4059
-#[derive(Clone, BinRead, Debug)]
+#[binrw]
+#[derive(Clone, Debug)]
 pub struct DiskStatus {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[bw(map = |x: &Option<u32>| x.unwrap_or(crate::DO_NOT_USE_U4))]
     pub tow: Option<u32>,
     #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[bw(map = |x: &Option<u16>| x.unwrap_or(crate::DO_NOT_USE_U2))]
     pub wnc: Option<u16>,
     pub n: u8,
     pub sb_length: u8,
     pub reserved: [u8; 4],
-    #[br(count = usize::from(n))]
+    #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) },
+         map = |v: Vec<SubBlock<DiskData>>| v.into_iter().map(SubBlock::into_inner).collect())]
+    #[bw(args_raw = (usize::from(*sb_length),),
+         map = |v: &Vec<DiskData>| v.iter().cloned().map(SubBlock::from).collect::<Vec<_>>())]
     pub disks: Vec<DiskData>,
 }
 
 // DiskData sub-block
-#[derive(BinRead, Clone, Debug)]
+#[binrw]
+#[derive(Clone, Debug)]
 pub struct DiskData {
     /// Disk identifier, starting at 1 for the internal SD card.
     pub disk_id: u8,
@@ -24,17 +32,21 @@ pub struct DiskData {
     pub status: u8,
     /// 16 most-significant bits of the disk usage in bytes.
     #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[bw(map = |x: &Option<u16>| x.unwrap_or(crate::DO_NOT_USE_U2))]
     pub disk_usage_msb: Option<u16>,
     /// 32 least-significant bits of the disk usage in bytes.
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[bw(map = |x: &Option<u32>| x.unwrap_or(crate::DO_NOT_USE_U4))]
     pub disk_usage_lsb: Option<u32>,
     /// Total disk size in Mbytes.
     #[br(map = |x: u32| if x == 0 { None } else { Some(x) })]
+    #[bw(map = |x: &Option<u32>| x.unwrap_or(0))]
     pub disk_size: Option<u32>,
     /// Counter of file and folder create/delete events, wrapping at 255.
     pub create_delete_count: u8,
     /// Disk error code: 0 no error, 254 mount failed.
-    #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) }, align_after = 4)]
+    #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) })]
+    #[bw(map = |x: &Option<u8>| x.unwrap_or(crate::DO_NOT_USE_U1))]
     pub error: Option<u8>,
 }
 

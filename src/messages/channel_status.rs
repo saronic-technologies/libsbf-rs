@@ -1,29 +1,38 @@
+use crate::{NestedBlock, NestedHeader, SubBlock};
 use alloc::vec::Vec;
-use binrw::BinRead;
-
+use binrw::binrw;
 use super::sat_visibility::RiseSet;
 
 // ChannelStatus Block 4013
-#[derive(BinRead, Clone, Debug)]
+#[binrw]
+#[derive(Clone, Debug)]
 pub struct ChannelStatus {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[bw(map = |x: &Option<u32>| x.unwrap_or(crate::DO_NOT_USE_U4))]
     pub tow: Option<u32>,
     #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[bw(map = |x: &Option<u16>| x.unwrap_or(crate::DO_NOT_USE_U2))]
     pub wnc: Option<u16>,
     pub n: u8,
     pub sb1_length: u8,
     pub sb2_length: u8,
     pub reserved: [u8; 3],
-    #[br(count = usize::from(n))]
+    #[br(args { count: usize::from(n), inner: (usize::from(sb1_length), usize::from(sb2_length)) },
+         map = |v: Vec<NestedBlock<ChannelSatInfoHeader, ChannelStateInfo>>| v.into_iter().map(ChannelSatInfo::from).collect())]
+    #[bw(args_raw = (usize::from(*sb1_length), usize::from(*sb2_length)),
+         map = |v: &Vec<ChannelSatInfo>| v.iter().cloned().map(NestedBlock::from).collect::<Vec<NestedBlock<ChannelSatInfoHeader, ChannelStateInfo>>>())]
     pub sat_info: Vec<ChannelSatInfo>,
 }
 
-// ChannelSatInfo sub-block
-#[derive(BinRead, Clone, Debug)]
-pub struct ChannelSatInfo {
+// First-level header of a ChannelSatInfo sub-block. Internal wire type; the flat
+// public ChannelSatInfo is bridged from NestedBlock via From/Into.
+#[binrw]
+#[derive(Clone, Debug)]
+struct ChannelSatInfoHeader {
     pub svid: u8,
     /// GLONASS frequency number with an offset of 8, from 1 to 21; reserved otherwise.
     #[br(map = |x: u8| if x == 0 { None } else { Some(x) })]
+    #[bw(map = |x: &Option<u8>| x.unwrap_or(0))]
     pub freq_nr: Option<u8>,
     pub reserved1: [u8; 2],
     /// Bit field: bits 0-8 azimuth in degrees, bits 14-15 rise/set indicator.
@@ -32,12 +41,69 @@ pub struct ChannelSatInfo {
     pub health_status: u16,
     /// Elevation in degrees relative to the local horizontal plane.
     #[br(map = |x: i8| if x == crate::DO_NOT_USE_I1 { None } else { Some(x) })]
+    #[bw(map = |x: &Option<i8>| x.unwrap_or(crate::DO_NOT_USE_I1))]
     pub elevation: Option<i8>,
     pub n2: u8,
     pub rx_channel: u8,
     pub reserved2: u8,
-    #[br(count = usize::from(n2))]
+}
+
+impl NestedHeader for ChannelSatInfoHeader {
+    fn nested_count(&self) -> usize {
+        usize::from(self.n2)
+    }
+}
+
+/// One satellite's channel status: the first-level header fields followed by its
+/// per-antenna state sub-blocks.
+#[derive(Clone, Debug)]
+pub struct ChannelSatInfo {
+    pub svid: u8,
+    pub freq_nr: Option<u8>,
+    pub reserved1: [u8; 2],
+    pub azimuth_rise_set: u16,
+    pub health_status: u16,
+    pub elevation: Option<i8>,
+    pub n2: u8,
+    pub rx_channel: u8,
+    pub reserved2: u8,
     pub state_info: Vec<ChannelStateInfo>,
+}
+
+impl From<NestedBlock<ChannelSatInfoHeader, ChannelStateInfo>> for ChannelSatInfo {
+    fn from(nb: NestedBlock<ChannelSatInfoHeader, ChannelStateInfo>) -> Self {
+        ChannelSatInfo {
+            svid: nb.header.svid,
+            freq_nr: nb.header.freq_nr,
+            reserved1: nb.header.reserved1,
+            azimuth_rise_set: nb.header.azimuth_rise_set,
+            health_status: nb.header.health_status,
+            elevation: nb.header.elevation,
+            n2: nb.header.n2,
+            rx_channel: nb.header.rx_channel,
+            reserved2: nb.header.reserved2,
+            state_info: nb.items.into_iter().map(SubBlock::into_inner).collect(),
+        }
+    }
+}
+
+impl From<ChannelSatInfo> for NestedBlock<ChannelSatInfoHeader, ChannelStateInfo> {
+    fn from(si: ChannelSatInfo) -> Self {
+        NestedBlock {
+            header: ChannelSatInfoHeader {
+                svid: si.svid,
+                freq_nr: si.freq_nr,
+                reserved1: si.reserved1,
+                azimuth_rise_set: si.azimuth_rise_set,
+                health_status: si.health_status,
+                elevation: si.elevation,
+                n2: si.n2,
+                rx_channel: si.rx_channel,
+                reserved2: si.reserved2,
+            },
+            items: si.state_info.into_iter().map(SubBlock::from).collect(),
+        }
+    }
 }
 
 impl ChannelSatInfo {
@@ -58,7 +124,8 @@ impl ChannelSatInfo {
 }
 
 // ChannelStateInfo sub-sub-block
-#[derive(BinRead, Clone, Debug)]
+#[binrw]
+#[derive(Clone, Debug)]
 pub struct ChannelStateInfo {
     /// Antenna number, 0 for the main antenna.
     pub antenna: u8,
