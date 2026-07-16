@@ -1,33 +1,43 @@
+use crate::binrw_util;
 use binrw::binrw;
 
 // DOP Block 4001
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct DOP {
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u4)]
+    #[bw(map = binrw_util::unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub wnc: Option<u16>,
-    #[br(map = |x: u8| if x == 0 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u1_zero)]
+    #[bw(map = binrw_util::unmap_u1_zero)]
     pub nr_sv: Option<u8>,
     pub reserved: u8,
     /// Position DOP * 100. Divide by 100 for actual PDOP.
-    #[br(map = |x: u16| if x == 0 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u2_zero)]
+    #[bw(map = binrw_util::unmap_u2_zero)]
     pub pdop: Option<u16>,
     /// Time DOP * 100.
-    #[br(map = |x: u16| if x == 0 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u2_zero)]
+    #[bw(map = binrw_util::unmap_u2_zero)]
     pub tdop: Option<u16>,
     /// Horizontal DOP * 100.
-    #[br(map = |x: u16| if x == 0 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u2_zero)]
+    #[bw(map = binrw_util::unmap_u2_zero)]
     pub hdop: Option<u16>,
     /// Vertical DOP * 100.
-    #[br(map = |x: u16| if x == 0 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u2_zero)]
+    #[bw(map = binrw_util::unmap_u2_zero)]
     pub vdop: Option<u16>,
     /// Horizontal Protection Level in meters.
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub hpl: Option<f32>,
     /// Vertical Protection Level in meters.
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub vpl: Option<f32>,
 }
 

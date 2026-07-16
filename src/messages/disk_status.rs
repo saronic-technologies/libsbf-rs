@@ -1,4 +1,4 @@
-use crate::SubBlock;
+use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
 
@@ -6,19 +6,17 @@ use binrw::binrw;
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct DiskStatus {
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u32>| x.unwrap_or(crate::DO_NOT_USE_U4))]
+    #[br(map = binrw_util::map_u4)]
+    #[bw(map = binrw_util::unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u16>| x.unwrap_or(crate::DO_NOT_USE_U2))]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub wnc: Option<u16>,
     pub n: u8,
     pub sb_length: u8,
     pub reserved: [u8; 4],
-    #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) },
-         map = |v: Vec<SubBlock<DiskData>>| v.into_iter().map(SubBlock::into_inner).collect())]
-    #[bw(args_raw = (usize::from(*sb_length),),
-         map = |v: &Vec<DiskData>| v.iter().cloned().map(SubBlock::from).collect::<Vec<_>>())]
+    #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) }, map = binrw_util::unwrap_subblocks)]
+    #[bw(args_raw = (usize::from(*sb_length),), map = binrw_util::wrap_subblocks)]
     pub disks: Vec<DiskData>,
 }
 
@@ -31,22 +29,22 @@ pub struct DiskData {
     /// Disk status bit field.
     pub status: u8,
     /// 16 most-significant bits of the disk usage in bytes.
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u16>| x.unwrap_or(crate::DO_NOT_USE_U2))]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub disk_usage_msb: Option<u16>,
     /// 32 least-significant bits of the disk usage in bytes.
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u32>| x.unwrap_or(crate::DO_NOT_USE_U4))]
+    #[br(map = binrw_util::map_u4)]
+    #[bw(map = binrw_util::unmap_u4)]
     pub disk_usage_lsb: Option<u32>,
     /// Total disk size in Mbytes.
-    #[br(map = |x: u32| if x == 0 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u32>| x.unwrap_or(0))]
+    #[br(map = binrw_util::map_u4_zero)]
+    #[bw(map = binrw_util::unmap_u4_zero)]
     pub disk_size: Option<u32>,
     /// Counter of file and folder create/delete events, wrapping at 255.
     pub create_delete_count: u8,
     /// Disk error code: 0 no error, 254 mount failed.
-    #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u8>| x.unwrap_or(crate::DO_NOT_USE_U1))]
+    #[br(map = binrw_util::map_u1)]
+    #[bw(map = binrw_util::unmap_u1)]
     pub error: Option<u8>,
 }
 

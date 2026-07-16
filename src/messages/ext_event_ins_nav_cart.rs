@@ -1,4 +1,5 @@
-use binrw::BinRead;
+use crate::binrw_util;
+use binrw::binrw;
 
 use super::att_euler::AttitudeMode;
 use super::ins_nav_geod::{GnssMode, INSCouplingMode, INSError, INSSolutionLocation};
@@ -6,28 +7,38 @@ use super::pvt_geodetic::{Datum, PvtMode};
 
 // ExtEventINSNavCart Block 4229
 // Same structure as INSNavCart, but at external event time.
-#[derive(Clone, Debug, BinRead)]
+#[binrw]
+#[derive(Clone, Debug)]
 pub struct ExtEventINSNavCart {
-    #[br(map = |x| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u4)]
+    #[bw(map = binrw_util::unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub wnc: Option<u16>,
     gnss_mode_raw: u8,
     pub error: u8,
     pub info: u16,
-    #[br(map = |x| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub gnss_age: Option<u16>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f8)]
+    #[bw(map = binrw_util::unmap_f8)]
     pub x: Option<f64>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f8)]
+    #[bw(map = binrw_util::unmap_f8)]
     pub y: Option<f64>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f8)]
+    #[bw(map = binrw_util::unmap_f8)]
     pub z: Option<f64>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub accuracy: Option<u16>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub latency: Option<u16>,
-    #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(Datum::from(x)) })]
+    #[br(map = binrw_util::map_datum)]
+    #[bw(map = binrw_util::unmap_datum)]
     pub datum: Option<Datum>,
     _reserved: u8,
     pub sb_list: u16,
@@ -44,53 +55,73 @@ pub struct ExtEventINSNavCart {
     pub vel_std_dev: Option<ExtEventINSNavCartVelStdDev>,
 }
 
-#[derive(Clone, Debug, BinRead)]
+#[binrw]
+#[derive(Clone, Debug)]
 pub struct ExtEventINSNavCartPosStdDev {
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub x_std_dev: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub y_std_dev: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub z_std_dev: Option<f32>,
 }
 
-#[derive(Clone, Debug, BinRead)]
+#[binrw]
+#[derive(Clone, Debug)]
 pub struct ExtEventINSNavCartAtt {
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub heading: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub pitch: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub roll: Option<f32>,
 }
 
-#[derive(Clone, Debug, BinRead)]
+#[binrw]
+#[derive(Clone, Debug)]
 pub struct ExtEventINSNavCartAttStdDev {
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub heading_std_dev: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub pitch_std_dev: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub roll_std_dev: Option<f32>,
 }
 
-#[derive(Clone, Debug, BinRead)]
+#[binrw]
+#[derive(Clone, Debug)]
 pub struct ExtEventINSNavCartVel {
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub vx: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub vy: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub vz: Option<f32>,
 }
 
-#[derive(Clone, Debug, BinRead)]
+#[binrw]
+#[derive(Clone, Debug)]
 pub struct ExtEventINSNavCartVelStdDev {
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub vx_std_dev: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub vy_std_dev: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub vz_std_dev: Option<f32>,
 }
 

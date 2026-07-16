@@ -1,3 +1,4 @@
+use crate::binrw_util;
 use crate::{NestedBlock, NestedHeader, SubBlock};
 use alloc::vec::Vec;
 use binrw::binrw;
@@ -7,11 +8,11 @@ use super::sat_visibility::RiseSet;
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ChannelStatus {
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u32>| x.unwrap_or(crate::DO_NOT_USE_U4))]
+    #[br(map = binrw_util::map_u4)]
+    #[bw(map = binrw_util::unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u16>| x.unwrap_or(crate::DO_NOT_USE_U2))]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub wnc: Option<u16>,
     pub n: u8,
     pub sb1_length: u8,
@@ -31,8 +32,8 @@ pub struct ChannelStatus {
 struct ChannelSatInfoHeader {
     pub svid: u8,
     /// GLONASS frequency number with an offset of 8, from 1 to 21; reserved otherwise.
-    #[br(map = |x: u8| if x == 0 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u8>| x.unwrap_or(0))]
+    #[br(map = binrw_util::map_u1_zero)]
+    #[bw(map = binrw_util::unmap_u1_zero)]
     pub freq_nr: Option<u8>,
     pub reserved1: [u8; 2],
     /// Bit field: bits 0-8 azimuth in degrees, bits 14-15 rise/set indicator.
@@ -40,8 +41,8 @@ struct ChannelSatInfoHeader {
     /// Sequence of 2-bit health status fields, one per signal.
     pub health_status: u16,
     /// Elevation in degrees relative to the local horizontal plane.
-    #[br(map = |x: i8| if x == crate::DO_NOT_USE_I1 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<i8>| x.unwrap_or(crate::DO_NOT_USE_I1))]
+    #[br(map = binrw_util::map_i1)]
+    #[bw(map = binrw_util::unmap_i1)]
     pub elevation: Option<i8>,
     pub n2: u8,
     pub rx_channel: u8,

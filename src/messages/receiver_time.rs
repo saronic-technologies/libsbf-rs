@@ -1,33 +1,43 @@
+use crate::binrw_util;
 use binrw::binrw;
 
 // ReceiverTime Block 5914
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ReceiverTime {
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u4)]
+    #[bw(map = binrw_util::unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub wnc: Option<u16>,
     /// UTC year, two digits from 0 to 99.
-    #[br(map = |x: i8| if x == crate::DO_NOT_USE_I1 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_i1)]
+    #[bw(map = binrw_util::unmap_i1)]
     pub utc_year: Option<i8>,
     /// UTC month, 1 to 12.
-    #[br(map = |x: i8| if x == crate::DO_NOT_USE_I1 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_i1)]
+    #[bw(map = binrw_util::unmap_i1)]
     pub utc_month: Option<i8>,
     /// UTC day of month, 1 to 31.
-    #[br(map = |x: i8| if x == crate::DO_NOT_USE_I1 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_i1)]
+    #[bw(map = binrw_util::unmap_i1)]
     pub utc_day: Option<i8>,
     /// UTC hour, 0 to 23.
-    #[br(map = |x: i8| if x == crate::DO_NOT_USE_I1 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_i1)]
+    #[bw(map = binrw_util::unmap_i1)]
     pub utc_hour: Option<i8>,
     /// UTC minute, 0 to 59.
-    #[br(map = |x: i8| if x == crate::DO_NOT_USE_I1 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_i1)]
+    #[bw(map = binrw_util::unmap_i1)]
     pub utc_min: Option<i8>,
     /// UTC second, 0 to 59.
-    #[br(map = |x: i8| if x == crate::DO_NOT_USE_I1 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_i1)]
+    #[bw(map = binrw_util::unmap_i1)]
     pub utc_sec: Option<i8>,
     /// Integer number of seconds GNSS time is ahead of UTC.
-    #[br(map = |x: i8| if x == crate::DO_NOT_USE_I1 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_i1)]
+    #[bw(map = binrw_util::unmap_i1)]
     pub delta_ls: Option<i8>,
     /// Clock synchronization bit field.
     pub sync_level: u8,

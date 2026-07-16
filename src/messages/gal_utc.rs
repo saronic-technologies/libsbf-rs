@@ -1,3 +1,4 @@
+use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
 
@@ -5,15 +6,19 @@ use binrw::binrw;
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct GALUtc {
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u4)]
+    #[bw(map = binrw_util::unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub wnc: Option<u16>,
     pub svid: u8,
     pub source: u8,
-    #[br(map = |x: f32| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub a_1: Option<f32>,
-    #[br(map = |x: f64| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f8)]
+    #[bw(map = binrw_util::unmap_f8)]
     pub a_0: Option<f64>,
     pub t_ot: u32,
     pub wn_ot: u8,

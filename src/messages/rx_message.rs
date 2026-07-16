@@ -1,3 +1,4 @@
+use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
 
@@ -5,19 +6,19 @@ use binrw::binrw;
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct RxMessage {
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u32>| x.unwrap_or(crate::DO_NOT_USE_U4))]
+    #[br(map = binrw_util::map_u4)]
+    #[bw(map = binrw_util::unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u16>| x.unwrap_or(crate::DO_NOT_USE_U2))]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub wnc: Option<u16>,
     /// Message type: 1 command reply, 2 logging, 3 FTP, 4 status, 5 slave GNSS, 6 CloudIt.
     pub message_type: u8,
     /// Severity: 1 info, 2 warning, 3 error.
     pub severity: u8,
     /// Unique message counter, starting at 1.
-    #[br(map = |x: u32| if x == 0 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u32>| x.unwrap_or(0))]
+    #[br(map = binrw_util::map_u4_zero)]
+    #[bw(map = binrw_util::unmap_u4_zero)]
     pub message_id: Option<u32>,
     /// Length of `message` in bytes, including the terminating NUL.
     pub string_ln: u16,

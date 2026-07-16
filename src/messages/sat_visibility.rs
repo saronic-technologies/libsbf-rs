@@ -1,4 +1,4 @@
-use crate::SubBlock;
+use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
 
@@ -6,18 +6,16 @@ use binrw::binrw;
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct SatVisibility {
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u32>| x.unwrap_or(crate::DO_NOT_USE_U4))]
+    #[br(map = binrw_util::map_u4)]
+    #[bw(map = binrw_util::unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u16>| x.unwrap_or(crate::DO_NOT_USE_U2))]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub wnc: Option<u16>,
     pub n: u8,
     pub sb_length: u8,
-    #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) },
-         map = |v: Vec<SubBlock<SatInfo>>| v.into_iter().map(SubBlock::into_inner).collect())]
-    #[bw(args_raw = (usize::from(*sb_length),),
-         map = |v: &Vec<SatInfo>| v.iter().cloned().map(SubBlock::from).collect::<Vec<_>>())]
+    #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) }, map = binrw_util::unwrap_subblocks)]
+    #[bw(args_raw = (usize::from(*sb_length),), map = binrw_util::wrap_subblocks)]
     pub satellites: Vec<SatInfo>,
 }
 
@@ -27,16 +25,16 @@ pub struct SatVisibility {
 pub struct SatInfo {
     pub svid: u8,
     /// GLONASS frequency number with an offset of 8, from 1 to 21; reserved otherwise.
-    #[br(map = |x: u8| if x == 0 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u8>| x.unwrap_or(0))]
+    #[br(map = binrw_util::map_u1_zero)]
+    #[bw(map = binrw_util::unmap_u1_zero)]
     pub freq_nr: Option<u8>,
     /// Azimuth in 0.01 degrees, 0 is North and increasing towards East.
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<u16>| x.unwrap_or(crate::DO_NOT_USE_U2))]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub azimuth: Option<u16>,
     /// Elevation in 0.01 degrees relative to the local horizontal plane.
-    #[br(map = |x: i16| if x == crate::DO_NOT_USE_I2 { None } else { Some(x) })]
-    #[bw(map = |x: &Option<i16>| x.unwrap_or(crate::DO_NOT_USE_I2))]
+    #[br(map = binrw_util::map_i2)]
+    #[bw(map = binrw_util::unmap_i2)]
     pub elevation: Option<i16>,
     #[br(map = |x: u8| RiseSet::from(x))]
     #[bw(map = |x: &RiseSet| u8::from(*x))]
