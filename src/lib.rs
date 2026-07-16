@@ -152,7 +152,7 @@ macro_rules! define_messages {
     ($($variant:ident => $code:literal,)+) => {
         /// Typed enum that can be used to determine the type of message
         /// received.
-        #[derive(Debug)]
+        #[derive(Clone, Copy, Debug)]
         enum MessageKind {
             $( $variant, )+
             Unsupported,
