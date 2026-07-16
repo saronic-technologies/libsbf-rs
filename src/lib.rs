@@ -195,6 +195,16 @@ macro_rules! define_messages {
                     Messages::Unsupported(_) => None,
                 }
             }
+
+            /// Read a supported block's payload into its `Messages` variant. The
+            /// caller resolves `Unsupported` before dispatching here.
+            pub(crate) fn parse_body(kind: MessageKind, payload: &[u8]) -> binrw::BinResult<Self> {
+                let mut cursor = binrw::io::Cursor::new(payload);
+                Ok(match kind {
+                    $( MessageKind::$variant => Self::$variant($variant::read_le(&mut cursor)?), )+
+                    MessageKind::Unsupported => unreachable!("Unsupported is surfaced before parse_body"),
+                })
+            }
         }
     };
 }
