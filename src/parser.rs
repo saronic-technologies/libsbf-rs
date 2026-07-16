@@ -628,6 +628,58 @@ mod tests {
         }
     }
 
+    /// A message delivered in two halves must stay buffered across the first
+    /// call. The first half has a valid sync and header but only part of the
+    /// payload, so it does not parse. The parser has to keep it rather than
+    /// drain it, so the second half completes the message.
+    #[test]
+    fn test_partial_message_completes_on_second_half() {
+        let mut input = Vec::new();
+        input.extend_from_slice(VALID_SYNC);
+        input.extend_from_slice(VALID_QUALITY_IND_HEADER);
+        input.extend_from_slice(VALID_QUALITY_IND_PAYLOAD);
+
+        let (first, second) = input.split_at(input.len() / 2);
+        let mut parser = SbfParser::new();
+
+        assert!(parser.consume(first).is_none());
+        match parser.consume(second) {
+            Some(Messages::QualityInd(qi)) => assert_valid_quality_ind(&qi),
+            other => panic!("expected QualityInd once the second half arrives, got {other:?}"),
+        }
+    }
+
+    /// Noise and a false sync with an oversized claimed length precede a
+    /// message split across two reads. The first call parses nothing and
+    /// drains only the noise, keeping both the false candidate and the
+    /// partial message buffered. The second call finds the completed message
+    /// past the false candidate and drains through it.
+    #[test]
+    fn test_partial_message_with_noise_and_false_sync() {
+        let mut message = Vec::new();
+        message.extend_from_slice(VALID_SYNC);
+        message.extend_from_slice(VALID_QUALITY_IND_HEADER);
+        message.extend_from_slice(VALID_QUALITY_IND_PAYLOAD);
+        let (first_half, second_half) = message.split_at(message.len() / 2);
+
+        let mut input = Vec::new();
+        input.extend_from_slice(&[0x55; 50]); // noise free of sync bytes
+        // False sync whose claimed length exceeds anything that arrives.
+        input.extend_from_slice(VALID_SYNC);
+        input.extend_from_slice(&[0, 0]); // crc, never checked
+        input.extend_from_slice(&[0, 0]); // block id
+        input.extend_from_slice(&1000u16.to_le_bytes());
+        input.extend_from_slice(&[0, 0]); // stray zeros before the message
+        input.extend_from_slice(first_half);
+
+        let mut parser = SbfParser::new();
+        assert!(parser.consume(&input).is_none());
+        match parser.consume(second_half) {
+            Some(Messages::QualityInd(qi)) => assert_valid_quality_ind(&qi),
+            other => panic!("expected QualityInd once the second half arrives, got {other:?}"),
+        }
+    }
+
     proptest! {
 
         #[test]
