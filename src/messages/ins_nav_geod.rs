@@ -1,10 +1,11 @@
 use binrw::BinRead;
 use core::fmt;
-use super::pvt_geodetic::{PvtMode, Datum};
+use num_enum::{FromPrimitive, IntoPrimitive};
 use super::att_euler::AttitudeMode;
+use super::pvt_geodetic::{Datum, PvtMode};
 
 /// Combined GNSS mode containing PVT mode (bits 0-3) and attitude mode (bits 4-7).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GnssMode {
     raw: u8,
     pub pvt_mode: PvtMode,
@@ -34,31 +35,45 @@ impl fmt::Display for GnssMode {
 }
 
 /// INS coupling mode (bits 0-2 of info field).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, IntoPrimitive)]
 #[repr(u8)]
 pub enum INSCouplingMode {
-    #[default]
     LooselyCoupled = 0,
-    Unknown,
+    #[num_enum(catch_all)]
+    Unknown(u8),
+}
+
+#[allow(clippy::derivable_impls)]
+impl Default for INSCouplingMode {
+    fn default() -> Self {
+        INSCouplingMode::LooselyCoupled
+    }
 }
 
 impl From<u16> for INSCouplingMode {
     fn from(value: u16) -> Self {
         match value & 0x07 {
             0 => INSCouplingMode::LooselyCoupled,
-            _ => INSCouplingMode::Unknown,
+            x => INSCouplingMode::Unknown(x as u8),
         }
     }
 }
 
 /// Solution output location (bits 3-5 of info field).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, IntoPrimitive)]
 #[repr(u8)]
 pub enum INSSolutionLocation {
-    #[default]
     MainGnssAntenna = 0,
     FirstPoi = 1,
-    Unknown,
+    #[num_enum(catch_all)]
+    Unknown(u8),
+}
+
+#[allow(clippy::derivable_impls)]
+impl Default for INSSolutionLocation {
+    fn default() -> Self {
+        INSSolutionLocation::MainGnssAntenna
+    }
 }
 
 impl From<u16> for INSSolutionLocation {
@@ -66,16 +81,15 @@ impl From<u16> for INSSolutionLocation {
         match (value >> 3) & 0x07 {
             0 => INSSolutionLocation::MainGnssAntenna,
             1 => INSSolutionLocation::FirstPoi,
-            _ => INSSolutionLocation::Unknown,
+            x => INSSolutionLocation::Unknown(x as u8),
         }
     }
 }
 
 /// INS error codes.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
 #[repr(u8)]
 pub enum INSError {
-    #[default]
     None = 0,
     /// Position output prohibited due to export laws.
     PositionProhibited = 7,
@@ -99,25 +113,15 @@ pub enum INSError {
     UnsupportedSettings = 32,
     /// Incorrect IMU orientation.
     IncorrectImuOrientation = 35,
+    /// Unrecognized error code.
+    #[num_enum(catch_all)]
+    Unknown(u8),
 }
 
-impl From<u8> for INSError {
-    fn from(value: u8) -> Self {
-        match value {
-            0 => INSError::None,
-            7 => INSError::PositionProhibited,
-            20 => INSError::NotRequested,
-            21 => INSError::NotEnoughSensorMeasurements,
-            23 => INSError::StaticAlignmentOngoing,
-            24 => INSError::WaitingForGnssPvt,
-            28 => INSError::InMotionAlignmentOngoing,
-            29 => INSError::WaitingForGnssHeading,
-            30 => INSError::WaitingForImuSync,
-            31 => INSError::StdDevExceedsLimit,
-            32 => INSError::UnsupportedSettings,
-            35 => INSError::IncorrectImuOrientation,
-            _ => INSError::None,
-        }
+#[allow(clippy::derivable_impls)]
+impl Default for INSError {
+    fn default() -> Self {
+        INSError::None
     }
 }
 
