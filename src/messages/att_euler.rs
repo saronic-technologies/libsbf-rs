@@ -1,3 +1,4 @@
+use crate::binrw_util;
 use binrw::binrw;
 use core::fmt;
 
@@ -69,28 +70,37 @@ impl From<u8> for BaselineError {
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct AttEuler {
-    #[br(map = |x| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u4)]
+    #[bw(map = binrw_util::unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub wnc: Option<u16>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u1)]
+    #[bw(map = binrw_util::unmap_u1)]
     pub nrsv: Option<u8>,
     error_raw: u8,
     mode_raw: u16,
     _reserved: u16,
 
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub heading: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub pitch: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub roll: Option<f32>,
 
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub pitch_dot: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub roll_dot: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub heading_dot: Option<f32>,
 }
 

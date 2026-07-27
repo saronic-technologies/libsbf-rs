@@ -1,8 +1,10 @@
+use crate::binrw_util;
 use alloc::vec::Vec;
-use binrw::BinRead;
+use binrw::binrw;
 
 /// RFBand sub-block: interference info for a single RF band.
-#[derive(Clone, Debug, BinRead)]
+#[binrw]
+#[derive(Clone, Debug)]
 pub struct RFBand {
     /// Center frequency of the RF band (Hz).
     pub frequency: u32,
@@ -12,7 +14,8 @@ pub struct RFBand {
     /// Bits 6-7: antenna ID (0=main, 1=aux1, 2=aux2).
     pub info: u8,
     /// Estimated interference power (dBm). 0 if unknown.
-    #[br(map = |x: i8| if x == 0 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_i1_zero)]
+    #[bw(map = binrw_util::unmap_i1_zero)]
     pub power: Option<i8>,
 }
 
@@ -39,11 +42,14 @@ impl RFBand {
 }
 
 // RFStatus Block 4092
-#[derive(Clone, Debug, BinRead)]
+#[binrw]
+#[derive(Clone, Debug)]
 pub struct RFStatus {
-    #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u4)]
+    #[bw(map = binrw_util::unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = |x: u16| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub wnc: Option<u16>,
     n: u8,
     pub sb_length: u8,
@@ -51,7 +57,8 @@ pub struct RFStatus {
     /// Bit 1: NMA check failed (e.g. Galileo OSNMA).
     pub flags: u8,
     _reserved: [u8; 3],
-    #[br(count = usize::from(n))]
+    #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) }, map = binrw_util::unwrap_subblocks)]
+    #[bw(args_raw = (usize::from(*sb_length),), map = binrw_util::wrap_subblocks)]
     pub bands: Vec<RFBand>,
     #[br(parse_with = binrw::helpers::until_eof)]
     _padding: Vec<u8>,

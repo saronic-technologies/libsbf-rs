@@ -1,4 +1,5 @@
-use binrw::BinRead;
+use crate::binrw_util;
+use binrw::binrw;
 use core::fmt;
 use num_enum::{FromPrimitive, IntoPrimitive};
 use super::att_euler::AttitudeMode;
@@ -126,32 +127,43 @@ impl Default for INSError {
 }
 
 // INS Nav Geod Block 4226
-#[derive(Clone, Debug, BinRead)]
+#[binrw]
+#[derive(Clone, Debug)]
 pub struct INSNavGeod {
-    #[br(map = |x| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u4)]
+    #[bw(map = binrw_util::unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub wnc: Option<u16>,
     /// Bits 0-3: PVT mode, Bits 4-7: Attitude mode
     gnss_mode_raw: u8,
     pub error: u8,
     /// Bits 0-2: coupling mode, Bits 3-5: solution location, Bits 6-8: flags
     pub info: u16,
-    #[br(map = |x| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub gnss_age: Option<u16>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f8)]
+    #[bw(map = binrw_util::unmap_f8)]
     pub latitude: Option<f64>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f8)]
+    #[bw(map = binrw_util::unmap_f8)]
     pub longitude: Option<f64>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F8 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f8)]
+    #[bw(map = binrw_util::unmap_f8)]
     pub height: Option<f64>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub undulation: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub accuracy: Option<u16>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_U2 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_u2)]
+    #[bw(map = binrw_util::unmap_u2)]
     pub latency: Option<u16>,
-    #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(Datum::from(x)) })]
+    #[br(map = binrw_util::map_datum)]
+    #[bw(map = binrw_util::unmap_datum)]
     pub datum: Option<Datum>,
     _reserved: u8,
     // TODO: unpack into an SBList type so we know what INSNav Sub Blocks we can parse
@@ -175,83 +187,115 @@ pub struct INSNavGeod {
     pub vel_cov: Option<INSNavGeodVelCov>,
 }
 
-#[derive(Clone, Debug, BinRead)]
+#[binrw]
+#[derive(Clone, Debug)]
 pub struct INSNavGeodPosStdDev {
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub longitude_std_dev: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub latitude_std_dev: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub height_std_dev: Option<f32>,
 }
 
-#[derive(Clone, Debug, BinRead)]
+#[binrw]
+#[derive(Clone, Debug)]
 pub struct INSNavGeodAtt {
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub heading: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub pitch: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub roll: Option<f32>,
 }
 
-#[derive(Clone, Debug, BinRead)]
+#[binrw]
+#[derive(Clone, Debug)]
 pub struct INSNavGeodAttStdDev {
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub heading_std_dev: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub pitch_std_dev: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub roll_std_dev: Option<f32>,
 }
 
-#[derive(Clone, Debug, BinRead)]
+#[binrw]
+#[derive(Clone, Debug)]
 pub struct INSNavGeodVel {
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub ve: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub vn: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub vu: Option<f32>,
 }
 
-#[derive(Clone, Debug, BinRead)]
+#[binrw]
+#[derive(Clone, Debug)]
 pub struct INSNavGeodVelStdDev {
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub ve_std_dev: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub vn_std_dev: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub vu_std_dev: Option<f32>,
 }
 
-#[derive(Clone, Debug, BinRead)]
+#[binrw]
+#[derive(Clone, Debug)]
 pub struct INSNavGeodPosCov {
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub latitude_longitude_cov: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub latitude_height_cov: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub longitude_height_cov: Option<f32>,
 }
 
-#[derive(Clone, Debug, BinRead)]
+#[binrw]
+#[derive(Clone, Debug)]
 pub struct INSNavGeodVelCov {
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub ve_vn_cov: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub ve_vu_cov: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub vn_vu_cov: Option<f32>,
 }
 
-#[derive(Clone, Debug, BinRead)]
+#[binrw]
+#[derive(Clone, Debug)]
 pub struct INSNavGeodAttCov {
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub heading_pitch_cov: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub heading_roll_cov: Option<f32>,
-    #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
+    #[br(map = binrw_util::map_f4)]
+    #[bw(map = binrw_util::unmap_f4)]
     pub pitch_roll_cov: Option<f32>,
 }
 
