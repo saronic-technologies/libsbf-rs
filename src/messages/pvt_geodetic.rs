@@ -107,12 +107,6 @@ impl Default for Datum {
     }
 }
 
-impl From<Datum> for u8 {
-    fn from(value: Datum) -> Self {
-        value as u8
-    }
-}
-
 /// PVT error codes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
 #[repr(u8)]
@@ -136,12 +130,6 @@ pub enum PvtError {
 impl Default for PvtError {
     fn default() -> Self {
         PvtError::None
-    }
-}
-
-impl From<PvtError> for u8 {
-    fn from(value: PvtError) -> Self {
-        value as u8
     }
 }
 

@@ -773,9 +773,9 @@ mod tests {
         184, 244, 58, 29, 56, 9, 7, 0, 11, 10, 12, 10, 1, 0, 2, 0, 21, 10, 31, 0, 0, 0, 0, 0,
     ];
 
-    /// Frame a complete SBF message: `$@` sync + XMODEM CRC + block_id + length
-    /// + payload. The length field is `payload.len() + 8` (sync and CRC are not
-    /// counted), which the parser requires to be a multiple of 4.
+    /// Frame a complete SBF message: `$@` sync + XMODEM CRC + block_id +
+    /// length + payload. The length field is `payload.len() + 8`, which the parser
+    /// requires to be a multiple of 4. Sync and CRC are not counted.
     fn build_sbf_message(block_id: u16, payload: &[u8]) -> Vec<u8> {
         let length = (payload.len() + 8) as u16;
 
