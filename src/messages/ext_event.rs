@@ -2,7 +2,7 @@ use alloc::vec::Vec;
 use binrw::BinRead;
 
 // ExtEvent Block 5924
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct ExtEvent {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,

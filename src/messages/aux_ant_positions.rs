@@ -2,7 +2,7 @@ use alloc::vec::Vec;
 use binrw::BinRead;
 
 /// Sub-block for a single auxiliary antenna position.
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct AuxAntPositionSub {
     #[br(map = |x: u8| if x == crate::DO_NOT_USE_U1 { None } else { Some(x) })]
     pub nr_sv: Option<u8>,
@@ -25,7 +25,7 @@ pub struct AuxAntPositionSub {
 }
 
 // AuxAntPositions Block 5942
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct AuxAntPositions {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,

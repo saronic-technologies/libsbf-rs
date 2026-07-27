@@ -2,7 +2,7 @@ use binrw::binrw;
 
 // GEORawL1 Block 4020
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct GEORawL1 {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,

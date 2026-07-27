@@ -3,7 +3,7 @@ use binrw::binrw;
 
 // GPSNav Block 5891
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct GPSNav {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,

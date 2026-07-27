@@ -2,7 +2,7 @@ use alloc::vec::Vec;
 use binrw::BinRead;
 
 /// RFBand sub-block: interference info for a single RF band.
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct RFBand {
     /// Center frequency of the RF band (Hz).
     pub frequency: u32,
@@ -39,7 +39,7 @@ impl RFBand {
 }
 
 // RFStatus Block 4092
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct RFStatus {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,

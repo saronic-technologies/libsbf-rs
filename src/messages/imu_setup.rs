@@ -2,7 +2,7 @@ use binrw::binrw;
 
 // IMU Setup Block 4224
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct ImuSetup {
     #[br(map = |x| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,

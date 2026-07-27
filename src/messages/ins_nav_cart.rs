@@ -5,7 +5,7 @@ use super::ins_nav_geod::{GnssMode, INSCouplingMode, INSError, INSSolutionLocati
 use super::pvt_geodetic::{Datum, PvtMode};
 
 // INSNavCart Block 4225
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct INSNavCart {
     #[br(map = |x| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,
@@ -51,7 +51,7 @@ pub struct INSNavCart {
     pub vel_cov: Option<INSNavCartVelCov>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct INSNavCartPosStdDev {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub x_std_dev: Option<f32>,
@@ -61,7 +61,7 @@ pub struct INSNavCartPosStdDev {
     pub z_std_dev: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct INSNavCartAtt {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub heading: Option<f32>,
@@ -71,7 +71,7 @@ pub struct INSNavCartAtt {
     pub roll: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct INSNavCartAttStdDev {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub heading_std_dev: Option<f32>,
@@ -81,7 +81,7 @@ pub struct INSNavCartAttStdDev {
     pub roll_std_dev: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct INSNavCartVel {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub vx: Option<f32>,
@@ -91,7 +91,7 @@ pub struct INSNavCartVel {
     pub vz: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct INSNavCartVelStdDev {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub vx_std_dev: Option<f32>,
@@ -101,7 +101,7 @@ pub struct INSNavCartVelStdDev {
     pub vz_std_dev: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct INSNavCartPosCov {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub xy_cov: Option<f32>,
@@ -111,7 +111,7 @@ pub struct INSNavCartPosCov {
     pub yz_cov: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct INSNavCartVelCov {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub vx_vy_cov: Option<f32>,
@@ -121,7 +121,7 @@ pub struct INSNavCartVelCov {
     pub vy_vz_cov: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct INSNavCartAttCov {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub heading_pitch_cov: Option<f32>,

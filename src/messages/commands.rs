@@ -3,7 +3,7 @@ use binrw::binrw;
 
 // Commands Block 4015
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Commands {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,

@@ -6,7 +6,7 @@ use super::pvt_geodetic::{
 };
 
 // PVTCartesian Block 4006
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct PVTCartesian {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,

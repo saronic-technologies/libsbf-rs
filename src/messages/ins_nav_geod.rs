@@ -126,7 +126,7 @@ impl Default for INSError {
 }
 
 // INS Nav Geod Block 4226
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct INSNavGeod {
     #[br(map = |x| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,
@@ -175,7 +175,7 @@ pub struct INSNavGeod {
     pub vel_cov: Option<INSNavGeodVelCov>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct INSNavGeodPosStdDev {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub longitude_std_dev: Option<f32>,
@@ -185,7 +185,7 @@ pub struct INSNavGeodPosStdDev {
     pub height_std_dev: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct INSNavGeodAtt {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub heading: Option<f32>,
@@ -195,7 +195,7 @@ pub struct INSNavGeodAtt {
     pub roll: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct INSNavGeodAttStdDev {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub heading_std_dev: Option<f32>,
@@ -205,7 +205,7 @@ pub struct INSNavGeodAttStdDev {
     pub roll_std_dev: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct INSNavGeodVel {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub ve: Option<f32>,
@@ -215,7 +215,7 @@ pub struct INSNavGeodVel {
     pub vu: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct INSNavGeodVelStdDev {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub ve_std_dev: Option<f32>,
@@ -225,7 +225,7 @@ pub struct INSNavGeodVelStdDev {
     pub vu_std_dev: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct INSNavGeodPosCov {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub latitude_longitude_cov: Option<f32>,
@@ -235,7 +235,7 @@ pub struct INSNavGeodPosCov {
     pub longitude_height_cov: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct INSNavGeodVelCov {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub ve_vn_cov: Option<f32>,
@@ -245,7 +245,7 @@ pub struct INSNavGeodVelCov {
     pub vn_vu_cov: Option<f32>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct INSNavGeodAttCov {
     #[br(map = |x| if x == crate::DO_NOT_USE_F4 { None } else { Some(x) })]
     pub heading_pitch_cov: Option<f32>,

@@ -196,7 +196,7 @@ impl From<u8> for RaimIntegrity {
 }
 
 // PVTGeodetic Block 4007
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct PVTGeodetic {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,

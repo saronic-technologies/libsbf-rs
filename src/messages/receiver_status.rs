@@ -50,7 +50,7 @@ bitflags! {
 }
 
 // ReceiverStatus Block 4014
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct ReceiverStatus {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,
@@ -75,7 +75,7 @@ pub struct ReceiverStatus {
     pub padding: Vec<u8>,
 }
 
-#[derive(Debug, BinRead)]
+#[derive(Clone, Debug, BinRead)]
 pub struct AGCState {
     pub frontend_id: u8,
     #[br(map = |x: i8| if x == -128 { None } else { Some(x) })]

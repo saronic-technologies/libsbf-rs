@@ -6,7 +6,7 @@ use binrw::binrw;
 // The documentation states that the reference C implementation should be used to
 // parse these messages. For now, we store the raw bytes.
 #[binrw]
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Meas3Ranges {
     #[br(map = |x: u32| if x == crate::DO_NOT_USE_U4 { None } else { Some(x) })]
     pub tow: Option<u32>,
