@@ -592,6 +592,113 @@ mod tests {
         assert!(matches!(result, Err(DatagramError::InvalidCrc)));
     }
 
+    /// A false `$@` whose length field claims more bytes than the buffer holds
+    /// must not stall the parser: the valid message right after it has to be
+    /// found. The claimed length here is well below any sane size cutoff, so
+    /// only skipping past an incomplete candidate sync recovers the real
+    /// message. This is the boundary case the noise proptests hit
+    /// intermittently, where a false sync reads its length from the following
+    /// message's bytes.
+    #[test]
+    fn test_oversized_false_sync_before_valid_message() {
+        let mut input = Vec::new();
+        // False sync plus its 6-byte header. The claimed length (bytes 6-7)
+        // exceeds the buffer, so the CRC and block id after it are never read.
+        input.extend_from_slice(VALID_SYNC);
+        input.extend_from_slice(&[0, 0]); // crc, never checked
+        input.extend_from_slice(&[0, 0]); // block id, never read
+        input.extend_from_slice(&1000u16.to_le_bytes()); // claims 1000 bytes
+
+        // A real QualityInd message immediately after the false sync.
+        input.extend_from_slice(VALID_SYNC);
+        input.extend_from_slice(VALID_QUALITY_IND_HEADER);
+        input.extend_from_slice(VALID_QUALITY_IND_PAYLOAD);
+
+        let mut parser = SbfParser::new();
+        match parser.consume(&input) {
+            Some(Messages::QualityInd(qi)) => assert_valid_quality_ind(&qi),
+            other => panic!("expected QualityInd after the false sync, got {other:?}"),
+        }
+    }
+
+    /// A false `$@` with a plausible length whose body is fully present but
+    /// whose CRC is wrong must be skipped so the valid message after it is
+    /// still found. The current resync already handles this through the CRC
+    /// check; this pins that behavior across the hardening.
+    #[test]
+    fn test_bad_crc_false_sync_before_valid_message() {
+        let mut input = Vec::new();
+        // False sync with an in-buffer length but a zero CRC that cannot match.
+        input.extend_from_slice(VALID_SYNC);
+        input.extend_from_slice(&[0, 0]); // crc, stays zero so it never matches
+        input.extend_from_slice(&[0, 0]); // block id
+        input.extend_from_slice(&16u16.to_le_bytes()); // length 16: 8 payload bytes
+        input.extend_from_slice(&[0u8; 8]); // payload
+
+        // A real QualityInd message immediately after the false message.
+        input.extend_from_slice(VALID_SYNC);
+        input.extend_from_slice(VALID_QUALITY_IND_HEADER);
+        input.extend_from_slice(VALID_QUALITY_IND_PAYLOAD);
+
+        let mut parser = SbfParser::new();
+        match parser.consume(&input) {
+            Some(Messages::QualityInd(qi)) => assert_valid_quality_ind(&qi),
+            other => panic!("expected QualityInd after the bad-CRC false sync, got {other:?}"),
+        }
+    }
+
+    /// A message delivered in two halves must stay buffered across the first
+    /// call. The first half has a valid sync and header but only part of the
+    /// payload, so it does not parse. The parser has to keep it rather than
+    /// drain it, so the second half completes the message.
+    #[test]
+    fn test_partial_message_completes_on_second_half() {
+        let mut input = Vec::new();
+        input.extend_from_slice(VALID_SYNC);
+        input.extend_from_slice(VALID_QUALITY_IND_HEADER);
+        input.extend_from_slice(VALID_QUALITY_IND_PAYLOAD);
+
+        let (first, second) = input.split_at(input.len() / 2);
+        let mut parser = SbfParser::new();
+
+        assert!(parser.consume(first).is_none());
+        match parser.consume(second) {
+            Some(Messages::QualityInd(qi)) => assert_valid_quality_ind(&qi),
+            other => panic!("expected QualityInd once the second half arrives, got {other:?}"),
+        }
+    }
+
+    /// Noise and a false sync with an oversized claimed length precede a
+    /// message split across two reads. The first call parses nothing and
+    /// drains only the noise, keeping both the false candidate and the
+    /// partial message buffered. The second call finds the completed message
+    /// past the false candidate and drains through it.
+    #[test]
+    fn test_partial_message_with_noise_and_false_sync() {
+        let mut message = Vec::new();
+        message.extend_from_slice(VALID_SYNC);
+        message.extend_from_slice(VALID_QUALITY_IND_HEADER);
+        message.extend_from_slice(VALID_QUALITY_IND_PAYLOAD);
+        let (first_half, second_half) = message.split_at(message.len() / 2);
+
+        let mut input = Vec::new();
+        input.extend_from_slice(&[0x55; 50]); // noise free of sync bytes
+        // False sync whose claimed length exceeds anything that arrives.
+        input.extend_from_slice(VALID_SYNC);
+        input.extend_from_slice(&[0, 0]); // crc, never checked
+        input.extend_from_slice(&[0, 0]); // block id
+        input.extend_from_slice(&1000u16.to_le_bytes());
+        input.extend_from_slice(&[0, 0]); // stray zeros before the message
+        input.extend_from_slice(first_half);
+
+        let mut parser = SbfParser::new();
+        assert!(parser.consume(&input).is_none());
+        match parser.consume(second_half) {
+            Some(Messages::QualityInd(qi)) => assert_valid_quality_ind(&qi),
+            other => panic!("expected QualityInd once the second half arrives, got {other:?}"),
+        }
+    }
+
     proptest! {
 
         #[test]
