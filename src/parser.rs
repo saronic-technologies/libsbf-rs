@@ -682,6 +682,27 @@ mod tests {
         184, 244, 58, 29, 56, 9, 7, 0, 11, 10, 12, 10, 1, 0, 2, 0, 21, 10, 31, 0, 0, 0, 0, 0,
     ];
 
+    /// Frame a complete SBF message: `$@` sync + XMODEM CRC + block_id + length
+    /// + payload. The length field is `payload.len() + 8` (sync and CRC are not
+    /// counted), which the parser requires to be a multiple of 4.
+    fn build_sbf_message(block_id: u16, payload: &[u8]) -> Vec<u8> {
+        let length = (payload.len() + 8) as u16;
+
+        let mut crc_data = Vec::new();
+        crc_data.extend_from_slice(&block_id.to_le_bytes());
+        crc_data.extend_from_slice(&length.to_le_bytes());
+        crc_data.extend_from_slice(payload);
+        let crc = State::<XMODEM>::calculate(&crc_data);
+
+        let mut message = Vec::new();
+        message.extend_from_slice(VALID_SYNC);
+        message.extend_from_slice(&crc.to_le_bytes());
+        message.extend_from_slice(&block_id.to_le_bytes());
+        message.extend_from_slice(&length.to_le_bytes());
+        message.extend_from_slice(payload);
+        message
+    }
+
     fn assert_valid_quality_ind(qi: &QualityInd) {
         assert_eq!(qi.tow, Some(490403000));
         assert_eq!(qi.wnc, Some(2360));
@@ -770,25 +791,79 @@ mod tests {
     }
 
     fn create_valid_receiver_setup_message() -> Vec<u8> {
-        let mut message = Vec::new();
-        message.extend_from_slice(VALID_SYNC);
+        build_sbf_message(5902, &create_receiver_setup_payload())
+    }
 
-        let payload = create_receiver_setup_payload();
-        let block_id = 5902u16;
-        let length = (payload.len() + 8) as u16;
+    // Helper function to create a DOP (block 4001) test payload (24 bytes).
+    fn create_dop_payload() -> Vec<u8> {
+        let mut payload = Vec::new();
+        payload.extend_from_slice(&490403000u32.to_le_bytes()); // tow
+        payload.extend_from_slice(&2360u16.to_le_bytes()); // wnc
+        payload.push(8); // nr_sv
+        payload.push(0); // reserved
+        payload.extend_from_slice(&150u16.to_le_bytes()); // pdop (1.50)
+        payload.extend_from_slice(&120u16.to_le_bytes()); // tdop
+        payload.extend_from_slice(&90u16.to_le_bytes()); // hdop
+        payload.extend_from_slice(&110u16.to_le_bytes()); // vdop
+        payload.extend_from_slice(&12.5f32.to_le_bytes()); // hpl
+        payload.extend_from_slice(&20.0f32.to_le_bytes()); // vpl
+        payload
+    }
 
-        let mut crc_data = Vec::new();
-        crc_data.extend_from_slice(&block_id.to_le_bytes());
-        crc_data.extend_from_slice(&length.to_le_bytes());
-        crc_data.extend_from_slice(&payload);
-        let crc = State::<XMODEM>::calculate(&crc_data);
+    fn assert_valid_dop(dop: &DOP) {
+        assert_eq!(dop.tow, Some(490403000));
+        assert_eq!(dop.wnc, Some(2360));
+        assert_eq!(dop.nr_sv, Some(8));
+        assert_eq!(dop.pdop, Some(150));
+    }
 
-        message.extend_from_slice(&crc.to_le_bytes());
-        message.extend_from_slice(&block_id.to_le_bytes());
-        message.extend_from_slice(&length.to_le_bytes());
-        message.extend_from_slice(&payload);
+    /// A known-good message fixture, used to build and identify messages in the
+    /// multi-message proptest.
+    #[derive(Debug, Clone, Copy)]
+    enum TestMsg {
+        QualityInd,
+        ReceiverSetup,
+        Dop,
+    }
 
-        message
+    impl TestMsg {
+        /// A complete, valid framed SBF message for this fixture.
+        fn bytes(self) -> Vec<u8> {
+            match self {
+                TestMsg::QualityInd => build_sbf_message(4082, VALID_QUALITY_IND_PAYLOAD),
+                TestMsg::ReceiverSetup => create_valid_receiver_setup_message(),
+                TestMsg::Dop => build_sbf_message(4001, &create_dop_payload()),
+            }
+        }
+
+        /// True if `m` is the message variant this fixture produces, with its key
+        /// fields intact. Panics with a precise message if the payload is wrong.
+        fn matches(self, m: &Messages) -> bool {
+            match (self, m) {
+                (TestMsg::QualityInd, Messages::QualityInd(qi)) => {
+                    assert_valid_quality_ind(qi);
+                    true
+                }
+                (TestMsg::ReceiverSetup, Messages::ReceiverSetup(rs)) => {
+                    assert_eq!(rs.tow, Some(490403000));
+                    assert_eq!(&rs.marker_name[..11], b"TEST_MARKER");
+                    true
+                }
+                (TestMsg::Dop, Messages::DOP(dop)) => {
+                    assert_valid_dop(dop);
+                    true
+                }
+                _ => false,
+            }
+        }
+
+        fn strategy() -> impl Strategy<Value = TestMsg> {
+            prop_oneof![
+                Just(TestMsg::QualityInd),
+                Just(TestMsg::ReceiverSetup),
+                Just(TestMsg::Dop),
+            ]
+        }
     }
 
     #[test]
@@ -1015,6 +1090,55 @@ mod tests {
                 None => {
                     prop_assert!(false, "Valid ReceiverSetup message was not found in the noise.");
                 }
+            }
+        }
+
+        /// Feed a random sequence of several valid messages of mixed types,
+        /// surrounded by sanitized noise, and assert the parser returns exactly
+        /// those messages, in order.
+        #[test]
+        fn test_multiple_messages_multiple_types(
+            kinds in proptest::collection::vec(TestMsg::strategy(), 1..8),
+            leading in proptest::collection::vec(any::<u8>(), 0..2000).prop_map(sanitize_noise),
+            trailing in proptest::collection::vec(any::<u8>(), 0..2000).prop_map(sanitize_noise),
+        ) {
+            // Stream: leading noise + contiguous valid messages + trailing noise.
+            // The messages are concatenated directly (no noise between them) so
+            // the expected message count is deterministic: each valid message is
+            // drained by its exact length, and sanitized noise never yields a
+            // spurious message.
+            let mut stream = Vec::new();
+            stream.extend_from_slice(&leading);
+            for k in &kinds {
+                stream.extend_from_slice(&k.bytes());
+            }
+            stream.extend_from_slice(&trailing);
+
+            // Feed everything once, then drain every buffered message.
+            let mut parser = SbfParser::new();
+            let mut parsed = Vec::new();
+            if let Some(m) = parser.consume(&stream) {
+                parsed.push(m);
+            }
+            while let Some(m) = parser.consume(&[]) {
+                parsed.push(m);
+            }
+
+            prop_assert_eq!(
+                parsed.len(),
+                kinds.len(),
+                "expected {} messages, parsed {}",
+                kinds.len(),
+                parsed.len()
+            );
+
+            for (expected, actual) in kinds.iter().zip(parsed.iter()) {
+                prop_assert!(
+                    expected.matches(actual),
+                    "message mismatch: expected {:?}, got {:?}",
+                    expected,
+                    actual
+                );
             }
         }
     }
