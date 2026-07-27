@@ -1,13 +1,13 @@
-use binrw::BinRead;
 use alloc::vec::Vec;
+use binrw::BinRead;
 use bitflags::bitflags;
 use core::fmt;
+use num_enum::{FromPrimitive, IntoPrimitive};
 
 /// PVT mode (bits 0-3 of mode field).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, IntoPrimitive)]
 #[repr(u8)]
 pub enum PvtMode {
-    #[default]
     NoPvt = 0,
     StandAlone = 1,
     Differential = 2,
@@ -18,6 +18,8 @@ pub enum PvtMode {
     MovingBaseRtkFixed = 7,
     MovingBaseRtkFloat = 8,
     Ppp = 10,
+    #[num_enum(catch_all)]
+    Unknown(u8),
 }
 
 impl From<u8> for PvtMode {
@@ -33,7 +35,7 @@ impl From<u8> for PvtMode {
             7 => PvtMode::MovingBaseRtkFixed,
             8 => PvtMode::MovingBaseRtkFloat,
             10 => PvtMode::Ppp,
-            _ => PvtMode::NoPvt,
+            x => PvtMode::Unknown(x),
         }
     }
 }
@@ -51,6 +53,7 @@ impl fmt::Display for PvtMode {
             PvtMode::MovingBaseRtkFixed => write!(f, "Moving Base RTK Fixed"),
             PvtMode::MovingBaseRtkFloat => write!(f, "Moving Base RTK Float"),
             PvtMode::Ppp => write!(f, "PPP"),
+            PvtMode::Unknown(x) => write!(f, "Unknown({x})"),
         }
     }
 }
@@ -67,10 +70,9 @@ bitflags! {
 }
 
 /// Coordinate datum.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
 #[repr(u8)]
 pub enum Datum {
-    #[default]
     Wgs84 = 0,
     /// Datum equal to that used by the DGNSS/RTK base station.
     DgnssBaseStation = 19,
@@ -92,33 +94,22 @@ pub enum Datum {
     UserDefined1 = 250,
     /// Second user-defined datum.
     UserDefined2 = 251,
-    Unknown,
+    /// Unrecognized datum code.
+    #[num_enum(catch_all)]
+    Unknown(u8),
 }
 
-impl From<u8> for Datum {
-    fn from(value: u8) -> Self {
-        match value {
-            0 => Datum::Wgs84,
-            19 => Datum::DgnssBaseStation,
-            30 => Datum::Etrs89,
-            31 => Datum::Nad83_2011,
-            32 => Datum::Nad83Pa11,
-            33 => Datum::Nad83Ma11,
-            34 => Datum::Gda94,
-            35 => Datum::Gda2020,
-            36 => Datum::Jgd2011,
-            250 => Datum::UserDefined1,
-            251 => Datum::UserDefined2,
-            _ => Datum::Unknown,
-        }
+#[allow(clippy::derivable_impls)]
+impl Default for Datum {
+    fn default() -> Self {
+        Datum::Wgs84
     }
 }
 
 /// PVT error codes.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
 #[repr(u8)]
 pub enum PvtError {
-    #[default]
     None = 0,
     NotEnoughMeasurements = 1,
     NotEnoughEphemerides = 2,
@@ -130,24 +121,14 @@ pub enum PvtError {
     NotEnoughDiffCorrections = 8,
     BaseCoordsUnavailable = 9,
     AmbiguitiesNotFixed = 10,
+    #[num_enum(catch_all)]
+    Unknown(u8),
 }
 
-impl From<u8> for PvtError {
-    fn from(value: u8) -> Self {
-        match value {
-            0 => PvtError::None,
-            1 => PvtError::NotEnoughMeasurements,
-            2 => PvtError::NotEnoughEphemerides,
-            3 => PvtError::DopTooLarge,
-            4 => PvtError::ResidualsTooLarge,
-            5 => PvtError::NoConvergence,
-            6 => PvtError::NotEnoughAfterOutlierRejection,
-            7 => PvtError::PositionProhibited,
-            8 => PvtError::NotEnoughDiffCorrections,
-            9 => PvtError::BaseCoordsUnavailable,
-            10 => PvtError::AmbiguitiesNotFixed,
-            _ => PvtError::None,
-        }
+#[allow(clippy::derivable_impls)]
+impl Default for PvtError {
+    fn default() -> Self {
+        PvtError::None
     }
 }
 

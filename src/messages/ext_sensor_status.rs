@@ -1,15 +1,15 @@
 use alloc::vec::Vec;
 use binrw::binrw;
 use core::fmt;
+use num_enum::{FromPrimitive, IntoPrimitive};
 
 /// Connection port / external sensor source.
 ///
 /// Used by ExtSensorStatus, ExtSensorInfo, and VelSensorSetup to identify the
 /// receiver port an external sensor is connected to.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
 #[repr(u8)]
 pub enum ConnectionPort {
-    #[default]
     Com1 = 0,
     Com2 = 1,
     Com3 = 2,
@@ -36,41 +36,8 @@ pub enum ConnectionPort {
     Ipr4 = 23,
     Ipr5 = 24,
     InternalSpi = 32,
-    Unknown,
-}
-
-impl From<u8> for ConnectionPort {
-    fn from(value: u8) -> Self {
-        match value {
-            0 => ConnectionPort::Com1,
-            1 => ConnectionPort::Com2,
-            2 => ConnectionPort::Com3,
-            3 => ConnectionPort::Com4,
-            4 => ConnectionPort::Gpio,
-            5 => ConnectionPort::Usb1,
-            6 => ConnectionPort::Usb2,
-            7 => ConnectionPort::Ip10,
-            8 => ConnectionPort::Ip11,
-            9 => ConnectionPort::Ip12,
-            10 => ConnectionPort::Ip13,
-            11 => ConnectionPort::Ip14,
-            12 => ConnectionPort::Ip15,
-            13 => ConnectionPort::Ip16,
-            14 => ConnectionPort::Ip17,
-            15 => ConnectionPort::Ips1,
-            16 => ConnectionPort::Ips2,
-            17 => ConnectionPort::Ips3,
-            18 => ConnectionPort::Ips4,
-            19 => ConnectionPort::Ips5,
-            20 => ConnectionPort::Ipr1,
-            21 => ConnectionPort::Ipr2,
-            22 => ConnectionPort::Ipr3,
-            23 => ConnectionPort::Ipr4,
-            24 => ConnectionPort::Ipr5,
-            32 => ConnectionPort::InternalSpi,
-            _ => ConnectionPort::Unknown,
-        }
-    }
+    #[num_enum(catch_all)]
+    Unknown(u8),
 }
 
 impl fmt::Display for ConnectionPort {
@@ -102,7 +69,7 @@ impl fmt::Display for ConnectionPort {
             ConnectionPort::Ipr4 => write!(f, "IPR4"),
             ConnectionPort::Ipr5 => write!(f, "IPR5"),
             ConnectionPort::InternalSpi => write!(f, "Internal SPI"),
-            ConnectionPort::Unknown => write!(f, "Unknown"),
+            ConnectionPort::Unknown(x) => write!(f, "Unknown: {x}"),
         }
     }
 }
