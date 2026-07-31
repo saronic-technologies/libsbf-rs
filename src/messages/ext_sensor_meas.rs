@@ -34,11 +34,11 @@ pub enum ExtSensorMeasSetType {
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ExtSensorMeasSet {
-    #[br(map = |x: u8| ConnectionPort::from(x))]
-    #[bw(map = |x: &ConnectionPort| u8::from(*x))]
+    #[br(map = binrw_util::map_enum)]
+    #[bw(map = binrw_util::unmap_enum)]
     pub source: ConnectionPort,
-    #[br(map = |x: u8| ExtSensorModel::from(x))]
-    #[bw(map = |x: &ExtSensorModel| *x as u8)]
+    #[br(map = binrw_util::map_enum)]
+    #[bw(map = binrw_util::unmap_enum)]
     pub sensor_model: ExtSensorModel,
     pub type_: u8,
     pub obs_info: u8,

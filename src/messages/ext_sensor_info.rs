@@ -14,11 +14,11 @@ pub struct ExtSensorInfo {
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]
     pub wnc: Option<u16>,
-    #[br(map = |x: u8| ConnectionPort::from(x))]
-    #[bw(map = |x: &ConnectionPort| u8::from(*x))]
+    #[br(map = binrw_util::map_enum)]
+    #[bw(map = binrw_util::unmap_enum)]
     pub source: ConnectionPort,
-    #[br(map = |x: u8| ExtSensorModel::from(x))]
-    #[bw(map = |x: &ExtSensorModel| *x as u8)]
+    #[br(map = binrw_util::map_enum)]
+    #[bw(map = binrw_util::unmap_enum)]
     pub sensor_model: ExtSensorModel,
     #[br(parse_with = binrw::helpers::until_eof)]
     pub data: Vec<u8>,
