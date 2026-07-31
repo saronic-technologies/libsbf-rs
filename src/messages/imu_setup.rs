@@ -1,6 +1,8 @@
 use crate::binrw_util;
 use binrw::binrw;
 
+use super::ext_sensor_status::ConnectionPort;
+
 // IMU Setup Block 4224
 #[binrw]
 #[derive(Clone, Debug)]
@@ -12,8 +14,9 @@ pub struct ImuSetup {
     #[bw(map = binrw_util::unmap_u2)]
     pub wnc: Option<u16>,
     _reserved: u8,
-    // TODO: create SerialPort enum for future serial port info
-    pub serial_port: u8,
+    #[br(map = binrw_util::map_enum)]
+    #[bw(map = binrw_util::unmap_enum)]
+    pub serial_port: ConnectionPort,
     #[br(map = binrw_util::map_f4)]
     #[bw(map = binrw_util::unmap_f4)]
     pub ant_lever_arm_x_m: Option<f32>,

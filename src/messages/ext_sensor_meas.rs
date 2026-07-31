@@ -2,6 +2,8 @@ use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
 
+use super::ext_sensor_status::{ConnectionPort, ExtSensorModel};
+
 // External Sensor Measurement Block 4050
 #[binrw]
 #[derive(Clone, Debug)]
@@ -32,8 +34,12 @@ pub enum ExtSensorMeasSetType {
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ExtSensorMeasSet {
-    pub source: u8,
-    pub sensor_model: u8,
+    #[br(map = binrw_util::map_enum)]
+    #[bw(map = binrw_util::unmap_enum)]
+    pub source: ConnectionPort,
+    #[br(map = binrw_util::map_enum)]
+    #[bw(map = binrw_util::unmap_enum)]
+    pub sensor_model: ExtSensorModel,
     pub type_: u8,
     pub obs_info: u8,
 

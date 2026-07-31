@@ -102,6 +102,15 @@ pub(crate) fn unmap_i1_zero(x: &Option<i8>) -> i8 {
     x.unwrap_or(0)
 }
 
+// Enum fields stored as a raw u8 on the wire.
+pub(crate) fn map_enum<T: From<u8>>(x: u8) -> T {
+    T::from(x)
+}
+
+pub(crate) fn unmap_enum<T: Copy + Into<u8>>(x: &T) -> u8 {
+    (*x).into()
+}
+
 // Datum, None at the DO_NOT_USE value.
 pub(crate) fn map_datum(x: u8) -> Option<Datum> {
     if x == DO_NOT_USE_U1 { None } else { Some(Datum::from(x)) }

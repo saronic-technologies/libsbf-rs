@@ -76,7 +76,7 @@ impl fmt::Display for ConnectionPort {
 }
 
 /// External sensor model.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, FromPrimitive, IntoPrimitive)]
 #[repr(u8)]
 pub enum ExtSensorModel {
     #[default]
@@ -87,20 +87,6 @@ pub enum ExtSensorModel {
     Adis1650x = 10,
     ZeroVelocity = 20,
     VelocityInput = 21,
-}
-
-impl From<u8> for ExtSensorModel {
-    fn from(value: u8) -> Self {
-        match value {
-            2 => ExtSensorModel::SbgEllipse,
-            5 => ExtSensorModel::SbgEllipse2,
-            7 => ExtSensorModel::Vn100,
-            10 => ExtSensorModel::Adis1650x,
-            20 => ExtSensorModel::ZeroVelocity,
-            21 => ExtSensorModel::VelocityInput,
-            _ => ExtSensorModel::Unknown,
-        }
-    }
 }
 
 impl fmt::Display for ExtSensorModel {
@@ -127,8 +113,12 @@ pub struct ExtSensorStatus {
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]
     pub wnc: Option<u16>,
-    pub source: u8,
-    pub sensor_model: u8,
+    #[br(map = binrw_util::map_enum)]
+    #[bw(map = binrw_util::unmap_enum)]
+    pub source: ConnectionPort,
+    #[br(map = binrw_util::map_enum)]
+    #[bw(map = binrw_util::unmap_enum)]
+    pub sensor_model: ExtSensorModel,
     #[br(parse_with = binrw::helpers::until_eof)]
     pub data: Vec<u8>,
 }
