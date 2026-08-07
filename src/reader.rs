@@ -41,6 +41,37 @@ impl<R: Read> SbfReader<R> {
             drain_internal: false,
         }
     }
+
+    /// Raw bytes of the most recently parsed message, or `None` before the
+    /// first successful parse. Bytes skipped while scanning for a valid
+    /// message are not captured.
+    ///
+    /// A `for` loop mutably borrows the reader for the entire loop body,
+    /// so this method can not be used directly. A `while` loop only
+    /// borrows the iterator for the call to `next()`, so this method can
+    /// be used in the body of the loop. For example:
+    ///
+    /// ```no_run
+    /// use libsbf::reader::SbfReader;
+    /// use std::net::TcpStream;
+    ///
+    /// fn main() -> std::io::Result<()> {
+    ///     let stream = TcpStream::connect("127.0.0.1:8080")?;
+    ///     let mut reader = SbfReader::new(stream);
+    ///     let mut recording = Vec::new();
+    ///     while let Some(message) = reader.next() {
+    ///         let message = message?;
+    ///         if let Some(raw) = reader.last_raw_bytes() {
+    ///             recording.extend_from_slice(raw);
+    ///         }
+    ///         eprintln!("{:?}", message);
+    ///     }
+    ///     Ok(())
+    /// }
+    /// ```
+    pub fn last_raw_bytes(&self) -> Option<&[u8]> {
+        self.parser.last_raw_bytes()
+    }
 }
 
 impl<R: Read> Iterator for SbfReader<R> {
@@ -224,5 +255,45 @@ mod tests {
             }
         }
         Ok(())
+    }
+
+    #[test]
+    fn test_raw_bytes_in_reader() {
+        const SYNC: &[u8] = &[36, 64];
+        const QUALITY_IND_HEADER: &[u8] = &[134, 98, 242, 15, 32, 0];
+        const QUALITY_IND_PAYLOAD: &[u8] = &[
+            184, 244, 58, 29, 56, 9, 7, 0, 11, 10, 12, 10, 1, 0, 2, 0, 21, 10, 31, 0, 0, 0, 0, 0,
+        ];
+
+        let mut frame = Vec::new();
+        frame.extend_from_slice(SYNC);
+        frame.extend_from_slice(QUALITY_IND_HEADER);
+        frame.extend_from_slice(QUALITY_IND_PAYLOAD);
+
+        // Garbage runs of one, two, and three bytes separate the frames.
+        // None of the garbage bytes form a "$@" sync sequence, so the scan
+        // skips them and locks onto each real frame.
+        let input = [
+            frame.as_slice(),
+            &[0x11],
+            frame.as_slice(),
+            &[0x22, 0x33],
+            frame.as_slice(),
+            &[0x44, 0x55, 0x66],
+            frame.as_slice(),
+        ]
+        .concat();
+
+        let mut reader = SbfReader::new(input.as_slice());
+        let mut captured = Vec::new();
+        while let Some(result) = reader.next() {
+            result.unwrap();
+            let raw = reader.last_raw_bytes().expect("raw bytes after a parsed message");
+            captured.push(raw.to_vec());
+        }
+
+        // Each capture is exactly its frame's raw bytes; the garbage
+        // separators are skipped, not recorded.
+        assert_eq!(captured, vec![frame; 4]);
     }
 }
