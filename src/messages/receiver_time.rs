@@ -1,9 +1,10 @@
 use crate::binrw_util;
 use binrw::binrw;
+use serde::Serialize;
 
 // ReceiverTime Block 5914
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ReceiverTime {
     #[br(map = binrw_util::map_u4)]
     #[bw(map = binrw_util::unmap_u4)]

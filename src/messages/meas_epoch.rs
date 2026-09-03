@@ -2,10 +2,11 @@ use crate::binrw_util;
 use crate::{NestedBlock, NestedHeader, SubBlock};
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
 // MeasEpoch Block 4027
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct MeasEpoch {
     #[br(map = binrw_util::map_u4)]
     #[bw(map = binrw_util::unmap_u4)]
@@ -57,7 +58,7 @@ impl NestedHeader for MeasEpochChannelType1Header {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct MeasEpochChannelType1 {
     pub rx_channel: u8,
     pub type_field: u8,
@@ -117,7 +118,7 @@ impl From<MeasEpochChannelType1> for NestedBlock<MeasEpochChannelType1Header, Me
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct MeasEpochChannelType2 {
     pub type_field: u8,
     #[br(map = binrw_util::map_u1)]

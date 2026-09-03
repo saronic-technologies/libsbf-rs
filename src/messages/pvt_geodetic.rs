@@ -4,9 +4,10 @@ use binrw::binrw;
 use bitflags::bitflags;
 use core::fmt;
 use num_enum::{FromPrimitive, IntoPrimitive};
+use serde::Serialize;
 
 /// PVT mode (bits 0-3 of mode field).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum PvtMode {
     NoPvt = 0,
@@ -71,7 +72,7 @@ bitflags! {
 }
 
 /// Coordinate datum.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum Datum {
     Wgs84 = 0,
@@ -108,7 +109,7 @@ impl Default for Datum {
 }
 
 /// PVT error codes.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum PvtError {
     None = 0,
@@ -151,7 +152,7 @@ bitflags! {
 }
 
 /// Differential correction type (bits 5-6 of wa_corr_info).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize)]
 #[repr(u8)]
 pub enum DiffCorrType {
     #[default]
@@ -174,7 +175,7 @@ impl From<u8> for DiffCorrType {
 }
 
 /// RAIM integrity status (bits 0-1 of alert_flag).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize)]
 #[repr(u8)]
 pub enum RaimIntegrity {
     #[default]
@@ -198,7 +199,7 @@ impl From<u8> for RaimIntegrity {
 
 // PVTGeodetic Block 4007
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct PVTGeodetic {
     #[br(map = binrw_util::map_u4)]
     #[bw(map = binrw_util::unmap_u4)]

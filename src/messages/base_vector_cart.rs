@@ -1,11 +1,12 @@
+use super::pvt_geodetic::{PvtError, PvtMode, PvtModeFlags};
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
-use super::pvt_geodetic::{PvtError, PvtMode, PvtModeFlags};
+use serde::Serialize;
 
 // BaseVectorCart Block 4043
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct BaseVectorCart {
     #[br(map = binrw_util::map_u4)]
     #[bw(map = binrw_util::unmap_u4)]
@@ -22,7 +23,7 @@ pub struct BaseVectorCart {
 
 // VectorInfoCart sub-block
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct VectorInfoCart {
     #[br(map = binrw_util::map_u1)]
     #[bw(map = binrw_util::unmap_u1)]

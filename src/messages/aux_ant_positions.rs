@@ -1,10 +1,11 @@
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
 /// Sub-block for a single auxiliary antenna position.
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct AuxAntPositionSub {
     #[br(map = binrw_util::map_u1)]
     #[bw(map = binrw_util::unmap_u1)]
@@ -36,7 +37,7 @@ pub struct AuxAntPositionSub {
 
 // AuxAntPositions Block 5942
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct AuxAntPositions {
     #[br(map = binrw_util::map_u4)]
     #[bw(map = binrw_util::unmap_u4)]

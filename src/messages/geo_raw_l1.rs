@@ -1,9 +1,10 @@
 use crate::binrw_util;
 use binrw::binrw;
+use serde::Serialize;
 
 // GEORawL1 Block 4020
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct GEORawL1 {
     #[br(map = binrw_util::map_u4)]
     #[bw(map = binrw_util::unmap_u4)]

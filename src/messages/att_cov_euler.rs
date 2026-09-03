@@ -1,11 +1,11 @@
+use super::att_euler::BaselineError;
 use crate::binrw_util;
 use binrw::binrw;
-
-use super::att_euler::BaselineError;
+use serde::Serialize;
 
 // AttCovEuler Block 5939
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct AttCovEuler {
     #[br(map = binrw_util::map_u4)]
     #[bw(map = binrw_util::unmap_u4)]

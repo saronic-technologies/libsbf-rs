@@ -9,6 +9,7 @@
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(not(feature = "std"), no_std)]
 use binrw::{binrw, BinRead, BinWrite};
+use serde::Serialize;
 
 extern crate alloc;
 
@@ -20,6 +21,7 @@ pub mod parser;
 pub mod reader;
 
 mod binrw_util;
+mod serde_util;
 
 #[cfg(all(test, feature = "std"))]
 mod mega_test;
@@ -168,7 +170,7 @@ macro_rules! define_messages {
         }
 
         /// Detailed enum that holds the associated payload.
-        #[derive(Clone, Debug)]
+        #[derive(Clone, Debug, Serialize)]
         pub enum Messages {
             $( $variant($variant), )+
             Unsupported(u16),

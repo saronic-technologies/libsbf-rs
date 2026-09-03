@@ -1,9 +1,10 @@
 use crate::binrw_util;
 use binrw::binrw;
 use core::fmt;
+use serde::Serialize;
 
 /// Attitude mode code.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize)]
 #[repr(u8)]
 pub enum AttitudeMode {
     #[default]
@@ -44,7 +45,7 @@ impl fmt::Display for AttitudeMode {
 }
 
 /// Baseline error code (2 bits per baseline).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize)]
 #[repr(u8)]
 pub enum BaselineError {
     #[default]
@@ -68,7 +69,7 @@ impl From<u8> for BaselineError {
 
 // Attitude Euler Block 5938
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct AttEuler {
     #[br(map = binrw_util::map_u4)]
     #[bw(map = binrw_util::unmap_u4)]

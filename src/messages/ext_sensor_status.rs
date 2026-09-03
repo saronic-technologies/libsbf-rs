@@ -3,12 +3,13 @@ use alloc::vec::Vec;
 use binrw::binrw;
 use core::fmt;
 use num_enum::{FromPrimitive, IntoPrimitive};
+use serde::Serialize;
 
 /// Connection port / external sensor source.
 ///
 /// Used by ExtSensorStatus, ExtSensorInfo, and VelSensorSetup to identify the
 /// receiver port an external sensor is connected to.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum ConnectionPort {
     Com1 = 0,
@@ -76,7 +77,7 @@ impl fmt::Display for ConnectionPort {
 }
 
 /// External sensor model.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize)]
 #[repr(u8)]
 pub enum ExtSensorModel {
     #[default]
@@ -119,7 +120,7 @@ impl fmt::Display for ExtSensorModel {
 
 // ExtSensorStatus Block 4223
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtSensorStatus {
     #[br(map = binrw_util::map_u4)]
     #[bw(map = binrw_util::unmap_u4)]

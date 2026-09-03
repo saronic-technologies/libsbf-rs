@@ -1,11 +1,11 @@
+use super::pvt_geodetic::{PvtError, PvtMode, PvtModeFlags};
 use crate::binrw_util;
 use binrw::binrw;
-
-use super::pvt_geodetic::{PvtError, PvtMode, PvtModeFlags};
+use serde::Serialize;
 
 // PosCovGeodetic Block 5906
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct PosCovGeodetic {
     #[br(map = binrw_util::map_u4)]
     #[bw(map = binrw_util::unmap_u4)]

@@ -1,12 +1,13 @@
+use super::sat_visibility::RiseSet;
 use crate::binrw_util;
 use crate::{NestedBlock, NestedHeader, SubBlock};
 use alloc::vec::Vec;
 use binrw::binrw;
-use super::sat_visibility::RiseSet;
+use serde::Serialize;
 
 // ChannelStatus Block 4013
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ChannelStatus {
     #[br(map = binrw_util::map_u4)]
     #[bw(map = binrw_util::unmap_u4)]
@@ -57,7 +58,7 @@ impl NestedHeader for ChannelSatInfoHeader {
 
 /// One satellite's channel status: the first-level header fields followed by its
 /// per-antenna state sub-blocks.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ChannelSatInfo {
     pub svid: u8,
     pub freq_nr: Option<u8>,
@@ -126,7 +127,7 @@ impl ChannelSatInfo {
 
 // ChannelStateInfo sub-sub-block
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ChannelStateInfo {
     /// Antenna number, 0 for the main antenna.
     pub antenna: u8,
