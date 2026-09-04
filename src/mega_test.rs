@@ -9,7 +9,7 @@ mod tests {
     };
     use binrw::{io::Cursor, BinRead, BinWrite};
     use std::collections::HashMap;
-    use std::fs::{self, File};
+    use std::fs::File;
 
     #[test]
     fn test_mega_file_all_message_types() {
@@ -302,24 +302,19 @@ mod tests {
             *count += 1;
         }
 
-        let data = fs::read("test-files/mega_test.sbf").expect("read mega_test.sbf");
+        let input_stream =
+            File::open("test-files/mega_test.sbf").expect("Failed to open mega_test.sbf");
+        let mut reader = SbfReader::new(input_stream);
         let mut present: HashMap<u16, usize> = HashMap::new();
         let mut round_tripped = 0usize;
 
-        let mut i = 0;
-        while i + 8 <= data.len() {
-            if data[i] != 0x24 || data[i + 1] != 0x40 {
-                i += 1;
-                continue;
-            }
-            let ident = u16::from_le_bytes([data[i + 4], data[i + 5]]);
-            let length = usize::from(u16::from_le_bytes([data[i + 6], data[i + 7]]));
-            if length < 8 || length % 4 != 0 || i + length > data.len() {
-                i += 1;
-                continue;
-            }
-            let block = ident & 0x1FFF;
-            let body = &data[i + 8..i + length];
+        while let Some(result) = reader.next() {
+            result.expect("read mega_test.sbf");
+            let raw = reader
+                .last_raw_bytes()
+                .expect("raw bytes after a parsed message");
+            let block = u16::from_le_bytes([raw[4], raw[5]]) & 0x1FFF;
+            let body = &raw[8..];
             match block {
                 4000 => round_trip::<MeasExtra>(body, block, &mut round_tripped),
                 4006 => round_trip::<PVTCartesian>(body, block, &mut round_tripped),
@@ -350,7 +345,6 @@ mod tests {
                 _ => {}
             }
             *present.entry(block).or_insert(0) += 1;
-            i += length;
         }
 
         assert!(round_tripped > 0, "no binrw blocks were round-tripped");

@@ -1,10 +1,11 @@
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
 // MeasExtra Block 4000
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct MeasExtra {
     #[br(map = binrw_util::map_u4)]
     #[bw(map = binrw_util::unmap_u4)]
@@ -21,7 +22,7 @@ pub struct MeasExtra {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct MeasExtraChannelSub {
     pub rx_channel: u8,
     pub type_field: u8,

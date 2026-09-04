@@ -1,8 +1,9 @@
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum QualityIndicator {
     OverallQuality(u8),
     MainAntennaSignal(u8),
@@ -58,7 +59,7 @@ impl From<QualityIndicator> for u16 {
 
 // Quality Indicator Block 4082
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct QualityInd {
     #[br(map = binrw_util::map_u4)]
     #[bw(map = binrw_util::unmap_u4)]

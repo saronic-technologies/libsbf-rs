@@ -1,10 +1,11 @@
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
 // SatVisibility Block 4012
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct SatVisibility {
     #[br(map = binrw_util::map_u4)]
     #[bw(map = binrw_util::unmap_u4)]
@@ -21,7 +22,7 @@ pub struct SatVisibility {
 
 // SatInfo sub-block
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct SatInfo {
     pub svid: u8,
     /// GLONASS frequency number with an offset of 8, from 1 to 21; reserved otherwise.
@@ -44,7 +45,7 @@ pub struct SatInfo {
 }
 
 /// Rise/set state of a satellite.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize)]
 pub enum RiseSet {
     Setting,
     Rising,

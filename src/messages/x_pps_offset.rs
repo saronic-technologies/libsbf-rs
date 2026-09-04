@@ -1,9 +1,10 @@
 use crate::binrw_util;
 use binrw::binrw;
+use serde::Serialize;
 
 // xPPSOffset Block 5911
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct XPPSOffset {
     #[br(map = binrw_util::map_u4)]
     #[bw(map = binrw_util::unmap_u4)]

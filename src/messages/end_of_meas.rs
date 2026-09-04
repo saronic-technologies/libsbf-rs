@@ -1,10 +1,11 @@
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
 // EndOfMeas Block 5922
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct EndOfMeas {
     #[br(map = binrw_util::map_u4)]
     #[bw(map = binrw_util::unmap_u4)]

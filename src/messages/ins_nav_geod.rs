@@ -1,12 +1,13 @@
+use super::att_euler::AttitudeMode;
+use super::pvt_geodetic::{Datum, PvtMode};
 use crate::binrw_util;
 use binrw::binrw;
 use core::fmt;
 use num_enum::{FromPrimitive, IntoPrimitive};
-use super::att_euler::AttitudeMode;
-use super::pvt_geodetic::{Datum, PvtMode};
+use serde::Serialize;
 
 /// Combined GNSS mode containing PVT mode (bits 0-3) and attitude mode (bits 4-7).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub struct GnssMode {
     raw: u8,
     pub pvt_mode: PvtMode,
@@ -36,7 +37,7 @@ impl fmt::Display for GnssMode {
 }
 
 /// INS coupling mode (bits 0-2 of info field).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum INSCouplingMode {
     LooselyCoupled = 0,
@@ -61,7 +62,7 @@ impl From<u16> for INSCouplingMode {
 }
 
 /// Solution output location (bits 3-5 of info field).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum INSSolutionLocation {
     MainGnssAntenna = 0,
@@ -88,7 +89,7 @@ impl From<u16> for INSSolutionLocation {
 }
 
 /// INS error codes.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum INSError {
     None = 0,
@@ -128,7 +129,7 @@ impl Default for INSError {
 
 // INS Nav Geod Block 4226
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavGeod {
     #[br(map = binrw_util::map_u4)]
     #[bw(map = binrw_util::unmap_u4)]
@@ -188,7 +189,7 @@ pub struct INSNavGeod {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavGeodPosStdDev {
     #[br(map = binrw_util::map_f4)]
     #[bw(map = binrw_util::unmap_f4)]
@@ -202,7 +203,7 @@ pub struct INSNavGeodPosStdDev {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavGeodAtt {
     #[br(map = binrw_util::map_f4)]
     #[bw(map = binrw_util::unmap_f4)]
@@ -216,7 +217,7 @@ pub struct INSNavGeodAtt {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavGeodAttStdDev {
     #[br(map = binrw_util::map_f4)]
     #[bw(map = binrw_util::unmap_f4)]
@@ -230,7 +231,7 @@ pub struct INSNavGeodAttStdDev {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavGeodVel {
     #[br(map = binrw_util::map_f4)]
     #[bw(map = binrw_util::unmap_f4)]
@@ -244,7 +245,7 @@ pub struct INSNavGeodVel {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavGeodVelStdDev {
     #[br(map = binrw_util::map_f4)]
     #[bw(map = binrw_util::unmap_f4)]
@@ -258,7 +259,7 @@ pub struct INSNavGeodVelStdDev {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavGeodPosCov {
     #[br(map = binrw_util::map_f4)]
     #[bw(map = binrw_util::unmap_f4)]
@@ -272,7 +273,7 @@ pub struct INSNavGeodPosCov {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavGeodVelCov {
     #[br(map = binrw_util::map_f4)]
     #[bw(map = binrw_util::unmap_f4)]
@@ -286,7 +287,7 @@ pub struct INSNavGeodVelCov {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavGeodAttCov {
     #[br(map = binrw_util::map_f4)]
     #[bw(map = binrw_util::unmap_f4)]

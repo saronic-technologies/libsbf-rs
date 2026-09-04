@@ -1,13 +1,14 @@
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
 // INSSupport Block 4077
 // NOTE: The exact structure of this message is not documented in the SBF reference.
 // The documentation states that the reference C implementation should be used to
 // parse these messages. For now, we store the raw bytes.
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSSupport {
     #[br(map = binrw_util::map_u4)]
     #[bw(map = binrw_util::unmap_u4)]

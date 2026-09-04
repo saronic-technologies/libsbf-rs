@@ -1,14 +1,14 @@
-use crate::binrw_util;
-use binrw::binrw;
-
 use super::att_euler::AttitudeMode;
 use super::ins_nav_geod::{GnssMode, INSCouplingMode, INSError, INSSolutionLocation};
 use super::pvt_geodetic::{Datum, PvtMode};
+use crate::binrw_util;
+use binrw::binrw;
+use serde::Serialize;
 
 // ExtEventINSNavGeod Block 4230
 // Same structure as INSNavGeod, but at external event time.
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtEventINSNavGeod {
     #[br(map = binrw_util::map_u4)]
     #[bw(map = binrw_util::unmap_u4)]
@@ -59,7 +59,7 @@ pub struct ExtEventINSNavGeod {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtEventINSNavGeodPosStdDev {
     #[br(map = binrw_util::map_f4)]
     #[bw(map = binrw_util::unmap_f4)]
@@ -73,7 +73,7 @@ pub struct ExtEventINSNavGeodPosStdDev {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtEventINSNavGeodAtt {
     #[br(map = binrw_util::map_f4)]
     #[bw(map = binrw_util::unmap_f4)]
@@ -87,7 +87,7 @@ pub struct ExtEventINSNavGeodAtt {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtEventINSNavGeodAttStdDev {
     #[br(map = binrw_util::map_f4)]
     #[bw(map = binrw_util::unmap_f4)]
@@ -101,7 +101,7 @@ pub struct ExtEventINSNavGeodAttStdDev {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtEventINSNavGeodVel {
     #[br(map = binrw_util::map_f4)]
     #[bw(map = binrw_util::unmap_f4)]
@@ -115,7 +115,7 @@ pub struct ExtEventINSNavGeodVel {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtEventINSNavGeodVelStdDev {
     #[br(map = binrw_util::map_f4)]
     #[bw(map = binrw_util::unmap_f4)]

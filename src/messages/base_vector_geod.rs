@@ -1,11 +1,12 @@
+use super::pvt_geodetic::{PvtError, PvtMode, PvtModeFlags};
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
-use super::pvt_geodetic::{PvtError, PvtMode, PvtModeFlags};
+use serde::Serialize;
 
 // BaseVectorGeod Block 4028
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct BaseVectorGeod {
     #[br(map = binrw_util::map_u4)]
     #[bw(map = binrw_util::unmap_u4)]
@@ -22,7 +23,7 @@ pub struct BaseVectorGeod {
 
 // VectorInfoGeod sub-block
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct VectorInfoGeod {
     #[br(map = binrw_util::map_u1)]
     #[bw(map = binrw_util::unmap_u1)]

@@ -1,10 +1,11 @@
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
 /// RFBand sub-block: interference info for a single RF band.
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct RFBand {
     /// Center frequency of the RF band (Hz).
     pub frequency: u32,
@@ -43,7 +44,7 @@ impl RFBand {
 
 // RFStatus Block 4092
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct RFStatus {
     #[br(map = binrw_util::map_u4)]
     #[bw(map = binrw_util::unmap_u4)]
