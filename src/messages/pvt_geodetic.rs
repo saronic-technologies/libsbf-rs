@@ -223,6 +223,52 @@ pub enum ArpOffset {
     Reserved(u8),
 }
 
+/// PPPInfo bit field of the PVT blocks: the seed age in bits 0-11 and the
+/// seed type in bits 13-15.
+#[binrw]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PppInfo(u16);
+
+impl PppInfo {
+    const SEED_AGE_MASK: u16 = 0x0FFF;
+    const SEED_TYPE_SHIFT: u32 = 13;
+
+    /// Age of the last PPP seed in seconds, clipped to 4091. Ignore when the
+    /// seed type is NotSeeded.
+    pub fn seed_age(&self) -> u16 {
+        self.0 & Self::SEED_AGE_MASK
+    }
+
+    /// Type of the last PPP seed.
+    pub fn seed_type(&self) -> PppSeedType {
+        PppSeedType::from((self.0 >> Self::SEED_TYPE_SHIFT) as u8)
+    }
+}
+
+bitflags! {
+    /// Misc bit field of the PVT and base vector blocks.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct PvtMisc: u8 {
+        /// Bit 0: in DGNSS or RTK mode, the baseline points to the base
+        /// station ARP rather than the antenna phase center.
+        const BASELINE_TO_BASE_ARP = 1 << 0;
+        /// Bit 1: the phase center offset is compensated for at the rover.
+        const PHASE_CENTER_COMPENSATED = 1 << 1;
+        /// Mask for the ARP-to-marker offset flag in bits 6-7, decoded by
+        /// [`Self::arp_offset`]. Reserved in the base vector blocks.
+        const ARP_OFFSET_MASK = 0b11 << Self::ARP_OFFSET_SHIFT;
+    }
+}
+
+impl PvtMisc {
+    const ARP_OFFSET_SHIFT: u32 = 6;
+
+    /// ARP-to-marker offset flag, from bits 6-7.
+    pub fn arp_offset(&self) -> ArpOffset {
+        ArpOffset::from(self.intersection(Self::ARP_OFFSET_MASK).bits() >> Self::ARP_OFFSET_SHIFT)
+    }
+}
+
 // PVTGeodetic Block 4007
 #[binrw]
 #[derive(Clone, Debug)]
@@ -287,7 +333,7 @@ pub struct PVTGeodetic {
     alert_flag_raw: u8,
     // Rev 1 fields
     pub nr_bases: u8,
-    pub ppp_info: u16,
+    pub ppp_info: PppInfo,
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]
     pub latency: Option<u16>,
@@ -297,7 +343,9 @@ pub struct PVTGeodetic {
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]
     pub v_accuracy: Option<u16>,
-    pub misc: u8,
+    #[br(map = PvtMisc::from_bits_retain)]
+    #[bw(map = |x: &PvtMisc| x.bits())]
+    pub misc: PvtMisc,
     // Rev 2 fields
     #[br(parse_with = binrw::helpers::until_eof)]
     pub padding: Vec<u8>,
@@ -337,32 +385,5 @@ impl PVTGeodetic {
     /// Bit 3: Galileo ionospheric storm active.
     pub fn galileo_iono_storm(&self) -> bool {
         self.alert_flag_raw & (1 << 3) != 0
-    }
-
-    /// Age of the last PPP seed in seconds, from bits 0-11 of ppp_info,
-    /// clipped to 4091. Ignore when the seed type is NotSeeded.
-    pub fn ppp_seed_age(&self) -> u16 {
-        self.ppp_info & 0x0FFF
-    }
-
-    /// Type of the last PPP seed, from bits 13-15 of ppp_info.
-    pub fn ppp_seed_type(&self) -> PppSeedType {
-        PppSeedType::from((self.ppp_info >> 13) as u8)
-    }
-
-    /// Bit 0 of misc: in DGNSS or RTK mode, the baseline points to the base
-    /// station ARP rather than the antenna phase center.
-    pub fn baseline_points_to_arp(&self) -> bool {
-        self.misc & 1 != 0
-    }
-
-    /// Bit 1 of misc: the phase center offset is compensated for at the rover.
-    pub fn phase_center_compensated(&self) -> bool {
-        self.misc & (1 << 1) != 0
-    }
-
-    /// ARP-to-marker offset flag, from bits 6-7 of misc.
-    pub fn arp_offset(&self) -> ArpOffset {
-        ArpOffset::from(self.misc >> 6)
     }
 }

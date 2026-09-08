@@ -90,7 +90,7 @@ pub use ext_sensor_meas::{
 pub use ext_sensor_status::{ConnectionPort, ExtSensorModel, ExtSensorStatus};
 pub use gal_gst_gps::GALGstGps;
 pub use gal_ion::{GALIon, GALIonStormFlags};
-pub use gal_nav::{GALNav, GalSignalHealth};
+pub use gal_nav::{GALNav, GALNavHealthOssol, GalSignalHealth};
 pub use gal_utc::GALUtc;
 pub use geo_nav::GEONav;
 pub use geo_raw_l1::GEORawL1;
@@ -112,7 +112,7 @@ pub use ins_support::INSSupport;
 pub use meas3_doppler::Meas3Doppler;
 pub use meas3_ranges::Meas3Ranges;
 pub use meas_epoch::{
-    MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2, MeasEpochCommonFlags,
+    MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2, MeasEpochCommonFlags, MeasEpochObsInfo,
 };
 pub use meas_extra::{MeasExtra, MeasExtraChannelSub};
 pub use nav_cart::NavCart;
@@ -121,8 +121,8 @@ pub use pos_cov_cartesian::PosCovCartesian;
 pub use pos_cov_geodetic::PosCovGeodetic;
 pub use pvt_cartesian::PVTCartesian;
 pub use pvt_geodetic::{
-    ArpOffset, Datum, DiffCorrType, PVTGeodetic, PppSeedType, PvtError, PvtMode, PvtModeFlags,
-    RaimIntegrity, WACorrFlags,
+    ArpOffset, Datum, DiffCorrType, PVTGeodetic, PppInfo, PppSeedType, PvtError, PvtMisc, PvtMode,
+    PvtModeFlags, RaimIntegrity, WACorrFlags,
 };
 pub use quality_ind::{QualityInd, QualityIndicator};
 pub use receiver_setup::ReceiverSetup;

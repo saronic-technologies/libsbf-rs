@@ -3,7 +3,7 @@ use alloc::vec::Vec;
 use binrw::binrw;
 
 use super::pvt_geodetic::{
-    ArpOffset, Datum, DiffCorrType, PppSeedType, PvtError, PvtMode, PvtModeFlags, RaimIntegrity,
+    Datum, DiffCorrType, PppInfo, PvtError, PvtMisc, PvtMode, PvtModeFlags, RaimIntegrity,
     WACorrFlags,
 };
 
@@ -71,7 +71,7 @@ pub struct PVTCartesian {
     alert_flag_raw: u8,
     // Rev 1 fields
     pub nr_bases: u8,
-    pub ppp_info: u16,
+    pub ppp_info: PppInfo,
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]
     pub latency: Option<u16>,
@@ -81,7 +81,9 @@ pub struct PVTCartesian {
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]
     pub v_accuracy: Option<u16>,
-    pub misc: u8,
+    #[br(map = PvtMisc::from_bits_retain)]
+    #[bw(map = |x: &PvtMisc| x.bits())]
+    pub misc: PvtMisc,
     // Rev 2 fields
     #[br(parse_with = binrw::helpers::until_eof)]
     pub padding: Vec<u8>,
@@ -121,32 +123,5 @@ impl PVTCartesian {
     /// Bit 3: Galileo ionospheric storm active.
     pub fn galileo_iono_storm(&self) -> bool {
         self.alert_flag_raw & (1 << 3) != 0
-    }
-
-    /// Age of the last PPP seed in seconds, from bits 0-11 of ppp_info,
-    /// clipped to 4091. Ignore when the seed type is NotSeeded.
-    pub fn ppp_seed_age(&self) -> u16 {
-        self.ppp_info & 0x0FFF
-    }
-
-    /// Type of the last PPP seed, from bits 13-15 of ppp_info.
-    pub fn ppp_seed_type(&self) -> PppSeedType {
-        PppSeedType::from((self.ppp_info >> 13) as u8)
-    }
-
-    /// Bit 0 of misc: in DGNSS or RTK mode, the baseline points to the base
-    /// station ARP rather than the antenna phase center.
-    pub fn baseline_points_to_arp(&self) -> bool {
-        self.misc & 1 != 0
-    }
-
-    /// Bit 1 of misc: the phase center offset is compensated for at the rover.
-    pub fn phase_center_compensated(&self) -> bool {
-        self.misc & (1 << 1) != 0
-    }
-
-    /// ARP-to-marker offset flag, from bits 6-7 of misc.
-    pub fn arp_offset(&self) -> ArpOffset {
-        ArpOffset::from(self.misc >> 6)
     }
 }

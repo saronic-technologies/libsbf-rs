@@ -1,6 +1,7 @@
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
+use bitflags::bitflags;
 
 // GALNav Block 4002
 #[binrw]
@@ -37,7 +38,9 @@ pub struct GALNav {
     pub wn_t_oe: u16,
     pub wn_t_oc: u16,
     pub iod_nav: u16,
-    pub health_ossol: u16,
+    #[br(map = GALNavHealthOssol::from_bits_retain)]
+    #[bw(map = |x: &GALNavHealthOssol| x.bits())]
+    pub health_ossol: GALNavHealthOssol,
     pub health_prs: u8,
     #[br(map = binrw_util::map_u1)]
     #[bw(map = binrw_util::unmap_u1)]
@@ -75,6 +78,88 @@ pub struct GalSignalHealth {
     pub health_status: u8,
 }
 
+bitflags! {
+    /// Health_OSSOL bit field of the [`GALNav`] block: the last received
+    /// Health Status and Data Validity Status of the E5a, E5b and L1-B
+    /// signals.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct GALNavHealthOssol: u16 {
+        /// Bit 0: the L1-B bits are valid.
+        const L1B_VALID = 1 << 0;
+        /// Bit 1: L1-B DVS, working without guarantee.
+        const L1B_DVS = 1 << 1;
+        /// Mask for the 2-bit L1-B HS code in bits 2-3, decoded by
+        /// [`Self::l1b_health`].
+        const L1B_HS_MASK = 0b11 << Self::L1B_HS_SHIFT;
+        /// Bit 4: the E5b bits are valid.
+        const E5B_VALID = 1 << 4;
+        /// Bit 5: E5b DVS, working without guarantee.
+        const E5B_DVS = 1 << 5;
+        /// Mask for the 2-bit E5b HS code in bits 6-7, decoded by
+        /// [`Self::e5b_health`].
+        const E5B_HS_MASK = 0b11 << Self::E5B_HS_SHIFT;
+        /// Bit 8: the E5a bits are valid.
+        const E5A_VALID = 1 << 8;
+        /// Bit 9: E5a DVS, working without guarantee.
+        const E5A_DVS = 1 << 9;
+        /// Mask for the 2-bit E5a HS code in bits 10-11, decoded by
+        /// [`Self::e5a_health`].
+        const E5A_HS_MASK = 0b11 << Self::E5A_HS_SHIFT;
+    }
+}
+
+impl GALNavHealthOssol {
+    const L1B_HS_SHIFT: u32 = 2;
+    const E5B_HS_SHIFT: u32 = 6;
+    const E5A_HS_SHIFT: u32 = 10;
+
+    fn health(
+        &self,
+        valid: Self,
+        dvs: Self,
+        hs_mask: Self,
+        hs_shift: u32,
+    ) -> Option<GalSignalHealth> {
+        if !self.contains(valid) {
+            return None;
+        }
+        Some(GalSignalHealth {
+            working_without_guarantee: self.contains(dvs),
+            health_status: (self.intersection(hs_mask).bits() >> hs_shift) as u8,
+        })
+    }
+
+    /// L1-B signal health, None when L1B_VALID is unset.
+    pub fn l1b_health(&self) -> Option<GalSignalHealth> {
+        self.health(
+            Self::L1B_VALID,
+            Self::L1B_DVS,
+            Self::L1B_HS_MASK,
+            Self::L1B_HS_SHIFT,
+        )
+    }
+
+    /// E5b signal health, None when E5B_VALID is unset.
+    pub fn e5b_health(&self) -> Option<GalSignalHealth> {
+        self.health(
+            Self::E5B_VALID,
+            Self::E5B_DVS,
+            Self::E5B_HS_MASK,
+            Self::E5B_HS_SHIFT,
+        )
+    }
+
+    /// E5a signal health, None when E5A_VALID is unset.
+    pub fn e5a_health(&self) -> Option<GalSignalHealth> {
+        self.health(
+            Self::E5A_VALID,
+            Self::E5A_DVS,
+            Self::E5A_HS_MASK,
+            Self::E5A_HS_SHIFT,
+        )
+    }
+}
+
 impl GALNav {
     // Source constants
     pub const SOURCE_INAV: u8 = 2; // I/NAV (L1,E5b)
@@ -83,30 +168,4 @@ impl GALNav {
     // CNAVenc bit masks
     pub const CNAV_E6B_UNENCRYPTED: u8 = 0x01;
     pub const CNAV_E6C_UNENCRYPTED: u8 = 0x02;
-
-    fn signal_health(&self, shift: u8) -> Option<GalSignalHealth> {
-        let bits = self.health_ossol >> shift;
-        if bits & 1 == 0 {
-            return None;
-        }
-        Some(GalSignalHealth {
-            working_without_guarantee: bits & 0x02 != 0,
-            health_status: ((bits >> 2) & 0x03) as u8,
-        })
-    }
-
-    /// L1-B signal health, None when bit 0 of health_ossol marks it invalid.
-    pub fn l1b_health(&self) -> Option<GalSignalHealth> {
-        self.signal_health(0)
-    }
-
-    /// E5b signal health, None when bit 4 of health_ossol marks it invalid.
-    pub fn e5b_health(&self) -> Option<GalSignalHealth> {
-        self.signal_health(4)
-    }
-
-    /// E5a signal health, None when bit 8 of health_ossol marks it invalid.
-    pub fn e5a_health(&self) -> Option<GalSignalHealth> {
-        self.signal_health(8)
-    }
 }

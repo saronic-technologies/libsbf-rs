@@ -1,4 +1,4 @@
-use super::pvt_geodetic::{PvtError, PvtMode, PvtModeFlags};
+use super::pvt_geodetic::{PvtError, PvtMisc, PvtMode, PvtModeFlags};
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
@@ -31,7 +31,9 @@ pub struct VectorInfoGeod {
     #[bw(map = |x: &PvtError| u8::from(*x))]
     pub error: PvtError,
     mode_raw: u8,
-    pub misc: u8,
+    #[br(map = PvtMisc::from_bits_retain)]
+    #[bw(map = |x: &PvtMisc| x.bits())]
+    pub misc: PvtMisc,
     /// East component of the baseline in meters.
     #[br(map = binrw_util::map_f8)]
     #[bw(map = binrw_util::unmap_f8)]
@@ -83,15 +85,5 @@ impl VectorInfoGeod {
     /// Mode flags from bits 6-7 of mode.
     pub fn mode_flags(&self) -> PvtModeFlags {
         PvtModeFlags::from_bits_truncate(self.mode_raw)
-    }
-
-    /// Bit 0: baseline points to base station ARP.
-    pub fn baseline_points_to_arp(&self) -> bool {
-        self.misc & 1 != 0
-    }
-
-    /// Bit 1: phase center offset compensated at rover.
-    pub fn phase_center_compensated(&self) -> bool {
-        self.misc & (1 << 1) != 0
     }
 }

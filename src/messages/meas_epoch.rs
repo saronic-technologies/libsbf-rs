@@ -3,6 +3,7 @@ use crate::{NestedBlock, NestedHeader, SubBlock};
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
+use core::ops::RangeInclusive;
 
 bitflags! {
     /// CommonFlags bit field of the [`MeasEpoch`] block.
@@ -22,6 +23,40 @@ bitflags! {
         /// Bit 7: measurements scrambled since the "Measurement Availability"
         /// permission is not granted.
         const SCRAMBLED = 1 << 7;
+    }
+}
+
+// SigIdxLo value in the type field that extends the signal number into ObsInfo.
+const SIG_NR_ESCAPE: u8 = 31;
+// Base added to the ObsInfo extension bits to form the signal number.
+const SIG_NR_EXTENSION_OFFSET: u8 = 32;
+// SigIdxLo values that denote GLONASS signals.
+const GLONASS_SIG_NRS: RangeInclusive<u8> = 8..=11;
+// Offset subtracted from the ObsInfo extension bits to form the frequency number.
+const GLONASS_FREQ_NR_OFFSET: i8 = 8;
+
+bitflags! {
+    /// ObsInfo bit field of the MeasEpoch channel sub-blocks.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct MeasEpochObsInfo: u8 {
+        /// Bit 0: the pseudorange is smoothed.
+        const SMOOTHED = 1 << 0;
+        /// Bit 2: the carrier phase has a half-cycle ambiguity.
+        const HALF_CYCLE_AMBIGUITY = 1 << 2;
+        /// Mask for bits 3-7: the signal number extension or GLONASS
+        /// frequency number selected by the type field, decoded by
+        /// [`MeasEpochChannelType1::signal_number`] and
+        /// [`MeasEpochChannelType1::glonass_freq_nr`].
+        const SIG_IDX_HI_MASK = 0b11111 << Self::SIG_IDX_HI_SHIFT;
+    }
+}
+
+impl MeasEpochObsInfo {
+    const SIG_IDX_HI_SHIFT: u32 = 3;
+
+    /// Value of bits 3-7. The type field selects its meaning.
+    pub fn sig_idx_hi(&self) -> u8 {
+        self.intersection(Self::SIG_IDX_HI_MASK).bits() >> Self::SIG_IDX_HI_SHIFT
     }
 }
 
@@ -71,7 +106,9 @@ struct MeasEpochChannelType1Header {
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]
     pub lock_time: Option<u16>,
-    pub obs_info: u8,
+    #[br(map = MeasEpochObsInfo::from_bits_retain)]
+    #[bw(map = |x: &MeasEpochObsInfo| x.bits())]
+    pub obs_info: MeasEpochObsInfo,
     pub n2: u8,
 }
 
@@ -93,7 +130,7 @@ pub struct MeasEpochChannelType1 {
     pub carrier_msb: i8,
     pub cn0: Option<u8>,
     pub lock_time: Option<u16>,
-    pub obs_info: u8,
+    pub obs_info: MeasEpochObsInfo,
     pub n2: u8,
     pub channel_type2: Vec<MeasEpochChannelType2>,
 }
@@ -141,27 +178,18 @@ impl From<MeasEpochChannelType1> for NestedBlock<MeasEpochChannelType1Header, Me
 }
 
 impl MeasEpochChannelType1 {
-    /// Bit 0 of obs_info: the pseudorange is smoothed.
-    pub fn smoothed(&self) -> bool {
-        self.obs_info & 1 != 0
-    }
-
-    /// Bit 2 of obs_info: the carrier phase has a half-cycle ambiguity.
-    pub fn half_cycle_ambiguity(&self) -> bool {
-        self.obs_info & (1 << 2) != 0
-    }
-
     /// Antenna ID from bits 5-7 of the type field: 0 main, 1 Aux1, 2 Aux2.
     pub fn antenna_id(&self) -> u8 {
         self.type_field >> 5
     }
 
     /// Signal number per section 4.1.10 of the reference guide: bits 0-4 of
-    /// the type field, or 32 plus bits 3-7 of obs_info when those read 31.
+    /// the type field, extended through obs_info when they read the escape
+    /// value.
     pub fn signal_number(&self) -> u8 {
         let sig_idx_lo = self.type_field & 0x1F;
-        if sig_idx_lo == 31 {
-            32 + (self.obs_info >> 3)
+        if sig_idx_lo == SIG_NR_ESCAPE {
+            SIG_NR_EXTENSION_OFFSET + self.obs_info.sig_idx_hi()
         } else {
             sig_idx_lo
         }
@@ -171,8 +199,8 @@ impl MeasEpochChannelType1 {
     /// Available when the signal index selects a GLONASS signal.
     pub fn glonass_freq_nr(&self) -> Option<i8> {
         let sig_idx_lo = self.type_field & 0x1F;
-        if (8..=11).contains(&sig_idx_lo) {
-            Some((self.obs_info >> 3) as i8 - 8)
+        if GLONASS_SIG_NRS.contains(&sig_idx_lo) {
+            Some(self.obs_info.sig_idx_hi() as i8 - GLONASS_FREQ_NR_OFFSET)
         } else {
             None
         }
@@ -191,34 +219,27 @@ pub struct MeasEpochChannelType2 {
     pub cn0: Option<u8>,
     pub offsets_msb: u8,
     pub carrier_msb: i8,
-    pub obs_info: u8,
+    #[br(map = MeasEpochObsInfo::from_bits_retain)]
+    #[bw(map = |x: &MeasEpochObsInfo| x.bits())]
+    pub obs_info: MeasEpochObsInfo,
     pub code_offset_lsb: u16,
     pub carrier_lsb: u16,
     pub doppler_offset_lsb: u16,
 }
 
 impl MeasEpochChannelType2 {
-    /// Bit 0 of obs_info: the pseudorange is smoothed.
-    pub fn smoothed(&self) -> bool {
-        self.obs_info & 1 != 0
-    }
-
-    /// Bit 2 of obs_info: the carrier phase has a half-cycle ambiguity.
-    pub fn half_cycle_ambiguity(&self) -> bool {
-        self.obs_info & (1 << 2) != 0
-    }
-
     /// Antenna ID from bits 5-7 of the type field: 0 main, 1 Aux1, 2 Aux2.
     pub fn antenna_id(&self) -> u8 {
         self.type_field >> 5
     }
 
     /// Signal number per section 4.1.10 of the reference guide: bits 0-4 of
-    /// the type field, or 32 plus bits 3-7 of obs_info when those read 31.
+    /// the type field, extended through obs_info when they read the escape
+    /// value.
     pub fn signal_number(&self) -> u8 {
         let sig_idx_lo = self.type_field & 0x1F;
-        if sig_idx_lo == 31 {
-            32 + (self.obs_info >> 3)
+        if sig_idx_lo == SIG_NR_ESCAPE {
+            SIG_NR_EXTENSION_OFFSET + self.obs_info.sig_idx_hi()
         } else {
             sig_idx_lo
         }
