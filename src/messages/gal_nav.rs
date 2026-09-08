@@ -64,23 +64,49 @@ pub struct GALNav {
     pub padding: Vec<u8>,
 }
 
+/// Health of one Galileo signal from the Health_OSSOL bit field: the 1-bit
+/// Data Validity Status and 2-bit Health Status defined in the Galileo
+/// Signal-In-Space ICD.
+#[derive(Clone, Copy, Debug)]
+pub struct GalSignalHealth {
+    /// DVS bit: the signal is working without guarantee.
+    pub working_without_guarantee: bool,
+    /// HS code: 0 OK, 1 out of service, 2 will be out of service, 3 in test.
+    pub health_status: u8,
+}
+
 impl GALNav {
     // Source constants
     pub const SOURCE_INAV: u8 = 2; // I/NAV (L1,E5b)
     pub const SOURCE_FNAV: u8 = 16; // F/NAV (L1,E5a)
 
-    // Health_OSSOL bit masks
-    pub const HEALTH_L1B_VALID: u16 = 0x0001;
-    pub const HEALTH_L1B_DVS: u16 = 0x0002;
-    pub const HEALTH_L1B_HS_MASK: u16 = 0x000C;
-    pub const HEALTH_E5B_VALID: u16 = 0x0010;
-    pub const HEALTH_E5B_DVS: u16 = 0x0020;
-    pub const HEALTH_E5B_HS_MASK: u16 = 0x00C0;
-    pub const HEALTH_E5A_VALID: u16 = 0x0100;
-    pub const HEALTH_E5A_DVS: u16 = 0x0200;
-    pub const HEALTH_E5A_HS_MASK: u16 = 0x0C00;
-
     // CNAVenc bit masks
     pub const CNAV_E6B_UNENCRYPTED: u8 = 0x01;
     pub const CNAV_E6C_UNENCRYPTED: u8 = 0x02;
+
+    fn signal_health(&self, shift: u8) -> Option<GalSignalHealth> {
+        let bits = self.health_ossol >> shift;
+        if bits & 1 == 0 {
+            return None;
+        }
+        Some(GalSignalHealth {
+            working_without_guarantee: bits & 0x02 != 0,
+            health_status: ((bits >> 2) & 0x03) as u8,
+        })
+    }
+
+    /// L1-B signal health, None when bit 0 of health_ossol marks it invalid.
+    pub fn l1b_health(&self) -> Option<GalSignalHealth> {
+        self.signal_health(0)
+    }
+
+    /// E5b signal health, None when bit 4 of health_ossol marks it invalid.
+    pub fn e5b_health(&self) -> Option<GalSignalHealth> {
+        self.signal_health(4)
+    }
+
+    /// E5a signal health, None when bit 8 of health_ossol marks it invalid.
+    pub fn e5a_health(&self) -> Option<GalSignalHealth> {
+        self.signal_health(8)
+    }
 }

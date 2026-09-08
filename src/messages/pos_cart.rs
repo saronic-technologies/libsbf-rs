@@ -3,7 +3,7 @@ use alloc::vec::Vec;
 use binrw::binrw;
 
 use super::pvt_geodetic::{
-    Datum, DiffCorrType, PvtError, PvtMode, PvtModeFlags, RaimIntegrity, WACorrFlags,
+    ArpOffset, Datum, DiffCorrType, PvtError, PvtMode, PvtModeFlags, RaimIntegrity, WACorrFlags,
 };
 
 // PosCart Block 4044
@@ -120,5 +120,21 @@ impl PosCart {
     /// Bit 3: Galileo ionospheric storm active.
     pub fn galileo_iono_storm(&self) -> bool {
         self.alert_flag_raw & (1 << 3) != 0
+    }
+
+    /// Bit 0 of misc: in DGNSS or RTK mode, the baseline points to the base
+    /// station ARP rather than the antenna phase center.
+    pub fn baseline_points_to_arp(&self) -> bool {
+        self.misc & 1 != 0
+    }
+
+    /// Bit 1 of misc: the phase center offset is compensated for at the rover.
+    pub fn phase_center_compensated(&self) -> bool {
+        self.misc & (1 << 1) != 0
+    }
+
+    /// ARP-to-marker offset flag, from bits 6-7 of misc.
+    pub fn arp_offset(&self) -> ArpOffset {
+        ArpOffset::from(self.misc >> 6)
     }
 }

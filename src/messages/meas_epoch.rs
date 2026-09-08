@@ -140,6 +140,45 @@ impl From<MeasEpochChannelType1> for NestedBlock<MeasEpochChannelType1Header, Me
     }
 }
 
+impl MeasEpochChannelType1 {
+    /// Bit 0 of obs_info: the pseudorange is smoothed.
+    pub fn smoothed(&self) -> bool {
+        self.obs_info & 1 != 0
+    }
+
+    /// Bit 2 of obs_info: the carrier phase has a half-cycle ambiguity.
+    pub fn half_cycle_ambiguity(&self) -> bool {
+        self.obs_info & (1 << 2) != 0
+    }
+
+    /// Antenna ID from bits 5-7 of the type field: 0 main, 1 Aux1, 2 Aux2.
+    pub fn antenna_id(&self) -> u8 {
+        self.type_field >> 5
+    }
+
+    /// Signal number per section 4.1.10 of the reference guide: bits 0-4 of
+    /// the type field, or 32 plus bits 3-7 of obs_info when those read 31.
+    pub fn signal_number(&self) -> u8 {
+        let sig_idx_lo = self.type_field & 0x1F;
+        if sig_idx_lo == 31 {
+            32 + (self.obs_info >> 3)
+        } else {
+            sig_idx_lo
+        }
+    }
+
+    /// GLONASS frequency number from -7 to 6, from bits 3-7 of obs_info.
+    /// Available when the signal index selects a GLONASS signal.
+    pub fn glonass_freq_nr(&self) -> Option<i8> {
+        let sig_idx_lo = self.type_field & 0x1F;
+        if (8..=11).contains(&sig_idx_lo) {
+            Some((self.obs_info >> 3) as i8 - 8)
+        } else {
+            None
+        }
+    }
+}
+
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct MeasEpochChannelType2 {
@@ -156,4 +195,32 @@ pub struct MeasEpochChannelType2 {
     pub code_offset_lsb: u16,
     pub carrier_lsb: u16,
     pub doppler_offset_lsb: u16,
+}
+
+impl MeasEpochChannelType2 {
+    /// Bit 0 of obs_info: the pseudorange is smoothed.
+    pub fn smoothed(&self) -> bool {
+        self.obs_info & 1 != 0
+    }
+
+    /// Bit 2 of obs_info: the carrier phase has a half-cycle ambiguity.
+    pub fn half_cycle_ambiguity(&self) -> bool {
+        self.obs_info & (1 << 2) != 0
+    }
+
+    /// Antenna ID from bits 5-7 of the type field: 0 main, 1 Aux1, 2 Aux2.
+    pub fn antenna_id(&self) -> u8 {
+        self.type_field >> 5
+    }
+
+    /// Signal number per section 4.1.10 of the reference guide: bits 0-4 of
+    /// the type field, or 32 plus bits 3-7 of obs_info when those read 31.
+    pub fn signal_number(&self) -> u8 {
+        let sig_idx_lo = self.type_field & 0x1F;
+        if sig_idx_lo == 31 {
+            32 + (self.obs_info >> 3)
+        } else {
+            sig_idx_lo
+        }
+    }
 }

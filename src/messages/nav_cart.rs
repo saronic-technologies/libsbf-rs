@@ -4,7 +4,8 @@ use binrw::binrw;
 
 use super::att_euler::{AttitudeMode, BaselineError};
 use super::pvt_geodetic::{
-    Datum, DiffCorrType, PvtError, PvtMode, PvtModeFlags, RaimIntegrity, WACorrFlags,
+    ArpOffset, Datum, DiffCorrType, PppSeedType, PvtError, PvtMode, PvtModeFlags, RaimIntegrity,
+    WACorrFlags,
 };
 
 // NavCart Block 4272
@@ -177,6 +178,33 @@ impl NavCart {
     /// Bit 3: Galileo ionospheric storm active.
     pub fn galileo_iono_storm(&self) -> bool {
         self.alert_flag_raw & (1 << 3) != 0
+    }
+
+    /// Age of the last PPP seed in seconds, from bits 0-11 of ppp_info,
+    /// clipped to 4091. Ignore when the seed type is NotSeeded.
+    pub fn ppp_seed_age(&self) -> u16 {
+        self.ppp_info & 0x0FFF
+    }
+
+    /// Type of the last PPP seed, from bits 13-15 of ppp_info.
+    pub fn ppp_seed_type(&self) -> PppSeedType {
+        PppSeedType::from((self.ppp_info >> 13) as u8)
+    }
+
+    /// Bit 0 of misc: in DGNSS or RTK mode, the baseline points to the base
+    /// station ARP rather than the antenna phase center.
+    pub fn baseline_points_to_arp(&self) -> bool {
+        self.misc & 1 != 0
+    }
+
+    /// Bit 1 of misc: the phase center offset is compensated for at the rover.
+    pub fn phase_center_compensated(&self) -> bool {
+        self.misc & (1 << 1) != 0
+    }
+
+    /// ARP-to-marker offset flag, from bits 6-7 of misc.
+    pub fn arp_offset(&self) -> ArpOffset {
+        ArpOffset::from(self.misc >> 6)
     }
 
     // -- Attitude accessors --

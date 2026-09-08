@@ -3,6 +3,69 @@ use crate::binrw_util;
 use crate::{NestedBlock, NestedHeader, SubBlock};
 use alloc::vec::Vec;
 use binrw::binrw;
+use core::array::from_fn;
+
+/// Health of one signal from a 2-bit status slot.
+#[derive(Clone, Copy, Debug)]
+pub enum SignalHealth {
+    /// Health unknown or not applicable.
+    Unknown,
+    Healthy,
+    Reserved,
+    Unhealthy,
+}
+
+impl From<u8> for SignalHealth {
+    fn from(value: u8) -> Self {
+        match value & 0x03 {
+            0 => SignalHealth::Unknown,
+            1 => SignalHealth::Healthy,
+            3 => SignalHealth::Unhealthy,
+            _ => SignalHealth::Reserved,
+        }
+    }
+}
+
+/// Tracking status of one signal from a 2-bit status slot.
+#[derive(Clone, Copy, Debug)]
+pub enum TrackingStatus {
+    /// Idle or not applicable.
+    Idle,
+    Search,
+    Sync,
+    Tracking,
+}
+
+impl From<u8> for TrackingStatus {
+    fn from(value: u8) -> Self {
+        match value & 0x03 {
+            0 => TrackingStatus::Idle,
+            1 => TrackingStatus::Search,
+            2 => TrackingStatus::Sync,
+            _ => TrackingStatus::Tracking,
+        }
+    }
+}
+
+/// PVT usage of one signal from a 2-bit status slot.
+#[derive(Clone, Copy, Debug)]
+pub enum PvtStatus {
+    NotUsed,
+    WaitingEphemeris,
+    Used,
+    Rejected,
+}
+
+impl From<u8> for PvtStatus {
+    fn from(value: u8) -> Self {
+        match value & 0x03 {
+            0 => PvtStatus::NotUsed,
+            1 => PvtStatus::WaitingEphemeris,
+            2 => PvtStatus::Used,
+            _ => PvtStatus::Rejected,
+        }
+    }
+}
 
 // ChannelStatus Block 4013
 #[binrw]
@@ -122,6 +185,13 @@ impl ChannelSatInfo {
     pub fn rise_set(&self) -> RiseSet {
         RiseSet::from((self.azimuth_rise_set >> 14) as u8)
     }
+
+    /// Health of each of the eight 2-bit signal slots in health_status. Which
+    /// signal a slot maps to depends on the constellation; see the
+    /// ChannelStatus tables in the reference guide.
+    pub fn health_statuses(&self) -> [SignalHealth; 8] {
+        from_fn(|i| SignalHealth::from((self.health_status >> (2 * i)) as u8))
+    }
 }
 
 // ChannelStateInfo sub-sub-block
@@ -136,4 +206,20 @@ pub struct ChannelStateInfo {
     /// Sequence of 2-bit PVT status fields: 0 not used, 1 waiting, 2 used, 3 rejected.
     pub pvt_status: u16,
     pub pvt_info: u16,
+}
+
+impl ChannelStateInfo {
+    /// Tracking status of each of the eight 2-bit signal slots in
+    /// tracking_status. Which signal a slot maps to depends on the
+    /// constellation; see the ChannelStatus tables in the reference guide.
+    pub fn tracking_statuses(&self) -> [TrackingStatus; 8] {
+        from_fn(|i| TrackingStatus::from((self.tracking_status >> (2 * i)) as u8))
+    }
+
+    /// PVT usage of each of the eight 2-bit signal slots in pvt_status. Which
+    /// signal a slot maps to depends on the constellation; see the
+    /// ChannelStatus tables in the reference guide.
+    pub fn pvt_statuses(&self) -> [PvtStatus; 8] {
+        from_fn(|i| PvtStatus::from((self.pvt_status >> (2 * i)) as u8))
+    }
 }

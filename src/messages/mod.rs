@@ -61,7 +61,9 @@ pub use aux_ant_positions::{AuxAntPositionSub, AuxAntPositions};
 pub use base_vector_cart::{BaseVectorCart, VectorInfoCart};
 pub use base_vector_geod::{BaseVectorGeod, VectorInfoGeod};
 pub use bds_ion::BDSIon;
-pub use channel_status::{ChannelSatInfo, ChannelStateInfo, ChannelStatus};
+pub use channel_status::{
+    ChannelSatInfo, ChannelStateInfo, ChannelStatus, PvtStatus, SignalHealth, TrackingStatus,
+};
 pub use commands::Commands;
 pub use comment::Comment;
 pub use diff_corr_in::DiffCorrIn;
@@ -88,7 +90,7 @@ pub use ext_sensor_meas::{
 pub use ext_sensor_status::{ConnectionPort, ExtSensorModel, ExtSensorStatus};
 pub use gal_gst_gps::GALGstGps;
 pub use gal_ion::{GALIon, GALIonStormFlags};
-pub use gal_nav::GALNav;
+pub use gal_nav::{GALNav, GalSignalHealth};
 pub use gal_utc::GALUtc;
 pub use geo_nav::GEONav;
 pub use geo_raw_l1::GEORawL1;
@@ -119,13 +121,14 @@ pub use pos_cov_cartesian::PosCovCartesian;
 pub use pos_cov_geodetic::PosCovGeodetic;
 pub use pvt_cartesian::PVTCartesian;
 pub use pvt_geodetic::{
-    Datum, DiffCorrType, PVTGeodetic, PvtError, PvtMode, PvtModeFlags, RaimIntegrity, WACorrFlags,
+    ArpOffset, Datum, DiffCorrType, PVTGeodetic, PppSeedType, PvtError, PvtMode, PvtModeFlags,
+    RaimIntegrity, WACorrFlags,
 };
 pub use quality_ind::{QualityInd, QualityIndicator};
 pub use receiver_setup::ReceiverSetup;
 pub use receiver_status::{AGCState, ExtError, ReceiverStatus, RxError, RxState};
 pub use receiver_time::ReceiverTime;
-pub use rf_status::{RFBand, RFStatus, RFStatusFlags};
+pub use rf_status::{RFBand, RFBandMode, RFStatus, RFStatusFlags};
 pub use rx_message::RxMessage;
 pub use sat_visibility::{RiseSet, SatInfo, SatVisibility};
 pub use vel_cov_cartesian::VelCovCartesian;
