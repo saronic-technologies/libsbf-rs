@@ -82,7 +82,8 @@ pub use ext_event_ins_nav_geod::{
 pub use ext_sensor_info::ExtSensorInfo;
 pub use ext_sensor_meas::{
     ExtSensorMeas, ExtSensorMeasAcceleration, ExtSensorMeasAngularRate, ExtSensorMeasInfo,
-    ExtSensorMeasSet, ExtSensorMeasSetType, ExtSensorMeasVelocity, ExtSensorMeasZeroVelocityFlag,
+    ExtSensorMeasObsInfo, ExtSensorMeasSet, ExtSensorMeasSetType, ExtSensorMeasVelocity,
+    ExtSensorMeasZeroVelocityFlag,
 };
 pub use ext_sensor_status::{ConnectionPort, ExtSensorModel, ExtSensorStatus};
 pub use gal_gst_gps::GALGstGps;

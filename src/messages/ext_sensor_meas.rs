@@ -1,6 +1,7 @@
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
+use bitflags::bitflags;
 
 // External Sensor Measurement Block 4050
 #[binrw]
@@ -29,13 +30,33 @@ pub enum ExtSensorMeasSetType {
     ZeroVelocityFlag = 20,
 }
 
+bitflags! {
+    /// ObsInfo bit field of an [`ExtSensorMeasSet`] sub-block.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct ExtSensorMeasObsInfo: u8 {
+        /// Bit 0: measurements are temperature compensated.
+        const TEMP_COMPENSATED = 1 << 0;
+        /// Bit 1: sensor is saturated.
+        const SATURATED = 1 << 1;
+        /// Bit 2: measurements are scrambled since the "Measurement
+        /// Availability" permission is not granted.
+        const SCRAMBLED = 1 << 2;
+        /// Bits 3-4: proprietary.
+        const PROPRIETARY = (1 << 3) | (1 << 4);
+        /// Bit 5: sensor data did not pass the internal sanity check.
+        const SANITY_CHECK_FAILED = 1 << 5;
+    }
+}
+
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ExtSensorMeasSet {
     pub source: u8,
     pub sensor_model: u8,
     pub type_: u8,
-    pub obs_info: u8,
+    #[br(map = |x: u8| ExtSensorMeasObsInfo::from_bits_retain(x))]
+    #[bw(map = |x: &ExtSensorMeasObsInfo| x.bits())]
+    pub obs_info: ExtSensorMeasObsInfo,
 
     #[br(if(type_ == ExtSensorMeasSetType::Acceleration as u8))]
     pub acc: Option<ExtSensorMeasAcceleration>,
