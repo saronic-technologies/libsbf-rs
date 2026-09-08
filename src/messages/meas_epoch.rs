@@ -2,6 +2,28 @@ use crate::binrw_util;
 use crate::{NestedBlock, NestedHeader, SubBlock};
 use alloc::vec::Vec;
 use binrw::binrw;
+use bitflags::bitflags;
+
+bitflags! {
+    /// CommonFlags bit field of the [`MeasEpoch`] block.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct MeasEpochCommonFlags: u8 {
+        /// Bit 0: multipath mitigation enabled.
+        const MULTIPATH_MITIGATION = 1 << 0;
+        /// Bit 1: at least one of the code measurements is smoothed.
+        const SMOOTHING = 1 << 1;
+        /// Bit 3: clock steering active.
+        const CLOCK_STEERING = 1 << 3;
+        /// Bit 5: receiver in high-dynamics mode.
+        const HIGH_DYNAMICS = 1 << 5;
+        /// Bit 6: Galileo E6 measurements obtained from the E6B signal
+        /// instead of the default E6C.
+        const E6B_USED = 1 << 6;
+        /// Bit 7: measurements scrambled since the "Measurement Availability"
+        /// permission is not granted.
+        const SCRAMBLED = 1 << 7;
+    }
+}
 
 // MeasEpoch Block 4027
 #[binrw]
@@ -16,7 +38,9 @@ pub struct MeasEpoch {
     pub n1: u8,
     pub sb1_length: u8,
     pub sb2_length: u8,
-    pub common_flags: u8,
+    #[br(map = |x: u8| MeasEpochCommonFlags::from_bits_retain(x))]
+    #[bw(map = |x: &MeasEpochCommonFlags| x.bits())]
+    pub common_flags: MeasEpochCommonFlags,
     pub cum_clk_jumps: u8,
     pub rev1: u8,
     #[br(args { count: usize::from(n1), inner: (usize::from(sb1_length), usize::from(sb2_length)) },

@@ -1,6 +1,20 @@
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
+use bitflags::bitflags;
+
+bitflags! {
+    /// Flags bit field of the [`RFStatus`] block.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct RFStatusFlags: u8 {
+        /// Bit 0: the GNSS signals may not be authentic; the receiver may be
+        /// connected to a simulator or subject to a spoofing attack.
+        const SIG_AUTH_ALERT = 1 << 0;
+        /// Bit 1: a non-authentic navigation message was detected by NMA
+        /// checks such as Galileo OSNMA.
+        const NAV_MSG_AUTH_ALERT = 1 << 1;
+    }
+}
 
 /// RFBand sub-block: interference info for a single RF band.
 #[binrw]
@@ -53,9 +67,9 @@ pub struct RFStatus {
     pub wnc: Option<u16>,
     n: u8,
     pub sb_length: u8,
-    /// Bit 0: GNSS signals may not be authentic (spoofing/simulator).
-    /// Bit 1: NMA check failed (e.g. Galileo OSNMA).
-    pub flags: u8,
+    #[br(map = |x: u8| RFStatusFlags::from_bits_retain(x))]
+    #[bw(map = |x: &RFStatusFlags| x.bits())]
+    pub flags: RFStatusFlags,
     _reserved: [u8; 3],
     #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) }, map = binrw_util::unwrap_subblocks)]
     #[bw(args_raw = (usize::from(*sb_length),), map = binrw_util::wrap_subblocks)]
@@ -68,15 +82,5 @@ impl RFStatus {
     /// Number of RF bands with interference info.
     pub fn num_bands(&self) -> u8 {
         self.n
-    }
-
-    /// Whether the receiver suspects non-authentic GNSS signals (spoofing).
-    pub fn spoofing_detected(&self) -> bool {
-        self.flags & 0x01 != 0
-    }
-
-    /// Whether NMA (Navigation Message Authentication) verification failed.
-    pub fn nma_failed(&self) -> bool {
-        self.flags & 0x02 != 0
     }
 }

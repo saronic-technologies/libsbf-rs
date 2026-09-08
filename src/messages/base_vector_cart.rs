@@ -1,7 +1,7 @@
+use super::pvt_geodetic::{PvtError, PvtMode, PvtModeFlags};
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
-use super::pvt_geodetic::{PvtError, PvtMode, PvtModeFlags};
 
 // BaseVectorCart Block 4043
 #[binrw]

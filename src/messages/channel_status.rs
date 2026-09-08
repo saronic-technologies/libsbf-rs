@@ -1,8 +1,8 @@
+use super::sat_visibility::RiseSet;
 use crate::binrw_util;
 use crate::{NestedBlock, NestedHeader, SubBlock};
 use alloc::vec::Vec;
 use binrw::binrw;
-use super::sat_visibility::RiseSet;
 
 // ChannelStatus Block 4013
 #[binrw]

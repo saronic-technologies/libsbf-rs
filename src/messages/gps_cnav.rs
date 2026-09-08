@@ -1,6 +1,24 @@
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
+use bitflags::bitflags;
+
+bitflags! {
+    /// Flags bit field of the [`GPSCNav`] block.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct GPSCNavFlags: u8 {
+        /// Bit 0: at least one included message type had its alert bit set.
+        const ALERT = 1 << 0;
+        /// Bit 1: integrity status flag from MT10.
+        const INTEGRITY_STATUS = 1 << 1;
+        /// Bit 2: L2C phasing flag from MT10.
+        const L2C_PHASING = 1 << 2;
+        /// Bit 6: at least part of the navigation data was decoded from L2C.
+        const L2C_USED = 1 << 6;
+        /// Bit 7: at least part of the navigation data was decoded from L5.
+        const L5_USED = 1 << 7;
+    }
+}
 
 // GPSCNav Block 4042
 #[binrw]
@@ -13,7 +31,9 @@ pub struct GPSCNav {
     #[bw(map = binrw_util::unmap_u2)]
     pub wnc: Option<u16>,
     pub prn: u8,
-    pub flags: u8,
+    #[br(map = |x: u8| GPSCNavFlags::from_bits_retain(x))]
+    #[bw(map = |x: &GPSCNavFlags| x.bits())]
+    pub flags: GPSCNavFlags,
     pub wn: u16,
     pub health: u8,
     pub ura_ed: i8,
@@ -61,25 +81,4 @@ pub struct GPSCNav {
     pub isc_l5q5: Option<f32>,
     #[br(parse_with = binrw::helpers::until_eof)]
     pub padding: Vec<u8>,
-}
-
-impl GPSCNav {
-    // Flags bit definitions
-    pub const FLAG_ALERT: u8 = 0x01;
-    pub const FLAG_INTEGRITY_STATUS: u8 = 0x02;
-    pub const FLAG_L2C_PHASING: u8 = 0x04;
-    pub const FLAG_L2C_USED: u8 = 0x40;
-    pub const FLAG_L5_USED: u8 = 0x80;
-
-    pub fn is_alert(&self) -> bool {
-        self.flags & Self::FLAG_ALERT != 0
-    }
-
-    pub fn is_l2c_used(&self) -> bool {
-        self.flags & Self::FLAG_L2C_USED != 0
-    }
-
-    pub fn is_l5_used(&self) -> bool {
-        self.flags & Self::FLAG_L5_USED != 0
-    }
 }
