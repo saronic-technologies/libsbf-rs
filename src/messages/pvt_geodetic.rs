@@ -196,6 +196,79 @@ impl From<u8> for RaimIntegrity {
     }
 }
 
+/// Type of the last PPP seed, from bits 13-15 of ppp_info.
+#[derive(Debug, Clone, Copy, FromPrimitive, IntoPrimitive)]
+#[repr(u8)]
+pub enum PppSeedType {
+    /// Not seeded or not in PPP positioning mode.
+    NotSeeded = 0,
+    Manual = 1,
+    Dgnss = 2,
+    RtkFixed = 3,
+    #[num_enum(catch_all)]
+    Unknown(u8),
+}
+
+/// Whether the marker position reported in a block is also the ARP position,
+/// from bits 6-7 of misc.
+#[derive(Debug, Clone, Copy, FromPrimitive, IntoPrimitive)]
+#[repr(u8)]
+pub enum ArpOffset {
+    Unknown = 0,
+    /// The ARP-to-marker offset is zero.
+    Zero = 1,
+    /// The ARP-to-marker offset is not zero.
+    NonZero = 2,
+    #[num_enum(catch_all)]
+    Reserved(u8),
+}
+
+/// PPPInfo bit field of the PVT blocks: the seed age in bits 0-11 and the
+/// seed type in bits 13-15.
+#[binrw]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PppInfo(u16);
+
+impl PppInfo {
+    const SEED_AGE_MASK: u16 = 0x0FFF;
+    const SEED_TYPE_SHIFT: u32 = 13;
+
+    /// Age of the last PPP seed in seconds, clipped to 4091. Ignore when the
+    /// seed type is NotSeeded.
+    pub fn seed_age(&self) -> u16 {
+        self.0 & Self::SEED_AGE_MASK
+    }
+
+    /// Type of the last PPP seed.
+    pub fn seed_type(&self) -> PppSeedType {
+        PppSeedType::from((self.0 >> Self::SEED_TYPE_SHIFT) as u8)
+    }
+}
+
+bitflags! {
+    /// Misc bit field of the PVT and base vector blocks.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct PvtMisc: u8 {
+        /// Bit 0: in DGNSS or RTK mode, the baseline points to the base
+        /// station ARP rather than the antenna phase center.
+        const BASELINE_TO_BASE_ARP = 1 << 0;
+        /// Bit 1: the phase center offset is compensated for at the rover.
+        const PHASE_CENTER_COMPENSATED = 1 << 1;
+        /// Mask for the ARP-to-marker offset flag in bits 6-7, decoded by
+        /// [`Self::arp_offset`]. Reserved in the base vector blocks.
+        const ARP_OFFSET_MASK = 0b11 << Self::ARP_OFFSET_SHIFT;
+    }
+}
+
+impl PvtMisc {
+    const ARP_OFFSET_SHIFT: u32 = 6;
+
+    /// ARP-to-marker offset flag, from bits 6-7.
+    pub fn arp_offset(&self) -> ArpOffset {
+        ArpOffset::from(self.intersection(Self::ARP_OFFSET_MASK).bits() >> Self::ARP_OFFSET_SHIFT)
+    }
+}
+
 // PVTGeodetic Block 4007
 #[binrw]
 #[derive(Clone, Debug)]
@@ -260,7 +333,7 @@ pub struct PVTGeodetic {
     alert_flag_raw: u8,
     // Rev 1 fields
     pub nr_bases: u8,
-    pub ppp_info: u16,
+    pub ppp_info: PppInfo,
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]
     pub latency: Option<u16>,
@@ -270,7 +343,9 @@ pub struct PVTGeodetic {
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]
     pub v_accuracy: Option<u16>,
-    pub misc: u8,
+    #[br(map = PvtMisc::from_bits_retain)]
+    #[bw(map = |x: &PvtMisc| x.bits())]
+    pub misc: PvtMisc,
     // Rev 2 fields
     #[br(parse_with = binrw::helpers::until_eof)]
     pub padding: Vec<u8>,

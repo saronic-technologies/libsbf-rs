@@ -4,7 +4,8 @@ use binrw::binrw;
 
 use super::att_euler::{AttitudeMode, BaselineError};
 use super::pvt_geodetic::{
-    Datum, DiffCorrType, PvtError, PvtMode, PvtModeFlags, RaimIntegrity, WACorrFlags,
+    Datum, DiffCorrType, PppInfo, PvtError, PvtMisc, PvtMode, PvtModeFlags, RaimIntegrity,
+    WACorrFlags,
 };
 
 // NavCart Block 4272
@@ -72,7 +73,7 @@ pub struct NavCart {
     pub signal_info: u64,
     alert_flag_raw: u8,
     pub nr_bases: u8,
-    pub ppp_info: u16,
+    pub ppp_info: PppInfo,
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]
     pub latency: Option<u16>,
@@ -88,7 +89,9 @@ pub struct NavCart {
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]
     pub vel_v_acc: Option<u16>,
-    pub misc: u8,
+    #[br(map = PvtMisc::from_bits_retain)]
+    #[bw(map = |x: &PvtMisc| x.bits())]
+    pub misc: PvtMisc,
     _reserved: u8,
     // Attitude fields (from AttEuler)
     mode_att_raw: u16,

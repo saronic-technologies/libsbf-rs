@@ -1,6 +1,20 @@
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
+use bitflags::bitflags;
+
+bitflags! {
+    /// StormFlags bit field of the [`GALIon`] block: the five ionospheric
+    /// storm flags.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct GALIonStormFlags: u8 {
+        const SF5 = 1 << 0;
+        const SF4 = 1 << 1;
+        const SF3 = 1 << 2;
+        const SF2 = 1 << 3;
+        const SF1 = 1 << 4;
+    }
+}
 
 // GALIon Block 4030
 #[binrw]
@@ -17,7 +31,9 @@ pub struct GALIon {
     pub a_i0: f32,
     pub a_i1: f32,
     pub a_i2: f32,
-    pub storm_flags: u8,
+    #[br(map = |x: u8| GALIonStormFlags::from_bits_retain(x))]
+    #[bw(map = |x: &GALIonStormFlags| x.bits())]
+    pub storm_flags: GALIonStormFlags,
     #[br(parse_with = binrw::helpers::until_eof)]
     pub padding: Vec<u8>,
 }
@@ -26,31 +42,4 @@ impl GALIon {
     // Source constants
     pub const SOURCE_INAV: u8 = 2;
     pub const SOURCE_FNAV: u8 = 16;
-
-    // Storm flag bits
-    pub const STORM_FLAG_SF5: u8 = 0x01;
-    pub const STORM_FLAG_SF4: u8 = 0x02;
-    pub const STORM_FLAG_SF3: u8 = 0x04;
-    pub const STORM_FLAG_SF2: u8 = 0x08;
-    pub const STORM_FLAG_SF1: u8 = 0x10;
-
-    pub fn is_storm_flag_sf5(&self) -> bool {
-        self.storm_flags & Self::STORM_FLAG_SF5 != 0
-    }
-
-    pub fn is_storm_flag_sf4(&self) -> bool {
-        self.storm_flags & Self::STORM_FLAG_SF4 != 0
-    }
-
-    pub fn is_storm_flag_sf3(&self) -> bool {
-        self.storm_flags & Self::STORM_FLAG_SF3 != 0
-    }
-
-    pub fn is_storm_flag_sf2(&self) -> bool {
-        self.storm_flags & Self::STORM_FLAG_SF2 != 0
-    }
-
-    pub fn is_storm_flag_sf1(&self) -> bool {
-        self.storm_flags & Self::STORM_FLAG_SF1 != 0
-    }
 }

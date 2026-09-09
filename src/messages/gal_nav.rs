@@ -1,6 +1,7 @@
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
+use bitflags::bitflags;
 
 // GALNav Block 4002
 #[binrw]
@@ -37,7 +38,9 @@ pub struct GALNav {
     pub wn_t_oe: u16,
     pub wn_t_oc: u16,
     pub iod_nav: u16,
-    pub health_ossol: u16,
+    #[br(map = GALNavHealthOssol::from_bits_retain)]
+    #[bw(map = |x: &GALNavHealthOssol| x.bits())]
+    pub health_ossol: GALNavHealthOssol,
     pub health_prs: u8,
     #[br(map = binrw_util::map_u1)]
     #[bw(map = binrw_util::unmap_u1)]
@@ -64,21 +67,103 @@ pub struct GALNav {
     pub padding: Vec<u8>,
 }
 
+/// Health of one Galileo signal from the Health_OSSOL bit field: the 1-bit
+/// Data Validity Status and 2-bit Health Status defined in the Galileo
+/// Signal-In-Space ICD.
+#[derive(Clone, Copy, Debug)]
+pub struct GalSignalHealth {
+    /// DVS bit: the signal is working without guarantee.
+    pub working_without_guarantee: bool,
+    /// HS code: 0 OK, 1 out of service, 2 will be out of service, 3 in test.
+    pub health_status: u8,
+}
+
+bitflags! {
+    /// Health_OSSOL bit field of the [`GALNav`] block: the last received
+    /// Health Status and Data Validity Status of the E5a, E5b and L1-B
+    /// signals.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct GALNavHealthOssol: u16 {
+        /// Bit 0: the L1-B bits are valid.
+        const L1B_VALID = 1 << 0;
+        /// Bit 1: L1-B DVS, working without guarantee.
+        const L1B_DVS = 1 << 1;
+        /// Mask for the 2-bit L1-B HS code in bits 2-3, decoded by
+        /// [`Self::l1b_health`].
+        const L1B_HS_MASK = 0b11 << Self::L1B_HS_SHIFT;
+        /// Bit 4: the E5b bits are valid.
+        const E5B_VALID = 1 << 4;
+        /// Bit 5: E5b DVS, working without guarantee.
+        const E5B_DVS = 1 << 5;
+        /// Mask for the 2-bit E5b HS code in bits 6-7, decoded by
+        /// [`Self::e5b_health`].
+        const E5B_HS_MASK = 0b11 << Self::E5B_HS_SHIFT;
+        /// Bit 8: the E5a bits are valid.
+        const E5A_VALID = 1 << 8;
+        /// Bit 9: E5a DVS, working without guarantee.
+        const E5A_DVS = 1 << 9;
+        /// Mask for the 2-bit E5a HS code in bits 10-11, decoded by
+        /// [`Self::e5a_health`].
+        const E5A_HS_MASK = 0b11 << Self::E5A_HS_SHIFT;
+    }
+}
+
+impl GALNavHealthOssol {
+    const L1B_HS_SHIFT: u32 = 2;
+    const E5B_HS_SHIFT: u32 = 6;
+    const E5A_HS_SHIFT: u32 = 10;
+
+    fn health(
+        &self,
+        valid: Self,
+        dvs: Self,
+        hs_mask: Self,
+        hs_shift: u32,
+    ) -> Option<GalSignalHealth> {
+        if !self.contains(valid) {
+            return None;
+        }
+        Some(GalSignalHealth {
+            working_without_guarantee: self.contains(dvs),
+            health_status: (self.intersection(hs_mask).bits() >> hs_shift) as u8,
+        })
+    }
+
+    /// L1-B signal health, None when L1B_VALID is unset.
+    pub fn l1b_health(&self) -> Option<GalSignalHealth> {
+        self.health(
+            Self::L1B_VALID,
+            Self::L1B_DVS,
+            Self::L1B_HS_MASK,
+            Self::L1B_HS_SHIFT,
+        )
+    }
+
+    /// E5b signal health, None when E5B_VALID is unset.
+    pub fn e5b_health(&self) -> Option<GalSignalHealth> {
+        self.health(
+            Self::E5B_VALID,
+            Self::E5B_DVS,
+            Self::E5B_HS_MASK,
+            Self::E5B_HS_SHIFT,
+        )
+    }
+
+    /// E5a signal health, None when E5A_VALID is unset.
+    pub fn e5a_health(&self) -> Option<GalSignalHealth> {
+        self.health(
+            Self::E5A_VALID,
+            Self::E5A_DVS,
+            Self::E5A_HS_MASK,
+            Self::E5A_HS_SHIFT,
+        )
+    }
+}
+
 impl GALNav {
     // Source constants
     pub const SOURCE_INAV: u8 = 2; // I/NAV (L1,E5b)
     pub const SOURCE_FNAV: u8 = 16; // F/NAV (L1,E5a)
-
-    // Health_OSSOL bit masks
-    pub const HEALTH_L1B_VALID: u16 = 0x0001;
-    pub const HEALTH_L1B_DVS: u16 = 0x0002;
-    pub const HEALTH_L1B_HS_MASK: u16 = 0x000C;
-    pub const HEALTH_E5B_VALID: u16 = 0x0010;
-    pub const HEALTH_E5B_DVS: u16 = 0x0020;
-    pub const HEALTH_E5B_HS_MASK: u16 = 0x00C0;
-    pub const HEALTH_E5A_VALID: u16 = 0x0100;
-    pub const HEALTH_E5A_DVS: u16 = 0x0200;
-    pub const HEALTH_E5A_HS_MASK: u16 = 0x0C00;
 
     // CNAVenc bit masks
     pub const CNAV_E6B_UNENCRYPTED: u8 = 0x01;

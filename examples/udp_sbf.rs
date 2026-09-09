@@ -40,8 +40,7 @@ fn parse_all_blocks(data: &[u8]) -> Vec<Result<libsbf::Messages, libsbf::Datagra
             Ok(msg) => {
                 // Read block length from header to advance past this block
                 if data.len() >= start + 8 {
-                    let length =
-                        u16::from_le_bytes([data[start + 6], data[start + 7]]) as usize;
+                    let length = u16::from_le_bytes([data[start + 6], data[start + 7]]) as usize;
                     offset = start + length;
                 } else {
                     offset = data.len();

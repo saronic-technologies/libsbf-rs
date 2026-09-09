@@ -240,7 +240,7 @@ pub fn parse_datagram(datagram: &[u8]) -> core::result::Result<Messages, Datagra
 #[cfg(test)]
 mod tests {
     use super::{parse_datagram, DatagramError, SbfParser};
-    use crate::{DOP, Messages, QualityInd, QualityIndicator};
+    use crate::{Messages, QualityInd, QualityIndicator, DOP};
     use alloc::vec::Vec;
     use crc16::{State, XMODEM};
     use proptest::prelude::*;

@@ -3,7 +3,8 @@ use alloc::vec::Vec;
 use binrw::binrw;
 
 use super::pvt_geodetic::{
-    Datum, DiffCorrType, PvtError, PvtMode, PvtModeFlags, RaimIntegrity, WACorrFlags,
+    Datum, DiffCorrType, PppInfo, PvtError, PvtMisc, PvtMode, PvtModeFlags, RaimIntegrity,
+    WACorrFlags,
 };
 
 // PVTCartesian Block 4006
@@ -70,7 +71,7 @@ pub struct PVTCartesian {
     alert_flag_raw: u8,
     // Rev 1 fields
     pub nr_bases: u8,
-    pub ppp_info: u16,
+    pub ppp_info: PppInfo,
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]
     pub latency: Option<u16>,
@@ -80,7 +81,9 @@ pub struct PVTCartesian {
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]
     pub v_accuracy: Option<u16>,
-    pub misc: u8,
+    #[br(map = PvtMisc::from_bits_retain)]
+    #[bw(map = |x: &PvtMisc| x.bits())]
+    pub misc: PvtMisc,
     // Rev 2 fields
     #[br(parse_with = binrw::helpers::until_eof)]
     pub padding: Vec<u8>,

@@ -3,7 +3,7 @@ use alloc::vec::Vec;
 use binrw::binrw;
 
 use super::pvt_geodetic::{
-    Datum, DiffCorrType, PvtError, PvtMode, PvtModeFlags, RaimIntegrity, WACorrFlags,
+    Datum, DiffCorrType, PvtError, PvtMisc, PvtMode, PvtModeFlags, RaimIntegrity, WACorrFlags,
 };
 
 // PosCart Block 4044
@@ -65,7 +65,9 @@ pub struct PosCart {
     #[br(map = binrw_util::map_u2_zero)]
     #[bw(map = binrw_util::unmap_u2_zero)]
     pub vdop: Option<u16>,
-    pub misc: u8,
+    #[br(map = PvtMisc::from_bits_retain)]
+    #[bw(map = |x: &PvtMisc| x.bits())]
+    pub misc: PvtMisc,
     _reserved: u8,
     alert_flag_raw: u8,
     #[br(map = binrw_util::map_datum)]

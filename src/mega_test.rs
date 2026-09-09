@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
     use crate::{
-        AuxAntPositions, BaseVectorCart, BaseVectorGeod, ChannelStatus, Comment, DiskStatus,
-        EndOfAtt, EndOfPVT, ExtEvent, ExtEventINSNavCart, ExtEventINSNavGeod, ExtSensorMeas,
-        INSNavCart, INSNavGeod, MeasEpoch, MeasExtra, Messages, NavCart, PVTCartesian, PVTGeodetic,
-        PosCart, QualityInd, RFStatus, ReceiverStatus, ReceiverTime, RxMessage, SatVisibility,
-        reader::SbfReader,
+        reader::SbfReader, AuxAntPositions, BaseVectorCart, BaseVectorGeod, ChannelStatus, Comment,
+        DiskStatus, EndOfAtt, EndOfPVT, ExtEvent, ExtEventINSNavCart, ExtEventINSNavGeod,
+        ExtSensorMeas, INSNavCart, INSNavGeod, MeasEpoch, MeasExtra, Messages, NavCart,
+        PVTCartesian, PVTGeodetic, PosCart, QualityInd, RFStatus, ReceiverStatus, ReceiverTime,
+        RxMessage, SatVisibility,
     };
     use binrw::{io::Cursor, BinRead, BinWrite};
     use std::collections::HashMap;

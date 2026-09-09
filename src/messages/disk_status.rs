@@ -1,6 +1,24 @@
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
+use bitflags::bitflags;
+
+bitflags! {
+    /// Status bit field of a [`DiskData`] sub-block.
+    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+    pub struct DiskStatusFlags: u8 {
+        /// Bit 0: the disk is mounted.
+        const DISK_MOUNTED = 1 << 0;
+        /// Bit 1: the disk is filled to 95% of its total capacity.
+        const DISK_FULL = 1 << 1;
+        /// Bit 2: set for one second each time data is written to the disk,
+        /// or continuously when the logging rate exceeds 1 Hz.
+        const DISK_ACTIVITY = 1 << 2;
+        /// Bit 3: at least one file is open on the disk, regardless of the
+        /// logging rate.
+        const LOGGING_ENABLED = 1 << 3;
+    }
+}
 
 // DiskStatus Block 4059
 #[binrw]
@@ -26,8 +44,9 @@ pub struct DiskStatus {
 pub struct DiskData {
     /// Disk identifier, starting at 1 for the internal SD card.
     pub disk_id: u8,
-    /// Disk status bit field.
-    pub status: u8,
+    #[br(map = |x: u8| DiskStatusFlags::from_bits_retain(x))]
+    #[bw(map = |x: &DiskStatusFlags| x.bits())]
+    pub status: DiskStatusFlags,
     /// 16 most-significant bits of the disk usage in bytes.
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]
@@ -55,20 +74,5 @@ impl DiskData {
             (Some(msb), Some(lsb)) => Some((u64::from(msb) << 32) | u64::from(lsb)),
             _ => None,
         }
-    }
-
-    /// Bit 0: the disk is mounted.
-    pub fn mounted(&self) -> bool {
-        self.status & 1 != 0
-    }
-
-    /// Bit 1: the disk is full, at least 95% used.
-    pub fn full(&self) -> bool {
-        self.status & (1 << 1) != 0
-    }
-
-    /// Bit 3: logging is enabled on the disk.
-    pub fn logging_enabled(&self) -> bool {
-        self.status & (1 << 3) != 0
     }
 }
