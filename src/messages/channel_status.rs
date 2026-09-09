@@ -4,67 +4,41 @@ use crate::{NestedBlock, NestedHeader, SubBlock};
 use alloc::vec::Vec;
 use binrw::binrw;
 use core::array::from_fn;
+use num_enum::FromPrimitive;
 
 /// Health of one signal from a 2-bit status slot.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, FromPrimitive)]
+#[repr(u8)]
 pub enum SignalHealth {
     /// Health unknown or not applicable.
-    Unknown,
-    Healthy,
-    Reserved,
-    Unhealthy,
-}
-
-impl From<u8> for SignalHealth {
-    fn from(value: u8) -> Self {
-        match value & 0x03 {
-            0 => SignalHealth::Unknown,
-            1 => SignalHealth::Healthy,
-            3 => SignalHealth::Unhealthy,
-            _ => SignalHealth::Reserved,
-        }
-    }
+    Unknown = 0,
+    Healthy = 1,
+    #[num_enum(default)]
+    Reserved = 2,
+    Unhealthy = 3,
 }
 
 /// Tracking status of one signal from a 2-bit status slot.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, FromPrimitive)]
+#[repr(u8)]
 pub enum TrackingStatus {
     /// Idle or not applicable.
-    Idle,
-    Search,
-    Sync,
-    Tracking,
-}
-
-impl From<u8> for TrackingStatus {
-    fn from(value: u8) -> Self {
-        match value & 0x03 {
-            0 => TrackingStatus::Idle,
-            1 => TrackingStatus::Search,
-            2 => TrackingStatus::Sync,
-            _ => TrackingStatus::Tracking,
-        }
-    }
+    Idle = 0,
+    Search = 1,
+    Sync = 2,
+    #[num_enum(default)]
+    Tracking = 3,
 }
 
 /// PVT usage of one signal from a 2-bit status slot.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, FromPrimitive)]
+#[repr(u8)]
 pub enum PvtStatus {
-    NotUsed,
-    WaitingEphemeris,
-    Used,
-    Rejected,
-}
-
-impl From<u8> for PvtStatus {
-    fn from(value: u8) -> Self {
-        match value & 0x03 {
-            0 => PvtStatus::NotUsed,
-            1 => PvtStatus::WaitingEphemeris,
-            2 => PvtStatus::Used,
-            _ => PvtStatus::Rejected,
-        }
-    }
+    NotUsed = 0,
+    WaitingEphemeris = 1,
+    Used = 2,
+    #[num_enum(default)]
+    Rejected = 3,
 }
 
 // ChannelStatus Block 4013
@@ -190,7 +164,7 @@ impl ChannelSatInfo {
     /// signal a slot maps to depends on the constellation; see the
     /// ChannelStatus tables in the reference guide.
     pub fn health_statuses(&self) -> [SignalHealth; 8] {
-        from_fn(|i| SignalHealth::from((self.health_status >> (2 * i)) as u8))
+        from_fn(|i| SignalHealth::from((self.health_status >> (2 * i)) as u8 & 0x03))
     }
 }
 
@@ -213,13 +187,13 @@ impl ChannelStateInfo {
     /// tracking_status. Which signal a slot maps to depends on the
     /// constellation; see the ChannelStatus tables in the reference guide.
     pub fn tracking_statuses(&self) -> [TrackingStatus; 8] {
-        from_fn(|i| TrackingStatus::from((self.tracking_status >> (2 * i)) as u8))
+        from_fn(|i| TrackingStatus::from((self.tracking_status >> (2 * i)) as u8 & 0x03))
     }
 
     /// PVT usage of each of the eight 2-bit signal slots in pvt_status. Which
     /// signal a slot maps to depends on the constellation; see the
     /// ChannelStatus tables in the reference guide.
     pub fn pvt_statuses(&self) -> [PvtStatus; 8] {
-        from_fn(|i| PvtStatus::from((self.pvt_status >> (2 * i)) as u8))
+        from_fn(|i| PvtStatus::from((self.pvt_status >> (2 * i)) as u8 & 0x03))
     }
 }
