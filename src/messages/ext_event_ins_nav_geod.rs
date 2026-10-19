@@ -63,10 +63,10 @@ pub struct ExtEventINSNavGeod {
 pub struct ExtEventINSNavGeodPosStdDev {
     #[br(map = binrw_util::map_f4)]
     #[bw(map = binrw_util::unmap_f4)]
-    pub longitude_std_dev: Option<f32>,
+    pub latitude_std_dev: Option<f32>,
     #[br(map = binrw_util::map_f4)]
     #[bw(map = binrw_util::unmap_f4)]
-    pub latitude_std_dev: Option<f32>,
+    pub longitude_std_dev: Option<f32>,
     #[br(map = binrw_util::map_f4)]
     #[bw(map = binrw_util::unmap_f4)]
     pub height_std_dev: Option<f32>,
