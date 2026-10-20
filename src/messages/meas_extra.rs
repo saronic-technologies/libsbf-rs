@@ -15,7 +15,10 @@ pub struct MeasExtra {
     pub n: u8,
     pub sb_length: u8,
     pub doppler_var_factor: f32,
-    #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) }, map = binrw_util::unwrap_subblocks)]
+    #[br(temp, parse_with = binrw_util::subblock_count_mod256, args(n, sb_length))]
+    #[bw(ignore)]
+    count: usize,
+    #[br(args { count, inner: (usize::from(sb_length),) }, map = binrw_util::unwrap_subblocks)]
     #[bw(args_raw = (usize::from(*sb_length),), map = binrw_util::wrap_subblocks)]
     pub channel_sub: Vec<MeasExtraChannelSub>,
 }
@@ -40,4 +43,43 @@ pub struct MeasExtraChannelSub {
     pub car_mp_corr: i8,
     pub info: u8,
     pub misc: u8,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::MeasExtra;
+    use alloc::vec::Vec;
+    use binrw::{io::Cursor, BinRead, BinWrite};
+
+    // N holds 300 modulo 256, so all 300 sub-blocks can be found only through the
+    // body length. Each sub-block carries its index as the multipath correction.
+    #[test]
+    fn reads_more_than_255_sub_blocks() {
+        let body: Vec<u8> = 1000u32
+            .to_le_bytes()
+            .into_iter()
+            .chain(2400u16.to_le_bytes())
+            .chain([44, 16])
+            .chain(1.0f32.to_le_bytes())
+            .chain((0..300u16).flat_map(|i| {
+                [(i % 256) as u8, 0]
+                    .into_iter()
+                    .chain((i as i16).to_le_bytes())
+                    .chain([0; 12])
+            }))
+            .collect();
+
+        let block = MeasExtra::read_le(&mut Cursor::new(&body)).unwrap();
+        assert_eq!(block.n, 44);
+        let corrections: Vec<i16> = block
+            .channel_sub
+            .iter()
+            .map(|sub| sub.mp_correction)
+            .collect();
+        assert_eq!(corrections, (0..300).collect::<Vec<i16>>());
+
+        let mut out = Vec::new();
+        block.write_le(&mut Cursor::new(&mut out)).unwrap();
+        assert_eq!(out, body);
+    }
 }

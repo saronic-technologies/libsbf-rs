@@ -1,6 +1,6 @@
 use crate::{Datum, SubBlock};
 use alloc::vec::Vec;
-use binrw::{BinRead, BinWrite};
+use binrw::{io::SeekFrom, BinRead, BinResult, BinWrite};
 
 // Constants for DO_NOT_USE values
 const DO_NOT_USE_I1: i8 = -128;
@@ -109,6 +109,20 @@ pub(crate) fn map_datum(x: u8) -> Option<Datum> {
 
 pub(crate) fn unmap_datum(x: &Option<Datum>) -> u8 {
     x.map_or(DO_NOT_USE_U1, u8::from)
+}
+
+// Number of sub-blocks of size `sb_length` that fit into the remaining bytes
+// such that the count modulo 256 is `n`.
+#[binrw::parser(reader)]
+pub(crate) fn subblock_count_mod256(n: u8, sb_length: u8) -> BinResult<usize> {
+    let pos = reader.stream_position()?;
+    // Length is not accessible here, but the slice we get has the exact length
+    let end = reader.seek(SeekFrom::End(0))?;
+    reader.seek(SeekFrom::Start(pos))?;
+    let remaining = usize::try_from(end - pos).unwrap_or(usize::MAX);
+    let fit = remaining / usize::from(sb_length.max(1));
+    let n = usize::from(n);
+    Ok(fit.checked_sub(n).map_or(n, |extra| extra / 256 * 256 + n))
 }
 
 // Read `count` sub-blocks, each padded to its SBLength, unwrapped to the bare type.
