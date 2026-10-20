@@ -1,12 +1,15 @@
 use crate::binrw_util;
 use binrw::binrw;
 use core::fmt;
+use num_enum::{FromPrimitive, IntoPrimitive};
 
 /// Attitude mode code.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-#[repr(u8)]
+///
+/// INS blocks use codes 0, 5-6 in firmware versions after 1.5.0
+/// instead of copying 0-4 from the attitude.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[repr(u16)]
 pub enum AttitudeMode {
-    #[default]
     NoAttitude = 0,
     /// Heading, pitch (roll=0), aux antenna positions with float ambiguities.
     HeadingPitchFloat = 1,
@@ -16,18 +19,19 @@ pub enum AttitudeMode {
     HeadingPitchRollFloat = 3,
     /// Heading, pitch, roll, aux antenna positions with fixed ambiguities.
     HeadingPitchRollFixed = 4,
+    /// INS attitude is not fused with GNSS attitude.
+    InsNotFused = 5,
+    /// INS attitude is fused with GNSS attitude.
+    InsFused = 6,
+    /// Unrecognized attitude mode code.
+    #[num_enum(catch_all)]
+    Unknown(u16),
 }
 
-impl From<u16> for AttitudeMode {
-    fn from(value: u16) -> Self {
-        match value & 0x0F {
-            0 => AttitudeMode::NoAttitude,
-            1 => AttitudeMode::HeadingPitchFloat,
-            2 => AttitudeMode::HeadingPitchFixed,
-            3 => AttitudeMode::HeadingPitchRollFloat,
-            4 => AttitudeMode::HeadingPitchRollFixed,
-            _ => AttitudeMode::NoAttitude,
-        }
+#[allow(clippy::derivable_impls)]
+impl Default for AttitudeMode {
+    fn default() -> Self {
+        AttitudeMode::NoAttitude
     }
 }
 
@@ -39,6 +43,9 @@ impl fmt::Display for AttitudeMode {
             AttitudeMode::HeadingPitchFixed => write!(f, "Heading+Pitch Fixed"),
             AttitudeMode::HeadingPitchRollFloat => write!(f, "Heading+Pitch+Roll Float"),
             AttitudeMode::HeadingPitchRollFixed => write!(f, "Heading+Pitch+Roll Fixed"),
+            AttitudeMode::InsNotFused => write!(f, "INS Not Fused With GNSS Attitude"),
+            AttitudeMode::InsFused => write!(f, "INS Fused With GNSS Attitude"),
+            AttitudeMode::Unknown(x) => write!(f, "Unknown({x})"),
         }
     }
 }
