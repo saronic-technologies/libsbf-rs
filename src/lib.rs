@@ -26,13 +26,13 @@ mod mega_test;
 
 // Re-export all message types at crate level
 pub use messages::{
-    AGCState, ArpOffset, AttCovEuler, AttEuler, AttitudeMode, AuxAntPositionSub, AuxAntPositions,
-    BDSIon, BaseVectorCart, BaseVectorGeod, BaselineError, ChannelSatInfo, ChannelStateInfo,
-    ChannelStatus, Commands, Comment, Datum, DiffCorrIn, DiffCorrMode, DiffCorrSource, DiffCorrType,
-    DiskData, DiskStatus, DiskStatusFlags, EndOfAtt, EndOfMeas, EndOfPVT, EventPolarity,
-    EventSource, ExtError, ExtEvent, ExtEventINSNavCart, ExtEventINSNavCartAtt,
-    ExtEventINSNavCartAttStdDev, ExtEventINSNavCartPosStdDev, ExtEventINSNavCartVel,
-    ExtEventINSNavCartVelStdDev, ExtEventINSNavGeod, ExtEventINSNavGeodAtt,
+    AGCState, AmbiguityType, ArpOffset, AttCovEuler, AttEuler, AttitudeMode, AuxAntPositionSub,
+    AuxAntPositions, BDSIon, BaseVectorCart, BaseVectorGeod, BaselineError, ChannelSatInfo,
+    ChannelStateInfo, ChannelStatus, Commands, Comment, Datum, DiffCorrIn, DiffCorrMode,
+    DiffCorrSource, DiffCorrType, DiskData, DiskStatus, DiskStatusFlags, EndOfAtt, EndOfMeas,
+    EndOfPVT, EventPolarity, EventSource, ExtError, ExtEvent, ExtEventINSNavCart,
+    ExtEventINSNavCartAtt, ExtEventINSNavCartAttStdDev, ExtEventINSNavCartPosStdDev,
+    ExtEventINSNavCartVel, ExtEventINSNavCartVelStdDev, ExtEventINSNavGeod, ExtEventINSNavGeodAtt,
     ExtEventINSNavGeodAttStdDev, ExtEventINSNavGeodPosStdDev, ExtEventINSNavGeodVel,
     ExtEventINSNavGeodVelStdDev, ExtSensorInfo, ExtSensorMeas, ExtSensorMeasAcceleration,
     ExtSensorMeasAngularRate, ExtSensorMeasInfo, ExtSensorMeasObsInfo, ExtSensorMeasSet,

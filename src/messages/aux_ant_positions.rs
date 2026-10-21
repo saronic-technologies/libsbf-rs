@@ -1,6 +1,20 @@
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
+use num_enum::{FromPrimitive, IntoPrimitive};
+
+/// Carrier phase ambiguity resolution behind an aux antenna position.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[repr(u8)]
+pub enum AmbiguityType {
+    /// Position obtained with fixed ambiguities.
+    Fixed = 0,
+    /// Position obtained with float ambiguities.
+    Float = 1,
+    /// Ambiguity type code not defined by the reference guide.
+    #[num_enum(catch_all)]
+    Unknown(u8),
+}
 
 /// Sub-block for a single auxiliary antenna position.
 #[binrw]
@@ -10,9 +24,9 @@ pub struct AuxAntPositionSub {
     #[bw(map = binrw_util::unmap_u1)]
     pub nr_sv: Option<u8>,
     pub error: u8,
-    #[br(map = binrw_util::map_u1)]
-    #[bw(map = binrw_util::unmap_u1)]
-    pub ambiguity_type: Option<u8>,
+    #[br(map = binrw_util::map_u1_enum_opt)]
+    #[bw(map = binrw_util::unmap_u1_enum_opt)]
+    pub ambiguity_type: Option<AmbiguityType>,
     pub aux_ant_id: u8,
     #[br(map = binrw_util::map_f8)]
     #[bw(map = binrw_util::unmap_f8)]

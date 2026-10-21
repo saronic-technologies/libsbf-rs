@@ -57,7 +57,7 @@ pub mod x_pps_offset;
 
 pub use att_cov_euler::AttCovEuler;
 pub use att_euler::{AttEuler, AttitudeMode, BaselineError};
-pub use aux_ant_positions::{AuxAntPositionSub, AuxAntPositions};
+pub use aux_ant_positions::{AmbiguityType, AuxAntPositionSub, AuxAntPositions};
 pub use base_vector_cart::{BaseVectorCart, VectorInfoCart};
 pub use base_vector_geod::{BaseVectorGeod, VectorInfoGeod};
 pub use bds_ion::BDSIon;
