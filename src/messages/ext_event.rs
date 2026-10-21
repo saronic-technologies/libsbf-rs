@@ -1,10 +1,11 @@
 use crate::util::binrw::{map_f4, map_f8, map_u2, map_u4, unmap_f4, unmap_f8, unmap_u2, unmap_u4};
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
 // ExtEvent Block 5924
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtEvent {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]
@@ -29,7 +30,7 @@ pub struct ExtEvent {
 }
 
 /// Event input pin source.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum EventSource {
     EventA,
     EventB,
@@ -47,7 +48,7 @@ impl From<u8> for EventSource {
 }
 
 /// Event polarity.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub enum EventPolarity {
     Rising,
     Falling,

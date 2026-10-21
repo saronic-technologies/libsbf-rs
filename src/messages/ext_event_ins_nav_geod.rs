@@ -4,11 +4,12 @@ use crate::util::binrw::{
     unmap_u1_enum, unmap_u1_enum_opt, unmap_u2, unmap_u4,
 };
 use binrw::binrw;
+use serde::Serialize;
 
 // ExtEventINSNavGeod Block 4230
 // Same structure as INSNavGeod, but at external event time.
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtEventINSNavGeod {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]
@@ -67,7 +68,7 @@ pub struct ExtEventINSNavGeod {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtEventINSNavGeodPosStdDev {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -81,7 +82,7 @@ pub struct ExtEventINSNavGeodPosStdDev {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtEventINSNavGeodAtt {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -95,7 +96,7 @@ pub struct ExtEventINSNavGeodAtt {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtEventINSNavGeodAttStdDev {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -109,7 +110,7 @@ pub struct ExtEventINSNavGeodAttStdDev {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtEventINSNavGeodVel {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -123,7 +124,7 @@ pub struct ExtEventINSNavGeodVel {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtEventINSNavGeodVelStdDev {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]

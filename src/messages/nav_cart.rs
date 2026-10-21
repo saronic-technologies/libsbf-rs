@@ -2,18 +2,22 @@ use super::common::{
     AttitudeMode, Datum, PppInfo, PvtError, PvtMisc, RawAlertFlag, RawAttitudeError, RawPvtMode,
     RawWaCorrInfo, TimeSystem,
 };
-use crate::util::binrw::{
-    map_f4, map_f8, map_i1, map_u1, map_u1_enum, map_u1_enum_opt, map_u1_zero, map_u2, map_u2_zero,
-    map_u4, map_u64_zero, unmap_f4, unmap_f8, unmap_i1, unmap_u1, unmap_u1_enum, unmap_u1_enum_opt,
-    unmap_u1_zero, unmap_u2, unmap_u2_zero, unmap_u4, unmap_u64_zero,
+use crate::util::{
+    binrw::{
+        map_f4, map_f8, map_i1, map_u1, map_u1_enum, map_u1_enum_opt, map_u1_zero, map_u2,
+        map_u2_zero, map_u4, map_u64_zero, unmap_f4, unmap_f8, unmap_i1, unmap_u1, unmap_u1_enum,
+        unmap_u1_enum_opt, unmap_u1_zero, unmap_u2, unmap_u2_zero, unmap_u4, unmap_u64_zero,
+    },
+    serde::flag_bits,
 };
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
 // NavCart Block 4272
 // Combined PVTCartesian + AttEuler + DOP + ReceiverTime fields.
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct NavCart {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]
@@ -102,6 +106,7 @@ pub struct NavCart {
     pub vel_v_acc: Option<u16>,
     #[br(map = PvtMisc::from_bits_retain)]
     #[bw(map = |x: &PvtMisc| x.bits())]
+    #[serde(serialize_with = "flag_bits")]
     pub misc: PvtMisc,
     _reserved: u8,
     // Attitude fields (from AttEuler)

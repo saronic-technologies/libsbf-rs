@@ -4,10 +4,11 @@ use crate::util::{
 };
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
 // GLONav Block 4004
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct GLONav {
     /// SIS time stamp, in 0.001 s.
     #[br(map = map_u4)]

@@ -1,10 +1,11 @@
 use super::common::{AttitudeMode, RawAttitudeError};
 use crate::util::binrw::{map_f4, map_u1, map_u2, map_u4, unmap_f4, unmap_u1, unmap_u2, unmap_u4};
 use binrw::binrw;
+use serde::Serialize;
 
 // Attitude Euler Block 5938
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct AttEuler {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]

@@ -1,15 +1,20 @@
 use super::common::{ConnectionPort, ExtSensorModel};
-use crate::util::binrw::{
-    map_f4, map_f8, map_i2, map_u1_enum, map_u2, map_u2_zero, map_u4, unmap_f4, unmap_f8, unmap_i2,
-    unmap_u1_enum, unmap_u2, unmap_u2_zero, unmap_u4, unwrap_subblocks, wrap_subblocks,
+use crate::util::{
+    binrw::{
+        map_f4, map_f8, map_i2, map_u1_enum, map_u2, map_u2_zero, map_u4, unmap_f4, unmap_f8,
+        unmap_i2, unmap_u1_enum, unmap_u2, unmap_u2_zero, unmap_u4, unwrap_subblocks,
+        wrap_subblocks,
+    },
+    serde::flag_bits,
 };
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
+use serde::Serialize;
 
 // External Sensor Measurement Block 4050
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtSensorMeas {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]
@@ -53,7 +58,7 @@ bitflags! {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtSensorMeasSet {
     #[br(map = map_u1_enum)]
     #[bw(map = unmap_u1_enum)]
@@ -64,6 +69,7 @@ pub struct ExtSensorMeasSet {
     pub type_: u8,
     #[br(map = |x: u8| ExtSensorMeasObsInfo::from_bits_retain(x))]
     #[bw(map = |x: &ExtSensorMeasObsInfo| x.bits())]
+    #[serde(serialize_with = "flag_bits")]
     pub obs_info: ExtSensorMeasObsInfo,
 
     #[br(if(type_ == ExtSensorMeasSetType::Acceleration as u8))]
@@ -79,7 +85,7 @@ pub struct ExtSensorMeasSet {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtSensorMeasAcceleration {
     #[br(map = map_f8)]
     #[bw(map = unmap_f8)]
@@ -93,7 +99,7 @@ pub struct ExtSensorMeasAcceleration {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtSensorMeasAngularRate {
     #[br(map = map_f8)]
     #[bw(map = unmap_f8)]
@@ -107,7 +113,7 @@ pub struct ExtSensorMeasAngularRate {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtSensorMeasVelocity {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -130,7 +136,7 @@ pub struct ExtSensorMeasVelocity {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtSensorMeasInfo {
     #[br(map = map_i2)]
     #[bw(map = unmap_i2)]
@@ -143,7 +149,7 @@ pub struct ExtSensorMeasInfo {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtSensorMeasZeroVelocityFlag {
     pub zero_v_flag: f64,
     pub _reserved: [u8; 16],

@@ -1,10 +1,14 @@
-use crate::util::binrw::{
-    map_u1, map_u2, map_u4, map_u4_zero, unmap_u1, unmap_u2, unmap_u4, unmap_u4_zero,
-    unwrap_subblocks, wrap_subblocks,
+use crate::util::{
+    binrw::{
+        map_u1, map_u2, map_u4, map_u4_zero, unmap_u1, unmap_u2, unmap_u4, unmap_u4_zero,
+        unwrap_subblocks, wrap_subblocks,
+    },
+    serde::flag_bits,
 };
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
+use serde::Serialize;
 
 bitflags! {
     /// Status bit field of a [`DiskData`] sub-block.
@@ -25,7 +29,7 @@ bitflags! {
 
 // DiskStatus Block 4059
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct DiskStatus {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]
@@ -43,12 +47,13 @@ pub struct DiskStatus {
 
 // DiskData sub-block
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct DiskData {
     /// Disk identifier, starting at 1 for the internal SD card.
     pub disk_id: u8,
     #[br(map = |x: u8| DiskStatusFlags::from_bits_retain(x))]
     #[bw(map = |x: &DiskStatusFlags| x.bits())]
+    #[serde(serialize_with = "flag_bits")]
     pub status: DiskStatusFlags,
     /// 16 most-significant bits of the disk usage in bytes.
     #[br(map = map_u2)]

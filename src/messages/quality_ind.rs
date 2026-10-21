@@ -3,12 +3,13 @@ use alloc::vec::Vec;
 use binrw::binrw;
 use core::fmt;
 use num_enum::{FromPrimitive, IntoPrimitive};
+use serde::Serialize;
 
 // Indicator value the receiver reports when the quality is unknown.
 const UNKNOWN_VALUE: u8 = 15;
 
 /// Kind of quality indicator, from bits 0-7 of an indicator word.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum QualityIndicatorType {
     /// Overall quality.
@@ -39,7 +40,7 @@ pub enum QualityIndicatorType {
 
 /// One quality indicator word: its kind and its value.
 #[binrw]
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Serialize)]
 pub struct QualityIndicator(u16);
 
 impl QualityIndicator {
@@ -79,7 +80,7 @@ impl From<QualityIndicator> for u16 {
 
 // Quality Indicator Block 4082
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct QualityInd {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]

@@ -4,10 +4,11 @@ use crate::util::binrw::{
     unmap_u1_enum, unmap_u1_enum_opt, unmap_u2, unmap_u4,
 };
 use binrw::binrw;
+use serde::Serialize;
 
 // INS Nav Geod Block 4226
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavGeod {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]
@@ -73,7 +74,7 @@ pub struct INSNavGeod {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavGeodPosStdDev {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -87,7 +88,7 @@ pub struct INSNavGeodPosStdDev {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavGeodAtt {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -101,7 +102,7 @@ pub struct INSNavGeodAtt {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavGeodAttStdDev {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -115,7 +116,7 @@ pub struct INSNavGeodAttStdDev {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavGeodVel {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -129,7 +130,7 @@ pub struct INSNavGeodVel {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavGeodVelStdDev {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -143,7 +144,7 @@ pub struct INSNavGeodVelStdDev {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavGeodPosCov {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -157,7 +158,7 @@ pub struct INSNavGeodPosCov {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavGeodVelCov {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -171,7 +172,7 @@ pub struct INSNavGeodVelCov {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavGeodAttCov {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]

@@ -2,9 +2,10 @@ use binrw::binrw;
 use bitflags::bitflags;
 use core::fmt;
 use num_enum::{FromPrimitive, IntoPrimitive};
+use serde::Serialize;
 
 /// PVT mode (bits 0-3 of mode field).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum PvtMode {
     NoPvt = 0,
@@ -70,7 +71,7 @@ bitflags! {
 
 /// The raw Mode byte of the PVT blocks, which decodes into the PVT mode and the mode flags.
 #[binrw]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub struct RawPvtMode(u8);
 
 impl RawPvtMode {
@@ -86,7 +87,7 @@ impl RawPvtMode {
 }
 
 /// Coordinate datum.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum Datum {
     /// WGS84/ITRS.
@@ -136,7 +137,7 @@ impl Default for Datum {
 }
 
 /// Time system that the receiver clock bias in a PVT block refers to.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum TimeSystem {
     /// GPS time.
@@ -157,7 +158,7 @@ pub enum TimeSystem {
 }
 
 /// PVT error codes.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum PvtError {
     None = 0,
@@ -202,7 +203,7 @@ bitflags! {
 }
 
 /// Differential correction type (bits 5-6 of wa_corr_info).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize)]
 #[repr(u8)]
 pub enum DiffCorrType {
     #[default]
@@ -227,7 +228,7 @@ impl From<u8> for DiffCorrType {
 /// The raw WACorrInfo byte of the PVT blocks, which decodes into the wide area correction flags
 /// and the differential correction type.
 #[binrw]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub struct RawWaCorrInfo(u8);
 
 impl RawWaCorrInfo {
@@ -243,7 +244,7 @@ impl RawWaCorrInfo {
 }
 
 /// RAIM integrity status (bits 0-1 of alert_flag).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize)]
 #[repr(u8)]
 pub enum RaimIntegrity {
     #[default]
@@ -268,7 +269,7 @@ impl From<u8> for RaimIntegrity {
 /// The raw AlertFlag byte of the PVT blocks, which decodes into the RAIM integrity status and the
 /// integrity and authentication alerts.
 #[binrw]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub struct RawAlertFlag(u8);
 
 impl RawAlertFlag {
@@ -300,7 +301,7 @@ impl RawAlertFlag {
 }
 
 /// Type of the last PPP seed, from bits 13-15 of ppp_info.
-#[derive(Debug, Clone, Copy, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum PppSeedType {
     /// Not seeded or not in PPP positioning mode.
@@ -314,7 +315,7 @@ pub enum PppSeedType {
 
 /// Whether the marker position reported in a block is also the ARP position,
 /// from bits 6-7 of misc.
-#[derive(Debug, Clone, Copy, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum ArpOffset {
     Unknown = 0,
@@ -329,7 +330,7 @@ pub enum ArpOffset {
 /// PPPInfo bit field of the PVT blocks: the seed age in bits 0-11 and the
 /// seed type in bits 13-15.
 #[binrw]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub struct PppInfo(u16);
 
 impl PppInfo {
@@ -376,7 +377,7 @@ impl PvtMisc {
 ///
 /// INS blocks use codes 0, 5-6 in firmware versions after 1.5.0
 /// instead of copying 0-4 from the attitude.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u16)]
 pub enum AttitudeMode {
     NoAttitude = 0,
@@ -420,7 +421,7 @@ impl fmt::Display for AttitudeMode {
 }
 
 /// Baseline error code (2 bits per baseline).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize)]
 #[repr(u8)]
 pub enum BaselineError {
     #[default]
@@ -445,7 +446,7 @@ impl From<u8> for BaselineError {
 /// The raw Error byte of the attitude blocks, which decodes into the error code of each antenna
 /// baseline and whether attitude was requested.
 #[binrw]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub struct RawAttitudeError(u8);
 
 impl RawAttitudeError {
@@ -466,7 +467,7 @@ impl RawAttitudeError {
 }
 
 /// Combined GNSS mode containing PVT mode (bits 0-3) and attitude mode (bits 4-7).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub struct GnssMode {
     raw: u8,
     pub pvt_mode: PvtMode,
@@ -496,7 +497,7 @@ impl fmt::Display for GnssMode {
 }
 
 /// INS coupling mode (bits 0-2 of info field).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum INSCouplingMode {
     LooselyCoupled = 0,
@@ -521,7 +522,7 @@ impl From<u16> for INSCouplingMode {
 }
 
 /// Solution output location (bits 3-5 of info field).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum INSSolutionLocation {
     MainGnssAntenna = 0,
@@ -550,7 +551,7 @@ impl From<u16> for INSSolutionLocation {
 /// The raw Info field of the INS blocks, which decodes into the INS coupling mode, the solution
 /// output location and the INS status flags.
 #[binrw]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 pub struct RawInsInfo(u16);
 
 impl RawInsInfo {
@@ -581,7 +582,7 @@ impl RawInsInfo {
 }
 
 /// INS error codes.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum INSError {
     None = 0,
@@ -623,7 +624,7 @@ impl Default for INSError {
 ///
 /// Used by ExtSensorMeas, ExtSensorStatus, ExtSensorInfo, IMUSetup and VelSensorSetup to
 /// identify the receiver port an external sensor is connected to.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum ConnectionPort {
     Com1 = 0,
@@ -691,7 +692,7 @@ impl fmt::Display for ConnectionPort {
 }
 
 /// External sensor model.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum ExtSensorModel {
     /// Ellipse from SBG Systems.
@@ -733,7 +734,7 @@ impl fmt::Display for ExtSensorModel {
 }
 
 /// The Galileo navigation message type from which a block's data has been decoded.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum GalMessageType {
     /// I/NAV, which carries the (L1,E5b) clock model.
@@ -746,7 +747,7 @@ pub enum GalMessageType {
 }
 
 /// Rise/set state of a satellite.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize)]
 pub enum RiseSet {
     Setting,
     Rising,

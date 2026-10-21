@@ -6,6 +6,7 @@ use crate::util::{
 };
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
 // Step of the high-resolution C/N0 extension, in dB-Hz.
 const CN0_HIGH_RES_STEP_DB_HZ: f32 = 0.03125;
@@ -20,7 +21,7 @@ const CARRIER_MP_CORR_STEP_CYCLES: f64 = 1.0 / 512.0;
 
 // MeasExtra Block 4000
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct MeasExtra {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]
@@ -40,7 +41,7 @@ pub struct MeasExtra {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct MeasExtraChannelSub {
     pub rx_channel: u8,
     pub type_field: u8,

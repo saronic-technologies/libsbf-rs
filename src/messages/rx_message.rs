@@ -1,10 +1,11 @@
 use crate::util::binrw::{map_u2, map_u4, map_u4_zero, unmap_u2, unmap_u4, unmap_u4_zero};
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
 // RxMessage Block 4103
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct RxMessage {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]

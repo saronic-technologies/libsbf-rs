@@ -1,13 +1,14 @@
 use crate::util::binrw::{map_u2, map_u4, unmap_u2, unmap_u4};
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
 // Meas3Ranges Block 4109
 // NOTE: The exact structure of this message is not documented in the SBF reference.
 // The documentation states that the reference C implementation should be used to
 // parse these messages. For now, we store the raw bytes.
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct Meas3Ranges {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]

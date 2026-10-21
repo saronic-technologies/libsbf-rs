@@ -6,9 +6,10 @@ use crate::util::binrw::{
 use alloc::vec::Vec;
 use binrw::binrw;
 use num_enum::{FromPrimitive, IntoPrimitive};
+use serde::Serialize;
 
 /// Base station type.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum BaseType {
     /// Fixed base station.
@@ -24,7 +25,7 @@ pub enum BaseType {
 /// coordinates: the L1 phase center for RTCM 2.x message 3, CMR 2.x message 1 and CMR+
 /// type 2, the antenna reference point for RTCM 2.x message 24 and RTCM 3.x messages 1005
 /// and 1006, and a proprietary point for RTCMV message 3.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum BaseStationSource {
     /// RTCM 2.x, message 3.
@@ -46,7 +47,7 @@ pub enum BaseStationSource {
 
 // BaseStation Block 5949
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct BaseStation {
     /// Receiver time stamp, in 0.001 s.
     #[br(map = map_u4)]

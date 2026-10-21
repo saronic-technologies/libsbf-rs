@@ -1,7 +1,11 @@
-use crate::util::binrw::{map_f4, map_u2, map_u4, unmap_f4, unmap_u2, unmap_u4};
+use crate::util::{
+    binrw::{map_f4, map_u2, map_u4, unmap_f4, unmap_u2, unmap_u4},
+    serde::flag_bits,
+};
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
+use serde::Serialize;
 
 bitflags! {
     /// Flags bit field of the [`GPSCNav`] block.
@@ -22,7 +26,7 @@ bitflags! {
 
 // GPSCNav Block 4042
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct GPSCNav {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]
@@ -33,6 +37,7 @@ pub struct GPSCNav {
     pub prn: u8,
     #[br(map = |x: u8| GPSCNavFlags::from_bits_retain(x))]
     #[bw(map = |x: &GPSCNavFlags| x.bits())]
+    #[serde(serialize_with = "flag_bits")]
     pub flags: GPSCNavFlags,
     pub wn: u16,
     pub health: u8,

@@ -1,10 +1,11 @@
 use crate::util::binrw::{map_f4, map_u2, map_u4, unmap_f4, unmap_u2, unmap_u4};
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
 // BDSNav Block 4081
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct BDSNav {
     /// SIS time stamp, in 0.001 s.
     #[br(map = map_u4)]

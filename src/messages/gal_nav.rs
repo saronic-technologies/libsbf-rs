@@ -1,15 +1,19 @@
 use super::common::GalMessageType;
-use crate::util::binrw::{
-    map_f4, map_u1, map_u1_enum, map_u2, map_u4, unmap_f4, unmap_u1, unmap_u1_enum, unmap_u2,
-    unmap_u4,
+use crate::util::{
+    binrw::{
+        map_f4, map_u1, map_u1_enum, map_u2, map_u4, unmap_f4, unmap_u1, unmap_u1_enum, unmap_u2,
+        unmap_u4,
+    },
+    serde::flag_bits,
 };
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
+use serde::Serialize;
 
 // GALNav Block 4002
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct GALNav {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]
@@ -46,6 +50,7 @@ pub struct GALNav {
     pub iod_nav: u16,
     #[br(map = GALNavHealthOssol::from_bits_retain)]
     #[bw(map = |x: &GALNavHealthOssol| x.bits())]
+    #[serde(serialize_with = "flag_bits")]
     pub health_ossol: GALNavHealthOssol,
     pub health_prs: u8,
     #[br(map = map_u1)]
@@ -76,7 +81,7 @@ pub struct GALNav {
 /// Health of one Galileo signal from the Health_OSSOL bit field: the 1-bit
 /// Data Validity Status and 2-bit Health Status defined in the Galileo
 /// Signal-In-Space ICD.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Serialize)]
 pub struct GalSignalHealth {
     /// DVS bit: the signal is working without guarantee.
     pub working_without_guarantee: bool,

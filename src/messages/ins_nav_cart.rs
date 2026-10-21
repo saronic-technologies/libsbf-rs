@@ -4,10 +4,11 @@ use crate::util::binrw::{
     unmap_u1_enum, unmap_u1_enum_opt, unmap_u2, unmap_u4,
 };
 use binrw::binrw;
+use serde::Serialize;
 
 // INSNavCart Block 4225
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavCart {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]
@@ -69,7 +70,7 @@ pub struct INSNavCart {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavCartPosStdDev {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -83,7 +84,7 @@ pub struct INSNavCartPosStdDev {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavCartAtt {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -97,7 +98,7 @@ pub struct INSNavCartAtt {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavCartAttStdDev {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -111,7 +112,7 @@ pub struct INSNavCartAttStdDev {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavCartVel {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -125,7 +126,7 @@ pub struct INSNavCartVel {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavCartVelStdDev {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -139,7 +140,7 @@ pub struct INSNavCartVelStdDev {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavCartPosCov {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -153,7 +154,7 @@ pub struct INSNavCartPosCov {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavCartVelCov {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -167,7 +168,7 @@ pub struct INSNavCartVelCov {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct INSNavCartAttCov {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]

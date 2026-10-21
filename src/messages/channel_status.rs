@@ -10,9 +10,10 @@ use alloc::vec::Vec;
 use binrw::binrw;
 use core::array::from_fn;
 use num_enum::FromPrimitive;
+use serde::Serialize;
 
 /// Health of one signal from a 2-bit status slot.
-#[derive(Clone, Copy, Debug, FromPrimitive)]
+#[derive(Clone, Copy, Debug, FromPrimitive, Serialize)]
 #[repr(u8)]
 pub enum SignalHealth {
     /// Health unknown or not applicable.
@@ -24,7 +25,7 @@ pub enum SignalHealth {
 }
 
 /// Tracking status of one signal from a 2-bit status slot.
-#[derive(Clone, Copy, Debug, FromPrimitive)]
+#[derive(Clone, Copy, Debug, FromPrimitive, Serialize)]
 #[repr(u8)]
 pub enum TrackingStatus {
     /// Idle or not applicable.
@@ -36,7 +37,7 @@ pub enum TrackingStatus {
 }
 
 /// PVT usage of one signal from a 2-bit status slot.
-#[derive(Clone, Copy, Debug, FromPrimitive)]
+#[derive(Clone, Copy, Debug, FromPrimitive, Serialize)]
 #[repr(u8)]
 pub enum PvtStatus {
     NotUsed = 0,
@@ -48,7 +49,7 @@ pub enum PvtStatus {
 
 // ChannelStatus Block 4013
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ChannelStatus {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]
@@ -70,7 +71,7 @@ pub struct ChannelStatus {
 // First-level header of a ChannelSatInfo sub-block. Internal wire type; the flat
 // public ChannelSatInfo is bridged from NestedBlock via From/Into.
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 struct ChannelSatInfoHeader {
     pub svid: u8,
     /// GLONASS frequency number with an offset of 8, from 1 to 14 for satellites launched
@@ -101,7 +102,7 @@ impl NestedHeader for ChannelSatInfoHeader {
 
 /// One satellite's channel status: the first-level header fields followed by its
 /// per-antenna state sub-blocks.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ChannelSatInfo {
     pub svid: u8,
     pub freq_nr: Option<u8>,
@@ -184,7 +185,7 @@ impl ChannelSatInfo {
 
 // ChannelStateInfo sub-sub-block
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ChannelStateInfo {
     /// Antenna number, 0 for the main antenna.
     pub antenna: u8,

@@ -1,15 +1,19 @@
 use super::common::{Datum, PvtError, PvtMisc, RawAlertFlag, RawPvtMode, RawWaCorrInfo};
-use crate::util::binrw::{
-    map_f4, map_f8, map_u1, map_u1_enum, map_u1_enum_opt, map_u2, map_u2_zero, map_u4, map_u4_zero,
-    unmap_f4, unmap_f8, unmap_u1, unmap_u1_enum, unmap_u1_enum_opt, unmap_u2, unmap_u2_zero,
-    unmap_u4, unmap_u4_zero,
+use crate::util::{
+    binrw::{
+        map_f4, map_f8, map_u1, map_u1_enum, map_u1_enum_opt, map_u2, map_u2_zero, map_u4,
+        map_u4_zero, unmap_f4, unmap_f8, unmap_u1, unmap_u1_enum, unmap_u1_enum_opt, unmap_u2,
+        unmap_u2_zero, unmap_u4, unmap_u4_zero,
+    },
+    serde::flag_bits,
 };
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
 // PosCart Block 4044
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct PosCart {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]
@@ -69,6 +73,7 @@ pub struct PosCart {
     pub vdop: Option<u16>,
     #[br(map = PvtMisc::from_bits_retain)]
     #[bw(map = |x: &PvtMisc| x.bits())]
+    #[serde(serialize_with = "flag_bits")]
     pub misc: PvtMisc,
     _reserved: u8,
     /// Bit field indicating integrity related information.
