@@ -98,7 +98,7 @@ pub use ext_sensor_meas::{
 pub use ext_sensor_status::{ConnectionPort, ExtSensorModel, ExtSensorStatus};
 pub use gal_gst_gps::GALGstGps;
 pub use gal_ion::{GALIon, GALIonStormFlags};
-pub use gal_nav::{GALNav, GALNavHealthOssol, GalSignalHealth};
+pub use gal_nav::{GALNav, GALNavHealthOssol, GalMessageType, GalSignalHealth};
 pub use gal_utc::GALUtc;
 pub use geo_nav::GEONav;
 pub use geo_raw_l1::GEORawL1;

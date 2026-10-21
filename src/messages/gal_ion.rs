@@ -1,3 +1,4 @@
+use super::gal_nav::GalMessageType;
 use crate::util::binrw::{map_u2, map_u4, unmap_u2, unmap_u4};
 use alloc::vec::Vec;
 use binrw::binrw;
@@ -27,7 +28,9 @@ pub struct GALIon {
     #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     pub svid: u8,
-    pub source: u8,
+    #[br(map = |x: u8| GalMessageType::from(x))]
+    #[bw(map = |x: &GalMessageType| u8::from(*x))]
+    pub source: GalMessageType,
     pub a_i0: f32,
     pub a_i1: f32,
     pub a_i2: f32,
@@ -36,10 +39,4 @@ pub struct GALIon {
     pub storm_flags: GALIonStormFlags,
     #[br(parse_with = binrw::helpers::until_eof)]
     pub padding: Vec<u8>,
-}
-
-impl GALIon {
-    // Source constants
-    pub const SOURCE_INAV: u8 = 2;
-    pub const SOURCE_FNAV: u8 = 16;
 }

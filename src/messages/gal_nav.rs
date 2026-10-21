@@ -2,6 +2,20 @@ use crate::util::binrw::{map_f4, map_u1, map_u2, map_u4, unmap_f4, unmap_u1, unm
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
+use num_enum::{FromPrimitive, IntoPrimitive};
+
+/// The Galileo navigation message type from which a block's data has been decoded.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[repr(u8)]
+pub enum GalMessageType {
+    /// I/NAV, which carries the (L1,E5b) clock model.
+    INav = 2,
+    /// F/NAV, which carries the (L1,E5a) clock model.
+    FNav = 16,
+    /// Message type code not defined by the reference guide.
+    #[num_enum(catch_all)]
+    Unknown(u8),
+}
 
 // GALNav Block 4002
 #[binrw]
@@ -14,7 +28,9 @@ pub struct GALNav {
     #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     pub svid: u8,
-    pub source: u8,
+    #[br(map = |x: u8| GalMessageType::from(x))]
+    #[bw(map = |x: &GalMessageType| u8::from(*x))]
+    pub source: GalMessageType,
     pub sqrt_a: f64,
     pub m_0: f64,
     pub e: f64,
@@ -161,10 +177,6 @@ impl GALNavHealthOssol {
 }
 
 impl GALNav {
-    // Source constants
-    pub const SOURCE_INAV: u8 = 2; // I/NAV (L1,E5b)
-    pub const SOURCE_FNAV: u8 = 16; // F/NAV (L1,E5a)
-
     // CNAVenc bit masks
     pub const CNAV_E6B_UNENCRYPTED: u8 = 0x01;
     pub const CNAV_E6C_UNENCRYPTED: u8 = 0x02;
