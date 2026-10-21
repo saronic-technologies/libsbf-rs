@@ -3,9 +3,9 @@ mod tests {
     use crate::{
         reader::SbfReader, AuxAntPositions, BaseVectorCart, BaseVectorGeod, ChannelStatus, Comment,
         DiskStatus, EndOfAtt, EndOfPVT, ExtEvent, ExtEventINSNavCart, ExtEventINSNavGeod,
-        ExtSensorMeas, INSNavCart, INSNavGeod, ImuSetup, MeasEpoch, MeasExtra, Messages, NavCart,
-        PVTCartesian, PVTGeodetic, PosCart, PosLocal, QualityInd, RFStatus, ReceiverStatus,
-        ReceiverTime, RxMessage, SatVisibility,
+        ExtSensorMeas, GLONav, INSNavCart, INSNavGeod, ImuSetup, MeasEpoch, MeasExtra, Messages,
+        NavCart, PVTCartesian, PVTGeodetic, PosCart, PosLocal, QualityInd, RFStatus,
+        ReceiverStatus, ReceiverTime, RxMessage, SatVisibility,
     };
     use binrw::{io::Cursor, BinRead, BinWrite};
     use std::collections::HashMap;
@@ -70,6 +70,7 @@ mod tests {
             "GALUtc",
             "GEONav",
             "GEORawL1",
+            "GLONav",
             "GPSCNav",
             "GPSIon",
             "GPSNav",
@@ -131,6 +132,7 @@ mod tests {
         assert_eq!(message_counts.get("RxMessage").copied().unwrap_or(0), 1, "expected 1 RxMessage");
         assert_eq!(message_counts.get("Comment").copied().unwrap_or(0), 1, "expected 1 Comment");
         assert_eq!(message_counts.get("PosLocal").copied().unwrap_or(0), 1, "expected 1 PosLocal");
+        assert_eq!(message_counts.get("GLONav").copied().unwrap_or(0), 10, "expected 10 GLONav");
 
         println!("Mega test file validation passed!");
         println!("Total messages: {}", total_messages);
@@ -324,6 +326,7 @@ mod tests {
             let body = &data[i + 8..i + length];
             match block {
                 4000 => round_trip::<MeasExtra>(body, block, &mut round_tripped),
+                4004 => round_trip::<GLONav>(body, block, &mut round_tripped),
                 4006 => round_trip::<PVTCartesian>(body, block, &mut round_tripped),
                 4007 => round_trip::<PVTGeodetic>(body, block, &mut round_tripped),
                 4012 => round_trip::<SatVisibility>(body, block, &mut round_tripped),

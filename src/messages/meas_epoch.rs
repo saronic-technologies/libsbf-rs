@@ -1,7 +1,7 @@
 use crate::{
     util::{
         binrw::{map_u1, map_u2, map_u4, unmap_u1, unmap_u2, unmap_u4},
-        signal::{cn0_db_hz, signal_number},
+        signal::{cn0_db_hz, glonass_frequency_number, signal_number},
     },
     NestedBlock, NestedHeader, SubBlock,
 };
@@ -33,8 +33,6 @@ bitflags! {
 
 // SigIdxLo values that denote GLONASS signals.
 const GLONASS_SIG_NRS: RangeInclusive<u8> = 8..=11;
-// Offset subtracted from the ObsInfo extension bits to form the frequency number.
-const GLONASS_FREQ_NR_OFFSET: i8 = 8;
 
 bitflags! {
     /// ObsInfo bit field of the MeasEpoch channel sub-blocks.
@@ -201,7 +199,7 @@ impl MeasEpochChannelType1 {
     pub fn glonass_freq_nr(&self) -> Option<i8> {
         let sig_idx_lo = self.type_field & 0x1F;
         if GLONASS_SIG_NRS.contains(&sig_idx_lo) {
-            Some(self.obs_info.sig_idx_hi() as i8 - GLONASS_FREQ_NR_OFFSET)
+            Some(glonass_frequency_number(self.obs_info.sig_idx_hi()))
         } else {
             None
         }

@@ -8,6 +8,8 @@ const CN0_STEP_DB_HZ: f32 = 0.25;
 const CN0_OFFSET_DB_HZ: f32 = 10.0;
 // Signal numbers whose C/N0 has no offset: GPS L1P and L2P.
 const CN0_NO_OFFSET_SIG_NRS: [u8; 2] = [1, 2];
+// Offset of a GLONASS frequency number as SBF stores it.
+const GLONASS_FREQ_NR_OFFSET: i8 = 8;
 
 /// Signal number per section 4.1.10 of the reference guide, from bits 0-4 of a
 /// type field. When those bits read the escape value 31, the signal number is
@@ -30,6 +32,11 @@ pub(crate) fn cn0_db_hz(cn0: u8, signal_number: u8) -> f32 {
     } else {
         cn0 + CN0_OFFSET_DB_HZ
     }
+}
+
+/// GLONASS frequency number from -7 to 6, from a value SBF stores with an offset of 8.
+pub(crate) fn glonass_frequency_number(stored: u8) -> i8 {
+    stored as i8 - GLONASS_FREQ_NR_OFFSET
 }
 
 #[cfg(test)]
