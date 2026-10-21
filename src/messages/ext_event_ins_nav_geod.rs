@@ -2,8 +2,8 @@ use super::common::{
     AttitudeMode, Datum, GnssMode, INSCouplingMode, INSError, INSSolutionLocation, PvtMode,
 };
 use crate::util::binrw::{
-    map_f4, map_f8, map_u1_enum_opt, map_u2, map_u4, unmap_f4, unmap_f8, unmap_u1_enum_opt,
-    unmap_u2, unmap_u4,
+    map_f4, map_f8, map_u1_enum, map_u1_enum_opt, map_u2, map_u4, unmap_f4, unmap_f8,
+    unmap_u1_enum, unmap_u1_enum_opt, unmap_u2, unmap_u4,
 };
 use binrw::binrw;
 
@@ -19,7 +19,10 @@ pub struct ExtEventINSNavGeod {
     #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     gnss_mode_raw: u8,
-    pub error: u8,
+    /// INS error code.
+    #[br(map = map_u1_enum)]
+    #[bw(map = unmap_u1_enum)]
+    pub error: INSError,
     pub info: u16,
     #[br(map = map_u2)]
     #[bw(map = unmap_u2)]
@@ -144,11 +147,6 @@ impl ExtEventINSNavGeod {
     /// Last GNSS Attitude mode used by INS filter (bits 4-7 of gnss_mode).
     pub fn attitude_mode(&self) -> AttitudeMode {
         AttitudeMode::from((self.gnss_mode_raw >> 4) as u16)
-    }
-
-    /// INS error code.
-    pub fn ins_error(&self) -> INSError {
-        INSError::from(self.error)
     }
 
     /// INS coupling mode (bits 0-2 of info).
