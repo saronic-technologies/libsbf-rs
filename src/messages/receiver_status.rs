@@ -143,4 +143,9 @@ impl ReceiverStatus {
     pub fn setup_error(&self) -> bool {
         self.ext_error.contains(ExtError::SETUP)
     }
+
+    /// Receiver temperature in degrees Celsius, None at the Do-Not-Use value 0.
+    pub fn temperature_c(&self) -> Option<i16> {
+        (self.temperature != 0).then(|| i16::from(self.temperature) - 100)
+    }
 }
