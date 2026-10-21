@@ -1,4 +1,4 @@
-use super::pvt_geodetic::{
+use super::common::{
     Datum, DiffCorrType, PppInfo, PvtError, PvtMisc, PvtMode, PvtModeFlags, RaimIntegrity,
     TimeSystem, WACorrFlags,
 };

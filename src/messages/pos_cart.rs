@@ -1,4 +1,4 @@
-use super::pvt_geodetic::{
+use super::common::{
     Datum, DiffCorrType, PvtError, PvtMisc, PvtMode, PvtModeFlags, RaimIntegrity, WACorrFlags,
 };
 use crate::util::binrw::{

@@ -1,9 +1,6 @@
-use super::{
-    att_euler::{AttitudeMode, BaselineError},
-    pvt_geodetic::{
-        Datum, DiffCorrType, PppInfo, PvtError, PvtMisc, PvtMode, PvtModeFlags, RaimIntegrity,
-        TimeSystem, WACorrFlags,
-    },
+use super::common::{
+    AttitudeMode, BaselineError, Datum, DiffCorrType, PppInfo, PvtError, PvtMisc, PvtMode,
+    PvtModeFlags, RaimIntegrity, TimeSystem, WACorrFlags,
 };
 use crate::util::binrw::{
     map_f4, map_f8, map_i1, map_u1, map_u1_enum, map_u1_enum_opt, map_u1_zero, map_u2, map_u2_zero,

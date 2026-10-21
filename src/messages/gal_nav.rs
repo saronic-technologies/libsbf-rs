@@ -1,3 +1,4 @@
+use super::common::GalMessageType;
 use crate::util::binrw::{
     map_f4, map_u1, map_u1_enum, map_u2, map_u4, unmap_f4, unmap_u1, unmap_u1_enum, unmap_u2,
     unmap_u4,
@@ -5,20 +6,6 @@ use crate::util::binrw::{
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
-use num_enum::{FromPrimitive, IntoPrimitive};
-
-/// The Galileo navigation message type from which a block's data has been decoded.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
-#[repr(u8)]
-pub enum GalMessageType {
-    /// I/NAV, which carries the (L1,E5b) clock model.
-    INav = 2,
-    /// F/NAV, which carries the (L1,E5a) clock model.
-    FNav = 16,
-    /// Message type code not defined by the reference guide.
-    #[num_enum(catch_all)]
-    Unknown(u8),
-}
 
 // GALNav Block 4002
 #[binrw]

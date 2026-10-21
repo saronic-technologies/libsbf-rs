@@ -1,4 +1,4 @@
-use super::ext_sensor_status::{ConnectionPort, ExtSensorModel};
+use super::common::{ConnectionPort, ExtSensorModel};
 use crate::util::binrw::{map_u1_enum, map_u2, map_u4, unmap_u1_enum, unmap_u2, unmap_u4};
 use alloc::vec::Vec;
 use binrw::binrw;

@@ -1,4 +1,4 @@
-use super::sat_visibility::RiseSet;
+use super::common::RiseSet;
 use crate::util::{
     binrw::{
         map_i1, map_u1_zero, map_u2, map_u4, unmap_i1, unmap_u1_zero, unmap_u2, unmap_u4,

@@ -1,4 +1,4 @@
-use super::pvt_geodetic::{PvtError, PvtMisc, PvtMode, PvtModeFlags};
+use super::common::{PvtError, PvtMisc, PvtMode, PvtModeFlags};
 use crate::util::binrw::{
     map_f4, map_f8, map_i2, map_u1, map_u1_enum, map_u2, map_u4, map_u4_zero, unmap_f4, unmap_f8,
     unmap_i2, unmap_u1, unmap_u1_enum, unmap_u2, unmap_u4, unmap_u4_zero, unwrap_subblocks,

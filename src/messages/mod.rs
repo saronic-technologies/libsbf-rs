@@ -9,6 +9,7 @@ pub mod bds_nav;
 pub mod channel_status;
 pub mod commands;
 pub mod comment;
+mod common;
 pub mod diff_corr_in;
 pub mod disk_status;
 pub mod dop;
@@ -62,7 +63,7 @@ pub mod vel_sensor_setup;
 pub mod x_pps_offset;
 
 pub use att_cov_euler::AttCovEuler;
-pub use att_euler::{AttEuler, AttitudeMode, BaselineError};
+pub use att_euler::AttEuler;
 pub use aux_ant_positions::{AmbiguityType, AuxAntPositionSub, AuxAntPositions};
 pub use base_station::{BaseStation, BaseStationSource, BaseType};
 pub use base_vector_cart::{BaseVectorCart, VectorInfoCart};
@@ -74,6 +75,11 @@ pub use channel_status::{
 };
 pub use commands::Commands;
 pub use comment::Comment;
+pub use common::{
+    ArpOffset, AttitudeMode, BaselineError, ConnectionPort, Datum, DiffCorrType, ExtSensorModel,
+    GalMessageType, GnssMode, INSCouplingMode, INSError, INSSolutionLocation, PppInfo, PppSeedType,
+    PvtError, PvtMisc, PvtMode, PvtModeFlags, RaimIntegrity, RiseSet, TimeSystem, WACorrFlags,
+};
 pub use diff_corr_in::{DiffCorrIn, DiffCorrMode, DiffCorrSource};
 pub use disk_status::{DiskData, DiskStatus, DiskStatusFlags};
 pub use dop::DOP;
@@ -95,10 +101,10 @@ pub use ext_sensor_meas::{
     ExtSensorMeasObsInfo, ExtSensorMeasSet, ExtSensorMeasSetType, ExtSensorMeasVelocity,
     ExtSensorMeasZeroVelocityFlag,
 };
-pub use ext_sensor_status::{ConnectionPort, ExtSensorModel, ExtSensorStatus};
+pub use ext_sensor_status::ExtSensorStatus;
 pub use gal_gst_gps::GALGstGps;
 pub use gal_ion::{GALIon, GALIonStormFlags};
-pub use gal_nav::{GALNav, GALNavHealthOssol, GalMessageType, GalSignalHealth};
+pub use gal_nav::{GALNav, GALNavHealthOssol, GalSignalHealth};
 pub use gal_utc::GALUtc;
 pub use geo_nav::GEONav;
 pub use geo_raw_l1::GEORawL1;
@@ -113,9 +119,8 @@ pub use ins_nav_cart::{
     INSNavCartPosStdDev, INSNavCartVel, INSNavCartVelCov, INSNavCartVelStdDev,
 };
 pub use ins_nav_geod::{
-    GnssMode, INSCouplingMode, INSError, INSNavGeod, INSNavGeodAtt, INSNavGeodAttCov,
-    INSNavGeodAttStdDev, INSNavGeodPosCov, INSNavGeodPosStdDev, INSNavGeodVel, INSNavGeodVelCov,
-    INSNavGeodVelStdDev, INSSolutionLocation,
+    INSNavGeod, INSNavGeodAtt, INSNavGeodAttCov, INSNavGeodAttStdDev, INSNavGeodPosCov,
+    INSNavGeodPosStdDev, INSNavGeodVel, INSNavGeodVelCov, INSNavGeodVelStdDev,
 };
 pub use ins_support::INSSupport;
 pub use meas3_doppler::Meas3Doppler;
@@ -130,10 +135,7 @@ pub use pos_cov_cartesian::PosCovCartesian;
 pub use pos_cov_geodetic::PosCovGeodetic;
 pub use pos_local::PosLocal;
 pub use pvt_cartesian::PVTCartesian;
-pub use pvt_geodetic::{
-    ArpOffset, Datum, DiffCorrType, PVTGeodetic, PppInfo, PppSeedType, PvtError, PvtMisc, PvtMode,
-    PvtModeFlags, RaimIntegrity, TimeSystem, WACorrFlags,
-};
+pub use pvt_geodetic::PVTGeodetic;
 pub use quality_ind::{QualityInd, QualityIndicator, QualityIndicatorType};
 pub use qzs_nav::QZSNav;
 pub use receiver_setup::ReceiverSetup;
@@ -142,7 +144,7 @@ pub use receiver_time::ReceiverTime;
 pub use rf_status::{RFBand, RFBandMode, RFStatus, RFStatusFlags};
 pub use rtcm_datum::{HeightType, RTCMDatum, RtcmDatumQuality};
 pub use rx_message::RxMessage;
-pub use sat_visibility::{RiseSet, SatInfo, SatVisibility};
+pub use sat_visibility::{SatInfo, SatVisibility};
 pub use vel_cov_cartesian::VelCovCartesian;
 pub use vel_cov_geodetic::VelCovGeodetic;
 pub use vel_sensor_setup::VelSensorSetup;

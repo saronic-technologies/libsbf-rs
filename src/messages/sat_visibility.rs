@@ -1,3 +1,4 @@
+use super::common::RiseSet;
 use crate::util::{
     binrw::{
         map_i2, map_u1_enum, map_u1_zero, map_u2, map_u4, unmap_i2, unmap_u1_enum, unmap_u1_zero,
@@ -57,37 +58,5 @@ impl SatInfo {
     /// Only GLONASS satellites set it; for other satellites the value is reserved.
     pub fn frequency_number(&self) -> Option<i8> {
         self.freq_nr.map(glonass_frequency_number)
-    }
-}
-
-/// Rise/set state of a satellite.
-#[derive(Clone, Copy, Debug)]
-pub enum RiseSet {
-    Setting,
-    Rising,
-    Unknown,
-    Other(u8),
-}
-
-impl From<u8> for RiseSet {
-    fn from(value: u8) -> Self {
-        match value {
-            0 => RiseSet::Setting,
-            1 => RiseSet::Rising,
-            // 3 in the 2-bit ChannelStatus field, 255 in SatVisibility.
-            3 | 255 => RiseSet::Unknown,
-            other => RiseSet::Other(other),
-        }
-    }
-}
-
-impl From<RiseSet> for u8 {
-    fn from(value: RiseSet) -> Self {
-        match value {
-            RiseSet::Setting => 0,
-            RiseSet::Rising => 1,
-            RiseSet::Unknown => 255,
-            RiseSet::Other(other) => other,
-        }
     }
 }

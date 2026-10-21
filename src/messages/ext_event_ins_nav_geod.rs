@@ -1,7 +1,5 @@
-use super::{
-    att_euler::AttitudeMode,
-    ins_nav_geod::{GnssMode, INSCouplingMode, INSError, INSSolutionLocation},
-    pvt_geodetic::{Datum, PvtMode},
+use super::common::{
+    AttitudeMode, Datum, GnssMode, INSCouplingMode, INSError, INSSolutionLocation, PvtMode,
 };
 use crate::util::binrw::{
     map_f4, map_f8, map_u1_enum_opt, map_u2, map_u4, unmap_f4, unmap_f8, unmap_u1_enum_opt,

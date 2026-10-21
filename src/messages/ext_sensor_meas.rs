@@ -1,4 +1,4 @@
-use super::ext_sensor_status::{ConnectionPort, ExtSensorModel};
+use super::common::{ConnectionPort, ExtSensorModel};
 use crate::util::binrw::{
     map_f4, map_f8, map_i2, map_u1_enum, map_u2, map_u2_zero, map_u4, unmap_f4, unmap_f8, unmap_i2,
     unmap_u1_enum, unmap_u2, unmap_u2_zero, unmap_u4, unwrap_subblocks, wrap_subblocks,

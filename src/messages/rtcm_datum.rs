@@ -1,4 +1,4 @@
-use super::pvt_geodetic::Datum;
+use super::common::Datum;
 use crate::util::binrw::{
     map_u1_enum, map_u1_enum_opt, map_u2, map_u4, unmap_u1_enum, unmap_u1_enum_opt, unmap_u2,
     unmap_u4,
