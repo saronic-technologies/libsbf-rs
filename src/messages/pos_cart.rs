@@ -83,7 +83,9 @@ pub struct PosCart {
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]
     pub mean_corr_age: Option<u16>,
-    pub signal_info: u32,
+    #[br(map = binrw_util::map_u4_zero)]
+    #[bw(map = binrw_util::unmap_u4_zero)]
+    pub signal_info: Option<u32>,
     #[br(parse_with = binrw::helpers::until_eof)]
     pub padding: Vec<u8>,
 }

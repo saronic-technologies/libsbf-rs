@@ -82,7 +82,9 @@ pub struct ReceiverStatus {
     pub rx_error: RxError,
     pub n: u8,
     pub sb_length: u8,
-    pub cmd_count: u8,
+    #[br(map = binrw_util::map_u1_zero)]
+    #[bw(map = binrw_util::unmap_u1_zero)]
+    pub cmd_count: Option<u8>,
     pub temperature: u8,
     #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) }, map = binrw_util::unwrap_subblocks)]
     #[bw(args_raw = (usize::from(*sb_length),), map = binrw_util::wrap_subblocks)]
@@ -98,7 +100,9 @@ pub struct AGCState {
     #[br(map = binrw_util::map_i1)]
     #[bw(map = binrw_util::unmap_i1)]
     pub gain: Option<i8>,
-    pub sample_var: u8,
+    #[br(map = binrw_util::map_u1_zero)]
+    #[bw(map = binrw_util::unmap_u1_zero)]
+    pub sample_var: Option<u8>,
     pub blanking_stat: u8,
 }
 

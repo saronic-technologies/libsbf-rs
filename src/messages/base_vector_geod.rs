@@ -83,7 +83,9 @@ pub struct VectorInfoGeod {
     pub corr_age: Option<u16>,
     /// Signals with corrections available from this base station. Bit i is set for the
     /// signal with index i, and bit 0 is GPS L1 C/A.
-    pub signal_info: u32,
+    #[br(map = binrw_util::map_u4_zero)]
+    #[bw(map = binrw_util::unmap_u4_zero)]
+    pub signal_info: Option<u32>,
 }
 
 impl VectorInfoGeod {

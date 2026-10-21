@@ -94,6 +94,14 @@ pub(crate) fn unmap_u4_zero(x: &Option<u32>) -> u32 {
     x.unwrap_or(0)
 }
 
+pub(crate) fn map_u64_zero(x: u64) -> Option<u64> {
+    if x == 0 { None } else { Some(x) }
+}
+
+pub(crate) fn unmap_u64_zero(x: &Option<u64>) -> u64 {
+    x.unwrap_or(0)
+}
+
 pub(crate) fn map_i1_zero(x: i8) -> Option<i8> {
     if x == 0 { None } else { Some(x) }
 }

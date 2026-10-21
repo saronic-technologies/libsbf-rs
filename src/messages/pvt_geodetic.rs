@@ -74,6 +74,7 @@ bitflags! {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
 #[repr(u8)]
 pub enum Datum {
+    /// WGS84/ITRS.
     Wgs84 = 0,
     /// Datum equal to that used by the DGNSS/RTK base station.
     DgnssBaseStation = 19,
@@ -364,10 +365,14 @@ pub struct PVTGeodetic {
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]
     pub mean_corr_age: Option<u16>,
-    pub signal_info: u32,
+    #[br(map = binrw_util::map_u4_zero)]
+    #[bw(map = binrw_util::unmap_u4_zero)]
+    pub signal_info: Option<u32>,
     alert_flag_raw: u8,
     // Rev 1 fields
-    pub nr_bases: u8,
+    #[br(map = binrw_util::map_u1_zero)]
+    #[bw(map = binrw_util::unmap_u1_zero)]
+    pub nr_bases: Option<u8>,
     pub ppp_info: PppInfo,
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]

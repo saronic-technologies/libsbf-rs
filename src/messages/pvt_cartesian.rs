@@ -67,10 +67,14 @@ pub struct PVTCartesian {
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]
     pub mean_corr_age: Option<u16>,
-    pub signal_info: u32,
+    #[br(map = binrw_util::map_u4_zero)]
+    #[bw(map = binrw_util::unmap_u4_zero)]
+    pub signal_info: Option<u32>,
     alert_flag_raw: u8,
     // Rev 1 fields
-    pub nr_bases: u8,
+    #[br(map = binrw_util::map_u1_zero)]
+    #[bw(map = binrw_util::unmap_u1_zero)]
+    pub nr_bases: Option<u8>,
     pub ppp_info: PppInfo,
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]

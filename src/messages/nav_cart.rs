@@ -70,9 +70,15 @@ pub struct NavCart {
     #[bw(map = binrw_util::unmap_u2)]
     pub mean_corr_age: Option<u16>,
     /// 64-bit signal tracking info (extended from PVTCartesian's 32-bit field).
-    pub signal_info: u64,
+    #[br(map = binrw_util::map_u64_zero)]
+    #[bw(map = binrw_util::unmap_u64_zero)]
+    pub signal_info: Option<u64>,
     alert_flag_raw: u8,
-    pub nr_bases: u8,
+    /// Number of base stations used in the PVT computation.
+    #[br(map = binrw_util::map_u1_zero)]
+    #[bw(map = binrw_util::unmap_u1_zero)]
+    pub nr_bases: Option<u8>,
+    /// Age and type of the last PPP seed.
     pub ppp_info: PppInfo,
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]
