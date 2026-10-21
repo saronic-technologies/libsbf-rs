@@ -68,6 +68,23 @@ bitflags! {
     }
 }
 
+/// The raw Mode byte of the PVT blocks, which decodes into the PVT mode and the mode flags.
+#[binrw]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RawPvtMode(u8);
+
+impl RawPvtMode {
+    /// PVT mode from bits 0-3.
+    pub fn pvt_mode(&self) -> PvtMode {
+        PvtMode::from(self.0)
+    }
+
+    /// Mode flags from bits 6-7.
+    pub fn flags(&self) -> PvtModeFlags {
+        PvtModeFlags::from_bits_truncate(self.0)
+    }
+}
+
 /// Coordinate datum.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
 #[repr(u8)]

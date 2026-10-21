@@ -1,4 +1,4 @@
-use super::common::{PvtError, PvtMisc, PvtMode, PvtModeFlags};
+use super::common::{PvtError, PvtMisc, RawPvtMode};
 use crate::util::binrw::{
     map_f4, map_f8, map_i2, map_u1, map_u1_enum, map_u2, map_u4, map_u4_zero, unmap_f4, unmap_f8,
     unmap_i2, unmap_u1, unmap_u1_enum, unmap_u2, unmap_u4, unmap_u4_zero, unwrap_subblocks,
@@ -39,7 +39,8 @@ pub struct VectorInfoGeod {
     #[bw(map = unmap_u1_enum)]
     /// PVT error code for this baseline.
     pub error: PvtError,
-    mode_raw: u8,
+    /// Bit field indicating the GNSS PVT mode.
+    pub mode: RawPvtMode,
     #[br(map = PvtMisc::from_bits_retain)]
     #[bw(map = |x: &PvtMisc| x.bits())]
     /// Flags for whether the baseline runs from rover ARP to base ARP. The baseline is
@@ -90,16 +91,4 @@ pub struct VectorInfoGeod {
     #[br(map = map_u4_zero)]
     #[bw(map = unmap_u4_zero)]
     pub signal_info: Option<u32>,
-}
-
-impl VectorInfoGeod {
-    /// PVT mode from bits 0-3 of mode.
-    pub fn pvt_mode(&self) -> PvtMode {
-        PvtMode::from(self.mode_raw)
-    }
-
-    /// Mode flags from bits 6-7 of mode.
-    pub fn mode_flags(&self) -> PvtModeFlags {
-        PvtModeFlags::from_bits_truncate(self.mode_raw)
-    }
 }

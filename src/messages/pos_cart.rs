@@ -1,5 +1,5 @@
 use super::common::{
-    Datum, DiffCorrType, PvtError, PvtMisc, PvtMode, PvtModeFlags, RaimIntegrity, WACorrFlags,
+    Datum, DiffCorrType, PvtError, PvtMisc, RaimIntegrity, RawPvtMode, WACorrFlags,
 };
 use crate::util::binrw::{
     map_f4, map_f8, map_u1, map_u1_enum, map_u1_enum_opt, map_u2, map_u2_zero, map_u4, map_u4_zero,
@@ -19,7 +19,8 @@ pub struct PosCart {
     #[br(map = map_u2)]
     #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
-    mode_raw: u8,
+    /// Bit field indicating the GNSS PVT mode.
+    pub mode: RawPvtMode,
     #[br(map = map_u1_enum)]
     #[bw(map = unmap_u1_enum)]
     pub error: PvtError,
@@ -94,16 +95,6 @@ pub struct PosCart {
 }
 
 impl PosCart {
-    /// PVT mode (bits 0-3 of mode).
-    pub fn pvt_mode(&self) -> PvtMode {
-        PvtMode::from(self.mode_raw)
-    }
-
-    /// Mode flags (bits 6-7 of mode).
-    pub fn mode_flags(&self) -> PvtModeFlags {
-        PvtModeFlags::from_bits_truncate(self.mode_raw)
-    }
-
     /// Wide Area correction flags (bits 0-4).
     pub fn wa_corr_flags(&self) -> WACorrFlags {
         WACorrFlags::from_bits_truncate(self.wa_corr_info_raw)

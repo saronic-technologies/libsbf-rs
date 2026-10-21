@@ -1,4 +1,4 @@
-use super::common::{Datum, PvtError, PvtMode, PvtModeFlags};
+use super::common::{Datum, PvtError, RawPvtMode};
 use crate::util::binrw::{
     map_f8, map_u1_enum, map_u1_enum_opt, map_u2, map_u4, unmap_f8, unmap_u1_enum,
     unmap_u1_enum_opt, unmap_u2, unmap_u4,
@@ -19,7 +19,7 @@ pub struct PosLocal {
     #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     /// Bit field indicating the GNSS PVT mode.
-    mode_raw: u8,
+    pub mode: RawPvtMode,
     /// PVT error code.
     #[br(map = map_u1_enum)]
     #[bw(map = unmap_u1_enum)]
@@ -47,16 +47,4 @@ pub struct PosLocal {
     /// Padding bytes.
     #[br(parse_with = binrw::helpers::until_eof)]
     pub padding: Vec<u8>,
-}
-
-impl PosLocal {
-    /// PVT mode (bits 0-3 of mode).
-    pub fn pvt_mode(&self) -> PvtMode {
-        PvtMode::from(self.mode_raw)
-    }
-
-    /// Mode flags (bits 6-7 of mode).
-    pub fn mode_flags(&self) -> PvtModeFlags {
-        PvtModeFlags::from_bits_truncate(self.mode_raw)
-    }
 }
