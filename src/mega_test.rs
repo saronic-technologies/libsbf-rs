@@ -1,11 +1,11 @@
 #[cfg(test)]
 mod tests {
     use crate::{
-        reader::SbfReader, AuxAntPositions, BaseVectorCart, BaseVectorGeod, ChannelStatus, Comment,
-        DiskStatus, EndOfAtt, EndOfPVT, ExtEvent, ExtEventINSNavCart, ExtEventINSNavGeod,
-        ExtSensorMeas, INSNavCart, INSNavGeod, MeasEpoch, MeasExtra, Messages, NavCart,
-        PVTCartesian, PVTGeodetic, PosCart, QualityInd, RFStatus, ReceiverStatus, ReceiverTime,
-        RxMessage, SatVisibility,
+        reader::SbfReader, AuxAntPositions, BDSNav, BaseVectorCart, BaseVectorGeod, ChannelStatus,
+        Comment, DiskStatus, EndOfAtt, EndOfPVT, ExtEvent, ExtEventINSNavCart, ExtEventINSNavGeod,
+        ExtSensorMeas, GLONav, INSNavCart, INSNavGeod, ImuSetup, MeasEpoch, MeasExtra, Messages,
+        NavCart, PVTCartesian, PVTGeodetic, PosCart, PosLocal, QualityInd, RFStatus,
+        ReceiverStatus, ReceiverTime, RxMessage, SatVisibility,
     };
     use binrw::{io::Cursor, BinRead, BinWrite};
     use std::collections::HashMap;
@@ -53,6 +53,7 @@ mod tests {
             "AttEuler",
             "BaseVectorGeod",
             "BDSIon",
+            "BDSNav",
             "ChannelStatus",
             "Commands",
             "Comment",
@@ -70,6 +71,7 @@ mod tests {
             "GALUtc",
             "GEONav",
             "GEORawL1",
+            "GLONav",
             "GPSCNav",
             "GPSIon",
             "GPSNav",
@@ -82,6 +84,7 @@ mod tests {
             "MeasEpoch",
             "MeasExtra",
             "PosCovGeodetic",
+            "PosLocal",
             "PVTGeodetic",
             "QualityInd",
             "ReceiverSetup",
@@ -129,6 +132,9 @@ mod tests {
         assert_eq!(message_counts.get("DiskStatus").copied().unwrap_or(0), 1, "expected 1 DiskStatus");
         assert_eq!(message_counts.get("RxMessage").copied().unwrap_or(0), 1, "expected 1 RxMessage");
         assert_eq!(message_counts.get("Comment").copied().unwrap_or(0), 1, "expected 1 Comment");
+        assert_eq!(message_counts.get("PosLocal").copied().unwrap_or(0), 1, "expected 1 PosLocal");
+        assert_eq!(message_counts.get("GLONav").copied().unwrap_or(0), 10, "expected 10 GLONav");
+        assert_eq!(message_counts.get("BDSNav").copied().unwrap_or(0), 13, "expected 13 BDSNav");
 
         println!("Mega test file validation passed!");
         println!("Total messages: {}", total_messages);
@@ -322,6 +328,7 @@ mod tests {
             let body = &data[i + 8..i + length];
             match block {
                 4000 => round_trip::<MeasExtra>(body, block, &mut round_tripped),
+                4004 => round_trip::<GLONav>(body, block, &mut round_tripped),
                 4006 => round_trip::<PVTCartesian>(body, block, &mut round_tripped),
                 4007 => round_trip::<PVTGeodetic>(body, block, &mut round_tripped),
                 4012 => round_trip::<SatVisibility>(body, block, &mut round_tripped),
@@ -332,10 +339,13 @@ mod tests {
                 4043 => round_trip::<BaseVectorCart>(body, block, &mut round_tripped),
                 4044 => round_trip::<PosCart>(body, block, &mut round_tripped),
                 4050 => round_trip::<ExtSensorMeas>(body, block, &mut round_tripped),
+                4052 => round_trip::<PosLocal>(body, block, &mut round_tripped),
                 4059 => round_trip::<DiskStatus>(body, block, &mut round_tripped),
+                4081 => round_trip::<BDSNav>(body, block, &mut round_tripped),
                 4082 => round_trip::<QualityInd>(body, block, &mut round_tripped),
                 4092 => round_trip::<RFStatus>(body, block, &mut round_tripped),
                 4103 => round_trip::<RxMessage>(body, block, &mut round_tripped),
+                4224 => round_trip::<ImuSetup>(body, block, &mut round_tripped),
                 4225 => round_trip::<INSNavCart>(body, block, &mut round_tripped),
                 4226 => round_trip::<INSNavGeod>(body, block, &mut round_tripped),
                 4229 => round_trip::<ExtEventINSNavCart>(body, block, &mut round_tripped),

@@ -1,65 +1,53 @@
-use crate::binrw_util;
+use super::common::{PvtError, RawPvtMode};
+use crate::util::binrw::{
+    map_f4, map_u1_enum, map_u2, map_u4, unmap_f4, unmap_u1_enum, unmap_u2, unmap_u4,
+};
 use binrw::binrw;
-
-use super::pvt_geodetic::{PvtError, PvtMode, PvtModeFlags};
 
 // VelCovGeodetic Block 5908
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct VelCovGeodetic {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
-    mode_raw: u8,
-    error_raw: u8,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
-    pub cov_vnvn: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
-    pub cov_veve: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
-    pub cov_vuvu: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
-    pub cov_dd: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
-    pub cov_vnve: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
-    pub cov_vnvu: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
-    pub cov_vnd: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
-    pub cov_vevu: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
-    pub cov_ved: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
-    pub cov_vud: Option<f32>,
-}
-
-impl VelCovGeodetic {
-    /// PVT mode (bits 0-3 of mode).
-    pub fn pvt_mode(&self) -> PvtMode {
-        PvtMode::from(self.mode_raw)
-    }
-
-    /// Mode flags (bits 6-7 of mode).
-    pub fn mode_flags(&self) -> PvtModeFlags {
-        PvtModeFlags::from_bits_truncate(self.mode_raw)
-    }
-
+    /// Bit field indicating the GNSS PVT mode.
+    pub mode: RawPvtMode,
     /// PVT error code.
-    pub fn error(&self) -> PvtError {
-        PvtError::from(self.error_raw)
-    }
+    #[br(map = map_u1_enum)]
+    #[bw(map = unmap_u1_enum)]
+    pub error: PvtError,
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
+    pub cov_vnvn: Option<f32>,
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
+    pub cov_veve: Option<f32>,
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
+    pub cov_vuvu: Option<f32>,
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
+    pub cov_dd: Option<f32>,
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
+    pub cov_vnve: Option<f32>,
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
+    pub cov_vnvu: Option<f32>,
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
+    pub cov_vnd: Option<f32>,
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
+    pub cov_vevu: Option<f32>,
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
+    pub cov_ved: Option<f32>,
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
+    pub cov_vud: Option<f32>,
 }

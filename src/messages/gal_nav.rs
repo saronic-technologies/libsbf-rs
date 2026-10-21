@@ -1,4 +1,8 @@
-use crate::binrw_util;
+use super::common::GalMessageType;
+use crate::util::binrw::{
+    map_f4, map_u1, map_u1_enum, map_u2, map_u4, unmap_f4, unmap_u1, unmap_u1_enum, unmap_u2,
+    unmap_u4,
+};
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
@@ -7,14 +11,16 @@ use bitflags::bitflags;
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct GALNav {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     pub svid: u8,
-    pub source: u8,
+    #[br(map = map_u1_enum)]
+    #[bw(map = unmap_u1_enum)]
+    pub source: GalMessageType,
     pub sqrt_a: f64,
     pub m_0: f64,
     pub e: f64,
@@ -42,26 +48,26 @@ pub struct GALNav {
     #[bw(map = |x: &GALNavHealthOssol| x.bits())]
     pub health_ossol: GALNavHealthOssol,
     pub health_prs: u8,
-    #[br(map = binrw_util::map_u1)]
-    #[bw(map = binrw_util::unmap_u1)]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub sisa_l1e5a: Option<u8>,
-    #[br(map = binrw_util::map_u1)]
-    #[bw(map = binrw_util::unmap_u1)]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub sisa_l1e5b: Option<u8>,
-    #[br(map = binrw_util::map_u1)]
-    #[bw(map = binrw_util::unmap_u1)]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub sisa_l1ae6a: Option<u8>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub bgd_l1e5a: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub bgd_l1e5b: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub bgd_l1ae6a: Option<f32>,
-    #[br(map = binrw_util::map_u1)]
-    #[bw(map = binrw_util::unmap_u1)]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub cnav_enc: Option<u8>,
     #[br(parse_with = binrw::helpers::until_eof)]
     pub padding: Vec<u8>,
@@ -161,10 +167,6 @@ impl GALNavHealthOssol {
 }
 
 impl GALNav {
-    // Source constants
-    pub const SOURCE_INAV: u8 = 2; // I/NAV (L1,E5b)
-    pub const SOURCE_FNAV: u8 = 16; // F/NAV (L1,E5a)
-
     // CNAVenc bit masks
     pub const CNAV_E6B_UNENCRYPTED: u8 = 0x01;
     pub const CNAV_E6C_UNENCRYPTED: u8 = 0x02;

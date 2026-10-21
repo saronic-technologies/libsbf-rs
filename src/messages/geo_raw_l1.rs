@@ -1,15 +1,15 @@
-use crate::binrw_util;
+use crate::util::binrw::{map_u2, map_u4, unmap_u2, unmap_u4};
 use binrw::binrw;
 
 // GEORawL1 Block 4020
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct GEORawL1 {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     pub svid: u8,
     pub crc_passed: u8,
