@@ -194,7 +194,8 @@ impl MeasEpochChannelType1 {
         self.cn0.map(|cn0| cn0_db_hz(cn0, self.signal_number()))
     }
 
-    /// GLONASS frequency number from -7 to 6, from bits 3-7 of obs_info.
+    /// GLONASS frequency number, from -7 to 6 for satellites launched after 2005 and up to 13
+    /// before that (supported in firmware prior to 1.5.x), from bits 3-7 of obs_info.
     /// Available when the signal index selects a GLONASS signal.
     pub fn glonass_freq_nr(&self) -> Option<i8> {
         let sig_idx_lo = self.type_field & 0x1F;

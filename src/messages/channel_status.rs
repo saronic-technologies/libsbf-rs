@@ -1,7 +1,8 @@
 use super::sat_visibility::RiseSet;
 use crate::{
-    util::binrw::{
-        map_i1, map_u1_zero, map_u2, map_u4, unmap_i1, unmap_u1_zero, unmap_u2, unmap_u4,
+    util::{
+        binrw::{map_i1, map_u1_zero, map_u2, map_u4, unmap_i1, unmap_u1_zero, unmap_u2, unmap_u4},
+        signal::glonass_frequency_number,
     },
     NestedBlock, NestedHeader, SubBlock,
 };
@@ -72,7 +73,9 @@ pub struct ChannelStatus {
 #[derive(Clone, Debug)]
 struct ChannelSatInfoHeader {
     pub svid: u8,
-    /// GLONASS frequency number with an offset of 8, from 1 to 21; reserved otherwise.
+    /// GLONASS frequency number with an offset of 8, from 1 to 14 for satellites launched
+    /// after 2005 and up to 21 before that (supported in firmware prior to 1.5.x); reserved
+    /// otherwise.
     #[br(map = map_u1_zero)]
     #[bw(map = unmap_u1_zero)]
     pub freq_nr: Option<u8>,
@@ -149,6 +152,13 @@ impl From<ChannelSatInfo> for NestedBlock<ChannelSatInfoHeader, ChannelStateInfo
 }
 
 impl ChannelSatInfo {
+    /// GLONASS frequency number, from -7 to 6 for satellites launched after 2005 and up to 13
+    /// before that (supported in firmware prior to 1.5.x), None when the receiver reports 0.
+    /// Only GLONASS satellites set it; for other satellites the value is reserved.
+    pub fn frequency_number(&self) -> Option<i8> {
+        self.freq_nr.map(glonass_frequency_number)
+    }
+
     /// Azimuth in degrees from bits 0-8, 0 is North; None when the raw value is 511.
     pub fn azimuth(&self) -> Option<u16> {
         let value = self.azimuth_rise_set & 0x1FF;

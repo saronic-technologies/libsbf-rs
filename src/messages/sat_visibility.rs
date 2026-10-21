@@ -1,6 +1,9 @@
-use crate::util::binrw::{
-    map_i2, map_u1_zero, map_u2, map_u4, unmap_i2, unmap_u1_zero, unmap_u2, unmap_u4,
-    unwrap_subblocks, wrap_subblocks,
+use crate::util::{
+    binrw::{
+        map_i2, map_u1_zero, map_u2, map_u4, unmap_i2, unmap_u1_zero, unmap_u2, unmap_u4,
+        unwrap_subblocks, wrap_subblocks,
+    },
+    signal::glonass_frequency_number,
 };
 use alloc::vec::Vec;
 use binrw::binrw;
@@ -27,7 +30,9 @@ pub struct SatVisibility {
 #[derive(Clone, Debug)]
 pub struct SatInfo {
     pub svid: u8,
-    /// GLONASS frequency number with an offset of 8, from 1 to 21; reserved otherwise.
+    /// GLONASS frequency number with an offset of 8, from 1 to 14 for satellites launched
+    /// after 2005 and up to 21 before that (supported in firmware prior to 1.5.x); reserved
+    /// otherwise.
     #[br(map = map_u1_zero)]
     #[bw(map = unmap_u1_zero)]
     pub freq_nr: Option<u8>,
@@ -44,6 +49,15 @@ pub struct SatInfo {
     pub rise_set: RiseSet,
     /// Source of the visibility info: 1 almanac, 2 ephemeris, 255 unknown.
     pub satellite_info: u8,
+}
+
+impl SatInfo {
+    /// GLONASS frequency number, from -7 to 6 for satellites launched after 2005 and up to 13
+    /// before that (supported in firmware prior to 1.5.x), None when the receiver reports 0.
+    /// Only GLONASS satellites set it; for other satellites the value is reserved.
+    pub fn frequency_number(&self) -> Option<i8> {
+        self.freq_nr.map(glonass_frequency_number)
+    }
 }
 
 /// Rise/set state of a satellite.

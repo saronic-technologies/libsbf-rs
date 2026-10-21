@@ -84,7 +84,8 @@ pub struct GLONav {
 }
 
 impl GLONav {
-    /// Frequency number of the satellite, from -7 to 6.
+    /// Frequency number of the satellite, from -7 to 6 for satellites launched after 2005 and
+    /// up to 13 before that (supported in firmware prior to 1.5.x).
     pub fn frequency_number(&self) -> i8 {
         glonass_frequency_number(self.freq_nr)
     }

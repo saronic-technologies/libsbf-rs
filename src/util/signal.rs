@@ -34,7 +34,14 @@ pub(crate) fn cn0_db_hz(cn0: u8, signal_number: u8) -> f32 {
     }
 }
 
-/// GLONASS frequency number from -7 to 6, from a value SBF stores with an offset of 8.
+/// GLONASS frequency number, from a value SBF stores with an offset of 8. GLONASS reduced
+/// its channel plan from frequency numbers 0 to 24 to -7 to 6 for all satellites launched
+/// after 2005, per section 3.3.1.1 of the [GLONASS L1, L2 ICD, edition 5.1][icd]. Values up
+/// to 13 from before that are supported in firmware prior to 1.5.x. [GPS World][gps-world]
+/// indicates that the reduction happened to preserve radio astronomy bands.
+///
+/// [icd]: https://www.unavco.org/help/glossary/docs/ICD_GLONASS_5.1_(2008)_en.pdf#page=15
+/// [gps-world]: https://www.gpsworld.com/glonass-the-decade-of-transition-to-cdma-signals/
 pub(crate) fn glonass_frequency_number(stored: u8) -> i8 {
     stored as i8 - GLONASS_FREQ_NR_OFFSET
 }
