@@ -1,7 +1,7 @@
 use crate::{
     util::{
         binrw::{map_u1, map_u2, map_u4, unmap_u1, unmap_u2, unmap_u4},
-        signal::signal_number,
+        signal::{cn0_db_hz, signal_number},
     },
     NestedBlock, NestedHeader, SubBlock,
 };
@@ -191,6 +191,11 @@ impl MeasEpochChannelType1 {
         signal_number(self.type_field, self.obs_info.sig_idx_hi())
     }
 
+    /// C/N0 in dB-Hz, None at the Do-Not-Use value.
+    pub fn cn0_db_hz(&self) -> Option<f32> {
+        self.cn0.map(|cn0| cn0_db_hz(cn0, self.signal_number()))
+    }
+
     /// GLONASS frequency number from -7 to 6, from bits 3-7 of obs_info.
     /// Available when the signal index selects a GLONASS signal.
     pub fn glonass_freq_nr(&self) -> Option<i8> {
@@ -234,5 +239,10 @@ impl MeasEpochChannelType2 {
     /// value.
     pub fn signal_number(&self) -> u8 {
         signal_number(self.type_field, self.obs_info.sig_idx_hi())
+    }
+
+    /// C/N0 in dB-Hz, None at the Do-Not-Use value.
+    pub fn cn0_db_hz(&self) -> Option<f32> {
+        self.cn0.map(|cn0| cn0_db_hz(cn0, self.signal_number()))
     }
 }

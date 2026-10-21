@@ -1,8 +1,14 @@
-use crate::util::binrw::{
-    map_u2, map_u4, subblock_count_mod256, unmap_u2, unmap_u4, unwrap_subblocks, wrap_subblocks,
+use crate::util::{
+    binrw::{
+        map_u2, map_u4, subblock_count_mod256, unmap_u2, unmap_u4, unwrap_subblocks, wrap_subblocks,
+    },
+    signal::signal_number,
 };
 use alloc::vec::Vec;
 use binrw::binrw;
+
+// Step of the high-resolution C/N0 extension, in dB-Hz.
+const CN0_HIGH_RES_STEP_DB_HZ: f32 = 0.03125;
 
 // MeasExtra Block 4000
 #[binrw]
@@ -45,6 +51,33 @@ pub struct MeasExtraChannelSub {
     pub car_mp_corr: i8,
     pub info: u8,
     pub misc: u8,
+}
+
+impl MeasExtraChannelSub {
+    /// Antenna ID from bits 5-7 of the type field: 0 main, 1 Aux1, 2 Aux2.
+    pub fn antenna_id(&self) -> u8 {
+        self.type_field >> 5
+    }
+
+    /// Signal number per section 4.1.10 of the reference guide: bits 0-4 of
+    /// the type field, extended through bits 3-7 of misc when they read the
+    /// escape value.
+    pub fn signal_number(&self) -> u8 {
+        signal_number(self.type_field, self.misc >> 3)
+    }
+
+    /// High-resolution extension of the MeasEpoch C/N0 from bits 0-2 of misc, from 0 to 7
+    /// in units of 0.03125 dB-Hz. Adding it to the MeasEpoch C/N0 of the same signal gives
+    /// the C/N0 at 0.03125 dB-Hz resolution.
+    pub fn cn0_high_res(&self) -> u8 {
+        self.misc & 0x07
+    }
+
+    /// C/N0 in dB-Hz at 0.03125 dB-Hz resolution, given the C/N0 in dB-Hz of the
+    /// MeasEpoch sub-block for the same channel and signal.
+    pub fn cn0_db_hz(&self, meas_epoch_cn0_db_hz: f32) -> f32 {
+        meas_epoch_cn0_db_hz + f32::from(self.cn0_high_res()) * CN0_HIGH_RES_STEP_DB_HZ
+    }
 }
 
 #[cfg(test)]
