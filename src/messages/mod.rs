@@ -78,7 +78,7 @@ pub use comment::Comment;
 pub use common::{
     ArpOffset, AttitudeMode, BaselineError, ConnectionPort, Datum, DiffCorrType, ExtSensorModel,
     GalMessageType, GnssMode, INSCouplingMode, INSError, INSSolutionLocation, PppInfo, PppSeedType,
-    PvtError, PvtMisc, PvtMode, PvtModeFlags, RaimIntegrity, RawAlertFlag, RawPvtMode,
+    PvtError, PvtMisc, PvtMode, PvtModeFlags, RaimIntegrity, RawAlertFlag, RawInsInfo, RawPvtMode,
     RawWaCorrInfo, RiseSet, TimeSystem, WACorrFlags,
 };
 pub use diff_corr_in::{DiffCorrIn, DiffCorrMode, DiffCorrSource};

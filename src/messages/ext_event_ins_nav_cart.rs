@@ -1,4 +1,4 @@
-use super::common::{Datum, GnssMode, INSCouplingMode, INSError, INSSolutionLocation};
+use super::common::{Datum, GnssMode, INSError, RawInsInfo};
 use crate::util::binrw::{
     map_f4, map_f8, map_u1_enum, map_u1_enum_opt, map_u2, map_u4, unmap_f4, unmap_f8,
     unmap_u1_enum, unmap_u1_enum_opt, unmap_u2, unmap_u4,
@@ -24,7 +24,9 @@ pub struct ExtEventINSNavCart {
     #[br(map = map_u1_enum)]
     #[bw(map = unmap_u1_enum)]
     pub error: INSError,
-    pub info: u16,
+    /// Bit field providing more information regarding the status and the type of measurement
+    /// used as well as the solution reference output.
+    pub info: RawInsInfo,
     #[br(map = map_u2)]
     #[bw(map = unmap_u2)]
     pub gnss_age: Option<u16>,
@@ -129,31 +131,4 @@ pub struct ExtEventINSNavCartVelStdDev {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
     pub vz_std_dev: Option<f32>,
-}
-
-impl ExtEventINSNavCart {
-    /// INS coupling mode (bits 0-2 of info).
-    pub fn coupling_mode(&self) -> INSCouplingMode {
-        INSCouplingMode::from(self.info)
-    }
-
-    /// Solution output location (bits 3-5 of info).
-    pub fn solution_location(&self) -> INSSolutionLocation {
-        INSSolutionLocation::from(self.info)
-    }
-
-    /// Bit 6: 180-degree heading ambiguity fixed.
-    pub fn heading_ambiguity_fixed(&self) -> bool {
-        self.info & (1 << 6) != 0
-    }
-
-    /// Bit 7: Zero-velocity constraints used.
-    pub fn zero_velocity_constraints(&self) -> bool {
-        self.info & (1 << 7) != 0
-    }
-
-    /// Bit 8: IMU orientation estimation has converged.
-    pub fn imu_orientation_converged(&self) -> bool {
-        self.info & (1 << 8) != 0
-    }
 }

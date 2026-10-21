@@ -524,6 +524,39 @@ impl From<u16> for INSSolutionLocation {
     }
 }
 
+/// The raw Info field of the INS blocks, which decodes into the INS coupling mode, the solution
+/// output location and the INS status flags.
+#[binrw]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RawInsInfo(u16);
+
+impl RawInsInfo {
+    /// INS coupling mode from bits 0-2.
+    pub fn coupling_mode(&self) -> INSCouplingMode {
+        INSCouplingMode::from(self.0)
+    }
+
+    /// Solution output location from bits 3-5.
+    pub fn solution_location(&self) -> INSSolutionLocation {
+        INSSolutionLocation::from(self.0)
+    }
+
+    /// Bit 6: 180-degree heading ambiguity fixed.
+    pub fn heading_ambiguity_fixed(&self) -> bool {
+        self.0 & (1 << 6) != 0
+    }
+
+    /// Bit 7: Zero-velocity constraints used.
+    pub fn zero_velocity_constraints(&self) -> bool {
+        self.0 & (1 << 7) != 0
+    }
+
+    /// Bit 8: IMU orientation estimation has converged.
+    pub fn imu_orientation_converged(&self) -> bool {
+        self.0 & (1 << 8) != 0
+    }
+}
+
 /// INS error codes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
 #[repr(u8)]
