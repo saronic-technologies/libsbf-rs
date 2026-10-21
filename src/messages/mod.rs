@@ -134,4 +134,4 @@ pub use sat_visibility::{RiseSet, SatInfo, SatVisibility};
 pub use vel_cov_cartesian::VelCovCartesian;
 pub use vel_cov_geodetic::VelCovGeodetic;
 pub use vel_sensor_setup::VelSensorSetup;
-pub use x_pps_offset::XPPSOffset;
+pub use x_pps_offset::{PpsTimeScale, XPPSOffset};
