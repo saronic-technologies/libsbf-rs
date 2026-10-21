@@ -182,6 +182,17 @@ impl NavCart {
         self.alert_flag_raw & (1 << 3) != 0
     }
 
+    /// Bit 5: GNSS signals may not be authentic, as flagged by SIG_AUTH_ALERT in RFStatus.
+    pub fn signal_auth_alert(&self) -> bool {
+        self.alert_flag_raw & (1 << 5) != 0
+    }
+
+    /// Bit 6: A navigation message failed authentication, as flagged by NAV_MSG_AUTH_ALERT
+    /// in RFStatus.
+    pub fn nav_msg_auth_alert(&self) -> bool {
+        self.alert_flag_raw & (1 << 6) != 0
+    }
+
     // -- Attitude accessors --
 
     /// Attitude mode.
