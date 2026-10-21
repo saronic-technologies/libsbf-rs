@@ -2,12 +2,14 @@ use crate::util::{
     binrw::{
         map_u1, map_u2, map_u4, unmap_u1, unmap_u2, unmap_u4, NestedBlock, NestedHeader, SubBlock,
     },
+    serde::flag_bits,
     signal::{carrier_frequency_hz, cn0_db_hz, glonass_frequency_number, signal_number},
 };
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
 use core::ops::RangeInclusive;
+use serde::Serialize;
 
 bitflags! {
     /// CommonFlags bit field of the [`MeasEpoch`] block.
@@ -74,7 +76,7 @@ impl MeasEpochObsInfo {
 
 // MeasEpoch Block 4027
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct MeasEpoch {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]
@@ -87,6 +89,7 @@ pub struct MeasEpoch {
     pub sb2_length: u8,
     #[br(map = |x: u8| MeasEpochCommonFlags::from_bits_retain(x))]
     #[bw(map = |x: &MeasEpochCommonFlags| x.bits())]
+    #[serde(serialize_with = "flag_bits")]
     pub common_flags: MeasEpochCommonFlags,
     pub cum_clk_jumps: u8,
     pub rev1: u8,
@@ -100,7 +103,7 @@ pub struct MeasEpoch {
 // First-level header of a MeasEpochChannelType1 sub-block. Internal wire type;
 // the flat public MeasEpochChannelType1 is bridged from NestedBlock.
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 struct MeasEpochChannelType1Header {
     pub rx_channel: u8,
     pub type_field: u8,
@@ -120,6 +123,7 @@ struct MeasEpochChannelType1Header {
     pub lock_time: Option<u16>,
     #[br(map = MeasEpochObsInfo::from_bits_retain)]
     #[bw(map = |x: &MeasEpochObsInfo| x.bits())]
+    #[serde(serialize_with = "flag_bits")]
     pub obs_info: MeasEpochObsInfo,
     pub n2: u8,
 }
@@ -130,7 +134,7 @@ impl NestedHeader for MeasEpochChannelType1Header {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct MeasEpochChannelType1 {
     pub rx_channel: u8,
     pub type_field: u8,
@@ -142,6 +146,7 @@ pub struct MeasEpochChannelType1 {
     pub carrier_msb: i8,
     pub cn0: Option<u8>,
     pub lock_time: Option<u16>,
+    #[serde(serialize_with = "flag_bits")]
     pub obs_info: MeasEpochObsInfo,
     pub n2: u8,
     pub channel_type2: Vec<MeasEpochChannelType2>,
@@ -250,7 +255,7 @@ impl MeasEpochChannelType1 {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct MeasEpochChannelType2 {
     pub type_field: u8,
     #[br(map = map_u1)]
@@ -263,6 +268,7 @@ pub struct MeasEpochChannelType2 {
     pub carrier_msb: i8,
     #[br(map = MeasEpochObsInfo::from_bits_retain)]
     #[bw(map = |x: &MeasEpochObsInfo| x.bits())]
+    #[serde(serialize_with = "flag_bits")]
     pub obs_info: MeasEpochObsInfo,
     pub code_offset_lsb: u16,
     pub carrier_lsb: u16,

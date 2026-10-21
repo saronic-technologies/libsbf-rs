@@ -5,9 +5,10 @@ use crate::util::binrw::{
 use alloc::vec::Vec;
 use binrw::binrw;
 use num_enum::{FromPrimitive, IntoPrimitive};
+use serde::Serialize;
 
 /// Format of a differential correction message.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum DiffCorrMode {
     RtcmV2 = 0,
@@ -22,7 +23,7 @@ pub enum DiffCorrMode {
 }
 
 /// Receiver connection a differential correction message arrived on.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum DiffCorrSource {
     Com1 = 0,
@@ -55,7 +56,7 @@ pub enum DiffCorrSource {
 
 // DiffCorrIn Block 5919
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct DiffCorrIn {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]

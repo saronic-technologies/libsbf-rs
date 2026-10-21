@@ -3,10 +3,11 @@ use crate::util::binrw::{
     map_f4, map_u1_enum, map_u2, map_u4, unmap_f4, unmap_u1_enum, unmap_u2, unmap_u4,
 };
 use binrw::binrw;
+use serde::Serialize;
 
 // IMU Setup Block 4224
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ImuSetup {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]
@@ -46,7 +47,7 @@ pub struct ImuSetup {
 /// IMU orientation estimated by the receiver and the motion constraint lever
 /// arm, both in the vehicle frame.
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ImuVehicleAlignment {
     /// IMU orientation, theta_x angle, estimated by the receiver.
     #[br(map = map_f4)]

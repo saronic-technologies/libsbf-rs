@@ -5,10 +5,11 @@ use crate::util::binrw::{
 };
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
 // PosLocal Block 4052
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct PosLocal {
     /// Receiver time stamp, in 0.001 s.
     #[br(map = map_u4)]

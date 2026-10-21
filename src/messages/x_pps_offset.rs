@@ -1,9 +1,10 @@
 use crate::util::binrw::{map_u1_enum, map_u2, map_u4, unmap_u1_enum, unmap_u2, unmap_u4};
 use binrw::binrw;
 use num_enum::{FromPrimitive, IntoPrimitive};
+use serde::Serialize;
 
 /// Time scale an xPPS pulse is referenced to, as set with the setPPSParameters command.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum PpsTimeScale {
     /// GPS time.
@@ -27,7 +28,7 @@ pub enum PpsTimeScale {
 
 // xPPSOffset Block 5911
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct XPPSOffset {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]

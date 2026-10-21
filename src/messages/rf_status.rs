@@ -1,11 +1,15 @@
-use crate::util::binrw::{
-    map_i1_zero, map_u2, map_u4, unmap_i1_zero, unmap_u2, unmap_u4, unwrap_subblocks,
-    wrap_subblocks,
+use crate::util::{
+    binrw::{
+        map_i1_zero, map_u2, map_u4, unmap_i1_zero, unmap_u2, unmap_u4, unwrap_subblocks,
+        wrap_subblocks,
+    },
+    serde::flag_bits,
 };
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
 use num_enum::{FromPrimitive, IntoPrimitive};
+use serde::Serialize;
 
 bitflags! {
     /// Flags bit field of the [`RFStatus`] block.
@@ -22,7 +26,7 @@ bitflags! {
 
 /// Interference mitigation mode of an RF band, from bits 0-3 of the info
 /// field.
-#[derive(Debug, Clone, Copy, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum RFBandMode {
     /// The band is suppressed by a notch filter set manually by user command.
@@ -37,7 +41,7 @@ pub enum RFBandMode {
 
 /// RFBand sub-block: interference info for a single RF band.
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct RFBand {
     /// Center frequency of the RF band (Hz).
     pub frequency: u32,
@@ -65,7 +69,7 @@ impl RFBand {
 
 // RFStatus Block 4092
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct RFStatus {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]
@@ -77,6 +81,7 @@ pub struct RFStatus {
     pub sb_length: u8,
     #[br(map = |x: u8| RFStatusFlags::from_bits_retain(x))]
     #[bw(map = |x: &RFStatusFlags| x.bits())]
+    #[serde(serialize_with = "flag_bits")]
     pub flags: RFStatusFlags,
     _reserved: [u8; 3],
     #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) }, map = unwrap_subblocks)]
