@@ -1,4 +1,4 @@
-use crate::{Datum, SubBlock};
+use crate::SubBlock;
 use alloc::vec::Vec;
 use binrw::{io::SeekFrom, BinRead, BinResult, BinWrite};
 
@@ -102,13 +102,13 @@ pub(crate) fn unmap_i1_zero(x: &Option<i8>) -> i8 {
     x.unwrap_or(0)
 }
 
-// Datum, None at the DO_NOT_USE value.
-pub(crate) fn map_datum(x: u8) -> Option<Datum> {
-    if x == DO_NOT_USE_U1 { None } else { Some(Datum::from(x)) }
+// Enum coded in a u1 field, None at the DO_NOT_USE value.
+pub(crate) fn map_u1_enum_opt<T: From<u8>>(x: u8) -> Option<T> {
+    if x == DO_NOT_USE_U1 { None } else { Some(T::from(x)) }
 }
 
-pub(crate) fn unmap_datum(x: &Option<Datum>) -> u8 {
-    x.map_or(DO_NOT_USE_U1, u8::from)
+pub(crate) fn unmap_u1_enum_opt<T: Copy + Into<u8>>(x: &Option<T>) -> u8 {
+    x.map_or(DO_NOT_USE_U1, Into::into)
 }
 
 // Number of sub-blocks of size `sb_length` that fit into the remaining bytes

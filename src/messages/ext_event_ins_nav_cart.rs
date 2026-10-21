@@ -37,8 +37,8 @@ pub struct ExtEventINSNavCart {
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]
     pub latency: Option<u16>,
-    #[br(map = binrw_util::map_datum)]
-    #[bw(map = binrw_util::unmap_datum)]
+    #[br(map = binrw_util::map_u1_enum_opt)]
+    #[bw(map = binrw_util::unmap_u1_enum_opt)]
     pub datum: Option<Datum>,
     _reserved: u8,
     pub sb_list: u16,

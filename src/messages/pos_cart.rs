@@ -70,8 +70,8 @@ pub struct PosCart {
     pub misc: PvtMisc,
     _reserved: u8,
     alert_flag_raw: u8,
-    #[br(map = binrw_util::map_datum)]
-    #[bw(map = binrw_util::unmap_datum)]
+    #[br(map = binrw_util::map_u1_enum_opt)]
+    #[bw(map = binrw_util::unmap_u1_enum_opt)]
     pub datum: Option<Datum>,
     #[br(map = binrw_util::map_u1)]
     #[bw(map = binrw_util::unmap_u1)]
