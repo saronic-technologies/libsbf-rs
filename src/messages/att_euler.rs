@@ -87,7 +87,9 @@ pub struct AttEuler {
     #[bw(map = binrw_util::unmap_u1)]
     pub nrsv: Option<u8>,
     error_raw: u8,
-    mode_raw: u16,
+    #[br(map = |x: u16| AttitudeMode::from(x))]
+    #[bw(map = |x: &AttitudeMode| u16::from(*x))]
+    pub mode: AttitudeMode,
     _reserved: u16,
 
     #[br(map = binrw_util::map_f4)]
@@ -112,11 +114,6 @@ pub struct AttEuler {
 }
 
 impl AttEuler {
-    /// Attitude mode.
-    pub fn mode(&self) -> AttitudeMode {
-        AttitudeMode::from(self.mode_raw)
-    }
-
     /// Error code for Main-Aux1 baseline (bits 0-1).
     pub fn main_aux1_error(&self) -> BaselineError {
         BaselineError::from(self.error_raw & 0x03)

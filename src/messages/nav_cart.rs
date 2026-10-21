@@ -94,7 +94,9 @@ pub struct NavCart {
     pub misc: PvtMisc,
     _reserved: u8,
     // Attitude fields (from AttEuler)
-    mode_att_raw: u16,
+    #[br(map = |x: u16| AttitudeMode::from(x))]
+    #[bw(map = |x: &AttitudeMode| u16::from(*x))]
+    pub attitude_mode: AttitudeMode,
     error_att_raw: u8,
     #[br(map = binrw_util::map_u1)]
     #[bw(map = binrw_util::unmap_u1)]
@@ -194,11 +196,6 @@ impl NavCart {
     }
 
     // -- Attitude accessors --
-
-    /// Attitude mode.
-    pub fn attitude_mode(&self) -> AttitudeMode {
-        AttitudeMode::from(self.mode_att_raw)
-    }
 
     /// Error code for Main-Aux1 baseline (bits 0-1 of error_att).
     pub fn main_aux1_error(&self) -> BaselineError {
