@@ -1,9 +1,8 @@
-use crate::{
-    util::{
-        binrw::{map_u1, map_u2, map_u4, unmap_u1, unmap_u2, unmap_u4},
-        signal::{cn0_db_hz, glonass_frequency_number, signal_number},
+use crate::util::{
+    binrw::{
+        map_u1, map_u2, map_u4, unmap_u1, unmap_u2, unmap_u4, NestedBlock, NestedHeader, SubBlock,
     },
-    NestedBlock, NestedHeader, SubBlock,
+    signal::{cn0_db_hz, glonass_frequency_number, signal_number},
 };
 use alloc::vec::Vec;
 use binrw::binrw;

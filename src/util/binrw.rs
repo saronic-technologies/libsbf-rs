@@ -1,6 +1,5 @@
-use crate::SubBlock;
 use alloc::vec::Vec;
-use binrw::{io::SeekFrom, BinRead, BinResult, BinWrite};
+use binrw::{binrw, io::SeekFrom, BinRead, BinResult, BinWrite};
 
 // Constants for DO_NOT_USE values
 const DO_NOT_USE_I1: i8 = -128;
@@ -117,6 +116,69 @@ pub(crate) fn map_u1_enum_opt<T: From<u8>>(x: u8) -> Option<T> {
 
 pub(crate) fn unmap_u1_enum_opt<T: Copy + Into<u8>>(x: &Option<T>) -> u8 {
     x.map_or(DO_NOT_USE_U1, Into::into)
+}
+
+/// Wrapper for a single SBF sub-block to allow padding of individual elements,
+/// which is not supported on standalone structs.
+#[binrw]
+#[derive(Clone, Debug)]
+#[brw(import(sb_len: usize))]
+pub(crate) struct SubBlock<T>
+where
+    T: 'static,
+    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()>,
+{
+    #[brw(pad_size_to = sb_len)]
+    data: T,
+}
+
+impl<T> From<T> for SubBlock<T>
+where
+    T: 'static,
+    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()>,
+{
+    fn from(data: T) -> Self {
+        Self { data }
+    }
+}
+
+impl<T> SubBlock<T>
+where
+    T: 'static,
+    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()>,
+{
+    // Neither `From<SubBlock<T>> for T` (orphan rule) nor `Into<T> for
+    // SubBlock<T>` (collides with core's blanket `Into`) is allowed, so the
+    // unwrap direction is an inherent method.
+    pub(crate) fn into_inner(self) -> T {
+        self.data
+    }
+}
+
+/// The count of nested second-level sub-blocks carried by a first-level header,
+/// so [`NestedBlock`] can read that many without naming the count field.
+pub(crate) trait NestedHeader {
+    fn nested_count(&self) -> usize;
+}
+
+/// One first-level sub-block of a two-level SBF block: a fixed header padded to
+/// SB1Length followed by the nested second-level sub-blocks, each padded to
+/// SB2Length.
+#[binrw]
+#[derive(Clone, Debug)]
+#[brw(import(sb1_len: usize, sb2_len: usize))]
+pub(crate) struct NestedBlock<H, T>
+where
+    H: 'static,
+    T: 'static,
+    for<'a> H: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + NestedHeader + Clone,
+    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + Clone,
+{
+    #[brw(pad_size_to = sb1_len)]
+    pub header: H,
+    #[br(args { count: header.nested_count(), inner: (sb2_len,) })]
+    #[bw(args_raw = (sb2_len,))]
+    pub items: Vec<SubBlock<T>>,
 }
 
 // Number of sub-blocks of size `sb_length` that fit into the remaining bytes
