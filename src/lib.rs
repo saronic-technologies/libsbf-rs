@@ -46,12 +46,12 @@ pub use messages::{
     INSSupport, ImuSetup, ImuVehicleAlignment, Meas3Doppler, Meas3Ranges, MeasEpoch,
     MeasEpochChannelType1, MeasEpochChannelType2, MeasEpochCommonFlags, MeasEpochObsInfo,
     MeasExtra, MeasExtraChannelSub, NavCart, PVTCartesian, PVTGeodetic, PosCart, PosCovCartesian,
-    PosCovGeodetic, PppInfo, PppSeedType, PpsTimeScale, PvtError, PvtMisc, PvtMode, PvtModeFlags,
-    PvtStatus, QualityInd, QualityIndicator, QualityIndicatorType, RFBand, RFBandMode, RFStatus,
-    RFStatusFlags, RaimIntegrity, ReceiverSetup, ReceiverStatus, ReceiverTime, RiseSet, RxError,
-    RxMessage, RxState, SatInfo, SatVisibility, SignalHealth, TimeSystem, TrackingStatus,
-    VectorInfoCart, VectorInfoGeod, VelCovCartesian, VelCovGeodetic, VelSensorSetup, WACorrFlags,
-    XPPSOffset, DOP,
+    PosCovGeodetic, PosLocal, PppInfo, PppSeedType, PpsTimeScale, PvtError, PvtMisc, PvtMode,
+    PvtModeFlags, PvtStatus, QualityInd, QualityIndicator, QualityIndicatorType, RFBand,
+    RFBandMode, RFStatus, RFStatusFlags, RaimIntegrity, ReceiverSetup, ReceiverStatus,
+    ReceiverTime, RiseSet, RxError, RxMessage, RxState, SatInfo, SatVisibility, SignalHealth,
+    TimeSystem, TrackingStatus, VectorInfoCart, VectorInfoGeod, VelCovCartesian, VelCovGeodetic,
+    VelSensorSetup, WACorrFlags, XPPSOffset, DOP,
 };
 
 // Re-export datagram parser
@@ -233,6 +233,7 @@ define_messages!(
     BaseVectorCart => 4043,
     PosCart => 4044,
     ExtSensorMeas => 4050,
+    PosLocal => 4052,
     DiskStatus => 4059,
     INSSupport => 4077,
     QualityInd => 4082,

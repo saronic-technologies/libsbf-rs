@@ -4,8 +4,8 @@ mod tests {
         reader::SbfReader, AuxAntPositions, BaseVectorCart, BaseVectorGeod, ChannelStatus, Comment,
         DiskStatus, EndOfAtt, EndOfPVT, ExtEvent, ExtEventINSNavCart, ExtEventINSNavGeod,
         ExtSensorMeas, INSNavCart, INSNavGeod, ImuSetup, MeasEpoch, MeasExtra, Messages, NavCart,
-        PVTCartesian, PVTGeodetic, PosCart, QualityInd, RFStatus, ReceiverStatus, ReceiverTime,
-        RxMessage, SatVisibility,
+        PVTCartesian, PVTGeodetic, PosCart, PosLocal, QualityInd, RFStatus, ReceiverStatus,
+        ReceiverTime, RxMessage, SatVisibility,
     };
     use binrw::{io::Cursor, BinRead, BinWrite};
     use std::collections::HashMap;
@@ -82,6 +82,7 @@ mod tests {
             "MeasEpoch",
             "MeasExtra",
             "PosCovGeodetic",
+            "PosLocal",
             "PVTGeodetic",
             "QualityInd",
             "ReceiverSetup",
@@ -129,6 +130,7 @@ mod tests {
         assert_eq!(message_counts.get("DiskStatus").copied().unwrap_or(0), 1, "expected 1 DiskStatus");
         assert_eq!(message_counts.get("RxMessage").copied().unwrap_or(0), 1, "expected 1 RxMessage");
         assert_eq!(message_counts.get("Comment").copied().unwrap_or(0), 1, "expected 1 Comment");
+        assert_eq!(message_counts.get("PosLocal").copied().unwrap_or(0), 1, "expected 1 PosLocal");
 
         println!("Mega test file validation passed!");
         println!("Total messages: {}", total_messages);
@@ -332,6 +334,7 @@ mod tests {
                 4043 => round_trip::<BaseVectorCart>(body, block, &mut round_tripped),
                 4044 => round_trip::<PosCart>(body, block, &mut round_tripped),
                 4050 => round_trip::<ExtSensorMeas>(body, block, &mut round_tripped),
+                4052 => round_trip::<PosLocal>(body, block, &mut round_tripped),
                 4059 => round_trip::<DiskStatus>(body, block, &mut round_tripped),
                 4082 => round_trip::<QualityInd>(body, block, &mut round_tripped),
                 4092 => round_trip::<RFStatus>(body, block, &mut round_tripped),

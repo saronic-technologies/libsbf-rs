@@ -41,6 +41,7 @@ pub mod nav_cart;
 pub mod pos_cart;
 pub mod pos_cov_cartesian;
 pub mod pos_cov_geodetic;
+pub mod pos_local;
 pub mod pvt_cartesian;
 pub mod pvt_geodetic;
 pub mod quality_ind;
@@ -119,6 +120,7 @@ pub use nav_cart::NavCart;
 pub use pos_cart::PosCart;
 pub use pos_cov_cartesian::PosCovCartesian;
 pub use pos_cov_geodetic::PosCovGeodetic;
+pub use pos_local::PosLocal;
 pub use pvt_cartesian::PVTCartesian;
 pub use pvt_geodetic::{
     ArpOffset, Datum, DiffCorrType, PVTGeodetic, PppInfo, PppSeedType, PvtError, PvtMisc, PvtMode,
