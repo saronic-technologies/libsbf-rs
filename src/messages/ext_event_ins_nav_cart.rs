@@ -1,6 +1,4 @@
-use super::common::{
-    AttitudeMode, Datum, GnssMode, INSCouplingMode, INSError, INSSolutionLocation, PvtMode,
-};
+use super::common::{Datum, GnssMode, INSCouplingMode, INSError, INSSolutionLocation};
 use crate::util::binrw::{
     map_f4, map_f8, map_u1_enum, map_u1_enum_opt, map_u2, map_u4, unmap_f4, unmap_f8,
     unmap_u1_enum, unmap_u1_enum_opt, unmap_u2, unmap_u4,
@@ -18,7 +16,10 @@ pub struct ExtEventINSNavCart {
     #[br(map = map_u2)]
     #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
-    gnss_mode_raw: u8,
+    /// Last GNSS PVT mode and attitude mode used by the INS filter.
+    #[br(map = GnssMode::from_byte)]
+    #[bw(map = |x: &GnssMode| x.raw())]
+    pub gnss_mode: GnssMode,
     /// INS error code.
     #[br(map = map_u1_enum)]
     #[bw(map = unmap_u1_enum)]
@@ -131,21 +132,6 @@ pub struct ExtEventINSNavCartVelStdDev {
 }
 
 impl ExtEventINSNavCart {
-    /// Combined GNSS mode (PVT mode + attitude mode).
-    pub fn gnss_mode(&self) -> GnssMode {
-        GnssMode::from_byte(self.gnss_mode_raw)
-    }
-
-    /// Last GNSS PVT mode used by INS filter (bits 0-3 of gnss_mode).
-    pub fn pvt_mode(&self) -> PvtMode {
-        PvtMode::from(self.gnss_mode_raw & 0x0F)
-    }
-
-    /// Last GNSS Attitude mode used by INS filter (bits 4-7 of gnss_mode).
-    pub fn attitude_mode(&self) -> AttitudeMode {
-        AttitudeMode::from((self.gnss_mode_raw >> 4) as u16)
-    }
-
     /// INS coupling mode (bits 0-2 of info).
     pub fn coupling_mode(&self) -> INSCouplingMode {
         INSCouplingMode::from(self.info)
