@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod tests {
     use crate::{
-        reader::SbfReader, AuxAntPositions, BaseVectorCart, BaseVectorGeod, ChannelStatus, Comment,
-        DiskStatus, EndOfAtt, EndOfPVT, ExtEvent, ExtEventINSNavCart, ExtEventINSNavGeod,
+        reader::SbfReader, AuxAntPositions, BDSNav, BaseVectorCart, BaseVectorGeod, ChannelStatus,
+        Comment, DiskStatus, EndOfAtt, EndOfPVT, ExtEvent, ExtEventINSNavCart, ExtEventINSNavGeod,
         ExtSensorMeas, GLONav, INSNavCart, INSNavGeod, ImuSetup, MeasEpoch, MeasExtra, Messages,
         NavCart, PVTCartesian, PVTGeodetic, PosCart, PosLocal, QualityInd, RFStatus,
         ReceiverStatus, ReceiverTime, RxMessage, SatVisibility,
@@ -53,6 +53,7 @@ mod tests {
             "AttEuler",
             "BaseVectorGeod",
             "BDSIon",
+            "BDSNav",
             "ChannelStatus",
             "Commands",
             "Comment",
@@ -133,6 +134,7 @@ mod tests {
         assert_eq!(message_counts.get("Comment").copied().unwrap_or(0), 1, "expected 1 Comment");
         assert_eq!(message_counts.get("PosLocal").copied().unwrap_or(0), 1, "expected 1 PosLocal");
         assert_eq!(message_counts.get("GLONav").copied().unwrap_or(0), 10, "expected 10 GLONav");
+        assert_eq!(message_counts.get("BDSNav").copied().unwrap_or(0), 13, "expected 13 BDSNav");
 
         println!("Mega test file validation passed!");
         println!("Total messages: {}", total_messages);
@@ -339,6 +341,7 @@ mod tests {
                 4050 => round_trip::<ExtSensorMeas>(body, block, &mut round_tripped),
                 4052 => round_trip::<PosLocal>(body, block, &mut round_tripped),
                 4059 => round_trip::<DiskStatus>(body, block, &mut round_tripped),
+                4081 => round_trip::<BDSNav>(body, block, &mut round_tripped),
                 4082 => round_trip::<QualityInd>(body, block, &mut round_tripped),
                 4092 => round_trip::<RFStatus>(body, block, &mut round_tripped),
                 4103 => round_trip::<RxMessage>(body, block, &mut round_tripped),

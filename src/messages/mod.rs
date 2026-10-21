@@ -5,6 +5,7 @@ pub mod base_station;
 pub mod base_vector_cart;
 pub mod base_vector_geod;
 pub mod bds_ion;
+pub mod bds_nav;
 pub mod channel_status;
 pub mod commands;
 pub mod comment;
@@ -66,6 +67,7 @@ pub use base_station::{BaseStation, BaseStationSource, BaseType};
 pub use base_vector_cart::{BaseVectorCart, VectorInfoCart};
 pub use base_vector_geod::{BaseVectorGeod, VectorInfoGeod};
 pub use bds_ion::BDSIon;
+pub use bds_nav::BDSNav;
 pub use channel_status::{
     ChannelSatInfo, ChannelStateInfo, ChannelStatus, PvtStatus, SignalHealth, TrackingStatus,
 };

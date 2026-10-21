@@ -27,7 +27,7 @@ mod mega_test;
 // Re-export all message types at crate level
 pub use messages::{
     AGCState, AmbiguityType, ArpOffset, AttCovEuler, AttEuler, AttitudeMode, AuxAntPositionSub,
-    AuxAntPositions, BDSIon, BaseStation, BaseStationSource, BaseType, BaseVectorCart,
+    AuxAntPositions, BDSIon, BDSNav, BaseStation, BaseStationSource, BaseType, BaseVectorCart,
     BaseVectorGeod, BaselineError, ChannelSatInfo, ChannelStateInfo, ChannelStatus, Commands,
     Comment, ConnectionPort, Datum, DiffCorrIn, DiffCorrMode, DiffCorrSource, DiffCorrType,
     DiskData, DiskStatus, DiskStatusFlags, EndOfAtt, EndOfMeas, EndOfPVT, EventPolarity,
@@ -239,6 +239,7 @@ define_messages!(
     PosLocal => 4052,
     DiskStatus => 4059,
     INSSupport => 4077,
+    BDSNav => 4081,
     QualityInd => 4082,
     RFStatus => 4092,
     RxMessage => 4103,
