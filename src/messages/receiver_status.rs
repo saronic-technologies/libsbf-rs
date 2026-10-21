@@ -46,8 +46,15 @@ bitflags! {
         const MISSED_EVENT = 1 << 8;
         const CPU_OVERLOAD = 1 << 9;
         const INVALID_CONFIG = 1 << 10;
-        const OUT_OF_GEOFENCE = 1 << 11;
+        /// Out of the permitted region of operation, from geofencing or motion-fencing.
+        const OUT_OF_FENCE = 1 << 11;
     }
+}
+
+impl RxError {
+    /// Bit 11 as named by firmware prior to 1.5.x, where it covers geofencing only.
+    #[deprecated(note = "use OUT_OF_FENCE, which also covers motion-fencing")]
+    pub const OUT_OF_GEOFENCE: Self = Self::OUT_OF_FENCE;
 }
 
 // ReceiverStatus Block 4014
