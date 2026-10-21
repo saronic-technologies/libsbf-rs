@@ -1,3 +1,4 @@
+use super::ext_sensor_status::ConnectionPort;
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
@@ -13,7 +14,9 @@ pub struct VelSensorSetup {
     #[bw(map = binrw_util::unmap_u2)]
     pub wnc: Option<u16>,
     pub reserved: u8,
-    pub port: u8,
+    #[br(map = |x: u8| ConnectionPort::from(x))]
+    #[bw(map = |x: &ConnectionPort| u8::from(*x))]
+    pub port: ConnectionPort,
     #[br(map = binrw_util::map_f4)]
     #[bw(map = binrw_util::unmap_f4)]
     pub lever_arm_x: Option<f32>,

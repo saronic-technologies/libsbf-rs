@@ -1,3 +1,4 @@
+use super::ext_sensor_status::{ConnectionPort, ExtSensorModel};
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
@@ -51,8 +52,12 @@ bitflags! {
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ExtSensorMeasSet {
-    pub source: u8,
-    pub sensor_model: u8,
+    #[br(map = |x: u8| ConnectionPort::from(x))]
+    #[bw(map = |x: &ConnectionPort| u8::from(*x))]
+    pub source: ConnectionPort,
+    #[br(map = |x: u8| ExtSensorModel::from(x))]
+    #[bw(map = |x: &ExtSensorModel| u8::from(*x))]
+    pub sensor_model: ExtSensorModel,
     pub type_: u8,
     #[br(map = |x: u8| ExtSensorMeasObsInfo::from_bits_retain(x))]
     #[bw(map = |x: &ExtSensorMeasObsInfo| x.bits())]

@@ -6,8 +6,8 @@ use num_enum::{FromPrimitive, IntoPrimitive};
 
 /// Connection port / external sensor source.
 ///
-/// Used by ExtSensorStatus, ExtSensorInfo, and VelSensorSetup to identify the
-/// receiver port an external sensor is connected to.
+/// Used by ExtSensorMeas, ExtSensorStatus, ExtSensorInfo, IMUSetup and VelSensorSetup to
+/// identify the receiver port an external sensor is connected to.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
 #[repr(u8)]
 pub enum ConnectionPort {
@@ -76,43 +76,43 @@ impl fmt::Display for ConnectionPort {
 }
 
 /// External sensor model.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
 #[repr(u8)]
 pub enum ExtSensorModel {
-    #[default]
-    Unknown = 0,
+    /// Ellipse from SBG Systems.
     SbgEllipse = 2,
+    /// Ellipse2 from SBG Systems.
     SbgEllipse2 = 5,
+    /// VN-100 from VectorNav.
     Vn100 = 7,
+    /// ADIS1650x from Analog Devices.
     Adis1650x = 10,
+    /// Zero-velocity sensor.
     ZeroVelocity = 20,
+    /// Velocity input.
     VelocityInput = 21,
+    /// Sensor model code not defined by the reference guide.
+    #[num_enum(catch_all)]
+    Unknown(u8),
 }
 
-impl From<u8> for ExtSensorModel {
-    fn from(value: u8) -> Self {
-        match value {
-            2 => ExtSensorModel::SbgEllipse,
-            5 => ExtSensorModel::SbgEllipse2,
-            7 => ExtSensorModel::Vn100,
-            10 => ExtSensorModel::Adis1650x,
-            20 => ExtSensorModel::ZeroVelocity,
-            21 => ExtSensorModel::VelocityInput,
-            _ => ExtSensorModel::Unknown,
-        }
+#[allow(clippy::derivable_impls)]
+impl Default for ExtSensorModel {
+    fn default() -> Self {
+        ExtSensorModel::Unknown(0)
     }
 }
 
 impl fmt::Display for ExtSensorModel {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ExtSensorModel::Unknown => write!(f, "Unknown"),
             ExtSensorModel::SbgEllipse => write!(f, "SBG Ellipse"),
             ExtSensorModel::SbgEllipse2 => write!(f, "SBG Ellipse 2"),
             ExtSensorModel::Vn100 => write!(f, "VN-100"),
             ExtSensorModel::Adis1650x => write!(f, "ADIS1650x"),
             ExtSensorModel::ZeroVelocity => write!(f, "Zero Velocity"),
             ExtSensorModel::VelocityInput => write!(f, "Velocity Input"),
+            ExtSensorModel::Unknown(x) => write!(f, "Unknown: {x}"),
         }
     }
 }
@@ -127,8 +127,12 @@ pub struct ExtSensorStatus {
     #[br(map = binrw_util::map_u2)]
     #[bw(map = binrw_util::unmap_u2)]
     pub wnc: Option<u16>,
-    pub source: u8,
-    pub sensor_model: u8,
+    #[br(map = |x: u8| ConnectionPort::from(x))]
+    #[bw(map = |x: &ConnectionPort| u8::from(*x))]
+    pub source: ConnectionPort,
+    #[br(map = |x: u8| ExtSensorModel::from(x))]
+    #[bw(map = |x: &ExtSensorModel| u8::from(*x))]
+    pub sensor_model: ExtSensorModel,
     #[br(parse_with = binrw::helpers::until_eof)]
     pub data: Vec<u8>,
 }
