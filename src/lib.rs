@@ -27,12 +27,13 @@ mod mega_test;
 // Re-export all message types at crate level
 pub use messages::{
     AGCState, AmbiguityType, ArpOffset, AttCovEuler, AttEuler, AttitudeMode, AuxAntPositionSub,
-    AuxAntPositions, BDSIon, BaseVectorCart, BaseVectorGeod, BaselineError, ChannelSatInfo,
-    ChannelStateInfo, ChannelStatus, Commands, Comment, ConnectionPort, Datum, DiffCorrIn,
-    DiffCorrMode, DiffCorrSource, DiffCorrType, DiskData, DiskStatus, DiskStatusFlags, EndOfAtt,
-    EndOfMeas, EndOfPVT, EventPolarity, EventSource, ExtError, ExtEvent, ExtEventINSNavCart,
-    ExtEventINSNavCartAtt, ExtEventINSNavCartAttStdDev, ExtEventINSNavCartPosStdDev,
-    ExtEventINSNavCartVel, ExtEventINSNavCartVelStdDev, ExtEventINSNavGeod, ExtEventINSNavGeodAtt,
+    AuxAntPositions, BDSIon, BaseStation, BaseStationSource, BaseType, BaseVectorCart,
+    BaseVectorGeod, BaselineError, ChannelSatInfo, ChannelStateInfo, ChannelStatus, Commands,
+    Comment, ConnectionPort, Datum, DiffCorrIn, DiffCorrMode, DiffCorrSource, DiffCorrType,
+    DiskData, DiskStatus, DiskStatusFlags, EndOfAtt, EndOfMeas, EndOfPVT, EventPolarity,
+    EventSource, ExtError, ExtEvent, ExtEventINSNavCart, ExtEventINSNavCartAtt,
+    ExtEventINSNavCartAttStdDev, ExtEventINSNavCartPosStdDev, ExtEventINSNavCartVel,
+    ExtEventINSNavCartVelStdDev, ExtEventINSNavGeod, ExtEventINSNavGeodAtt,
     ExtEventINSNavGeodAttStdDev, ExtEventINSNavGeodPosStdDev, ExtEventINSNavGeodVel,
     ExtEventINSNavGeodVelStdDev, ExtSensorInfo, ExtSensorMeas, ExtSensorMeasAcceleration,
     ExtSensorMeasAngularRate, ExtSensorMeasInfo, ExtSensorMeasObsInfo, ExtSensorMeasSet,
@@ -271,6 +272,7 @@ define_messages!(
     AttCovEuler => 5939,
     AuxAntPositions => 5942,
     EndOfAtt => 5943,
+    BaseStation => 5949,
 );
 
 pub fn is_sync(bytes: &[u8; 2]) -> bool {
