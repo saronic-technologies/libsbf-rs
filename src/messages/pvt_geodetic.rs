@@ -77,6 +77,18 @@ pub enum Datum {
     Wgs84 = 0,
     /// Datum equal to that used by the DGNSS/RTK base station.
     DgnssBaseStation = 19,
+    /// Local datum defined by the RTCMDatum block with datum code 20.
+    RtcmLocal20 = 20,
+    /// Local datum defined by the RTCMDatum block with datum code 21.
+    RtcmLocal21 = 21,
+    /// Local datum defined by the RTCMDatum block with datum code 22.
+    RtcmLocal22 = 22,
+    /// Local datum defined by the RTCMDatum block with datum code 23.
+    RtcmLocal23 = 23,
+    /// Local datum defined by the RTCMDatum block with datum code 24.
+    RtcmLocal24 = 24,
+    /// Local coordinate reference system selected with setLocalCoordOperation.
+    LocalCoordOperation = 25,
     /// ETRS89 (ETRF2000 realization).
     Etrs89 = 30,
     /// NAD83(2011), North American Datum (2011).
@@ -122,6 +134,8 @@ pub enum PvtError {
     NotEnoughDiffCorrections = 8,
     BaseCoordsUnavailable = 9,
     AmbiguitiesNotFixed = 10,
+    /// Reported only by PosLocal and PosProjected.
+    DatumTransformationUnknown = 17,
     #[num_enum(catch_all)]
     Unknown(u8),
 }
