@@ -442,6 +442,29 @@ impl From<u8> for BaselineError {
     }
 }
 
+/// The raw Error byte of the attitude blocks, which decodes into the error code of each antenna
+/// baseline and whether attitude was requested.
+#[binrw]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RawAttitudeError(u8);
+
+impl RawAttitudeError {
+    /// Error code for Main-Aux1 baseline from bits 0-1.
+    pub fn main_aux1_error(&self) -> BaselineError {
+        BaselineError::from(self.0 & 0x03)
+    }
+
+    /// Error code for Main-Aux2 baseline from bits 2-3.
+    pub fn main_aux2_error(&self) -> BaselineError {
+        BaselineError::from((self.0 >> 2) & 0x03)
+    }
+
+    /// Bit 7: Attitude not requested by user.
+    pub fn not_requested(&self) -> bool {
+        self.0 & (1 << 7) != 0
+    }
+}
+
 /// Combined GNSS mode containing PVT mode (bits 0-3) and attitude mode (bits 4-7).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct GnssMode {

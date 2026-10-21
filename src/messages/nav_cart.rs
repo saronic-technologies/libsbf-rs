@@ -1,5 +1,5 @@
 use super::common::{
-    AttitudeMode, BaselineError, Datum, PppInfo, PvtError, PvtMisc, RawAlertFlag, RawPvtMode,
+    AttitudeMode, Datum, PppInfo, PvtError, PvtMisc, RawAlertFlag, RawAttitudeError, RawPvtMode,
     RawWaCorrInfo, TimeSystem,
 };
 use crate::util::binrw::{
@@ -108,7 +108,8 @@ pub struct NavCart {
     #[br(map = |x: u16| AttitudeMode::from(x))]
     #[bw(map = |x: &AttitudeMode| u16::from(*x))]
     pub attitude_mode: AttitudeMode,
-    error_att_raw: u8,
+    /// Bit field providing error information.
+    pub error_att: RawAttitudeError,
     #[br(map = map_u1)]
     #[bw(map = unmap_u1)]
     pub nr_sv_att: Option<u8>,
@@ -155,23 +156,4 @@ pub struct NavCart {
     pub utc_day: Option<i8>,
     #[br(parse_with = binrw::helpers::until_eof)]
     pub padding: Vec<u8>,
-}
-
-impl NavCart {
-    // -- Attitude accessors --
-
-    /// Error code for Main-Aux1 baseline (bits 0-1 of error_att).
-    pub fn main_aux1_error(&self) -> BaselineError {
-        BaselineError::from(self.error_att_raw & 0x03)
-    }
-
-    /// Error code for Main-Aux2 baseline (bits 2-3 of error_att).
-    pub fn main_aux2_error(&self) -> BaselineError {
-        BaselineError::from((self.error_att_raw >> 2) & 0x03)
-    }
-
-    /// Bit 7 of error_att: attitude not requested by user.
-    pub fn attitude_not_requested(&self) -> bool {
-        self.error_att_raw & (1 << 7) != 0
-    }
 }
