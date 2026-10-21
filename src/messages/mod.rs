@@ -66,7 +66,7 @@ pub use channel_status::{
 };
 pub use commands::Commands;
 pub use comment::Comment;
-pub use diff_corr_in::DiffCorrIn;
+pub use diff_corr_in::{DiffCorrIn, DiffCorrMode, DiffCorrSource};
 pub use disk_status::{DiskData, DiskStatus, DiskStatusFlags};
 pub use dop::DOP;
 pub use end_of_att::EndOfAtt;
