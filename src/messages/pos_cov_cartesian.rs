@@ -1,5 +1,7 @@
 use super::common::{PvtError, PvtMode, PvtModeFlags};
-use crate::util::binrw::{map_f4, map_u2, map_u4, unmap_f4, unmap_u2, unmap_u4};
+use crate::util::binrw::{
+    map_f4, map_u1_enum, map_u2, map_u4, unmap_f4, unmap_u1_enum, unmap_u2, unmap_u4,
+};
 use binrw::binrw;
 
 // PosCovCartesian Block 5905
@@ -13,7 +15,10 @@ pub struct PosCovCartesian {
     #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     mode_raw: u8,
-    error_raw: u8,
+    /// PVT error code.
+    #[br(map = map_u1_enum)]
+    #[bw(map = unmap_u1_enum)]
+    pub error: PvtError,
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
     pub cov_xx: Option<f32>,
@@ -55,10 +60,5 @@ impl PosCovCartesian {
     /// Mode flags (bits 6-7 of mode).
     pub fn mode_flags(&self) -> PvtModeFlags {
         PvtModeFlags::from_bits_truncate(self.mode_raw)
-    }
-
-    /// PVT error code.
-    pub fn error(&self) -> PvtError {
-        PvtError::from(self.error_raw)
     }
 }
