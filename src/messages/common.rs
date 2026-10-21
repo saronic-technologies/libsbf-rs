@@ -224,6 +224,24 @@ impl From<u8> for DiffCorrType {
     }
 }
 
+/// The raw WACorrInfo byte of the PVT blocks, which decodes into the wide area correction flags
+/// and the differential correction type.
+#[binrw]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RawWaCorrInfo(u8);
+
+impl RawWaCorrInfo {
+    /// Wide Area correction flags from bits 0-4.
+    pub fn wa_corr_flags(&self) -> WACorrFlags {
+        WACorrFlags::from_bits_truncate(self.0)
+    }
+
+    /// Differential correction type from bits 5-6.
+    pub fn diff_corr_type(&self) -> DiffCorrType {
+        DiffCorrType::from(self.0)
+    }
+}
+
 /// RAIM integrity status (bits 0-1 of alert_flag).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 #[repr(u8)]
@@ -244,6 +262,40 @@ impl From<u8> for RaimIntegrity {
             3 => RaimIntegrity::Reserved,
             _ => RaimIntegrity::NotActive,
         }
+    }
+}
+
+/// The raw AlertFlag byte of the PVT blocks, which decodes into the RAIM integrity status and the
+/// integrity and authentication alerts.
+#[binrw]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct RawAlertFlag(u8);
+
+impl RawAlertFlag {
+    /// RAIM integrity status from bits 0-1.
+    pub fn raim_integrity(&self) -> RaimIntegrity {
+        RaimIntegrity::from(self.0)
+    }
+
+    /// Bit 2: Galileo HPCA integrity failed.
+    pub fn galileo_hpca_failed(&self) -> bool {
+        self.0 & (1 << 2) != 0
+    }
+
+    /// Bit 3: Galileo ionospheric storm active.
+    pub fn galileo_iono_storm(&self) -> bool {
+        self.0 & (1 << 3) != 0
+    }
+
+    /// Bit 5: GNSS signals may not be authentic, as flagged by SIG_AUTH_ALERT in RFStatus.
+    pub fn signal_auth_alert(&self) -> bool {
+        self.0 & (1 << 5) != 0
+    }
+
+    /// Bit 6: A navigation message failed authentication, as flagged by NAV_MSG_AUTH_ALERT
+    /// in RFStatus.
+    pub fn nav_msg_auth_alert(&self) -> bool {
+        self.0 & (1 << 6) != 0
     }
 }
 

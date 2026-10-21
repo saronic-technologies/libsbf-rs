@@ -1,6 +1,4 @@
-use super::common::{
-    Datum, DiffCorrType, PvtError, PvtMisc, RaimIntegrity, RawPvtMode, WACorrFlags,
-};
+use super::common::{Datum, PvtError, PvtMisc, RawAlertFlag, RawPvtMode, RawWaCorrInfo};
 use crate::util::binrw::{
     map_f4, map_f8, map_u1, map_u1_enum, map_u1_enum_opt, map_u2, map_u2_zero, map_u4, map_u4_zero,
     unmap_f4, unmap_f8, unmap_u1, unmap_u1_enum, unmap_u1_enum_opt, unmap_u2, unmap_u2_zero,
@@ -73,14 +71,16 @@ pub struct PosCart {
     #[bw(map = |x: &PvtMisc| x.bits())]
     pub misc: PvtMisc,
     _reserved: u8,
-    alert_flag_raw: u8,
+    /// Bit field indicating integrity related information.
+    pub alert_flag: RawAlertFlag,
     #[br(map = map_u1_enum_opt)]
     #[bw(map = unmap_u1_enum_opt)]
     pub datum: Option<Datum>,
     #[br(map = map_u1)]
     #[bw(map = unmap_u1)]
     pub nr_sv: Option<u8>,
-    wa_corr_info_raw: u8,
+    /// Bit field providing information about which corrections have been applied.
+    pub wa_corr_info: RawWaCorrInfo,
     #[br(map = map_u2)]
     #[bw(map = unmap_u2)]
     pub reference_id: Option<u16>,
@@ -92,42 +92,4 @@ pub struct PosCart {
     pub signal_info: Option<u32>,
     #[br(parse_with = binrw::helpers::until_eof)]
     pub padding: Vec<u8>,
-}
-
-impl PosCart {
-    /// Wide Area correction flags (bits 0-4).
-    pub fn wa_corr_flags(&self) -> WACorrFlags {
-        WACorrFlags::from_bits_truncate(self.wa_corr_info_raw)
-    }
-
-    /// Differential correction type (bits 5-6).
-    pub fn diff_corr_type(&self) -> DiffCorrType {
-        DiffCorrType::from(self.wa_corr_info_raw)
-    }
-
-    /// RAIM integrity status (bits 0-1 of alert_flag).
-    pub fn raim_integrity(&self) -> RaimIntegrity {
-        RaimIntegrity::from(self.alert_flag_raw)
-    }
-
-    /// Bit 2: Galileo HPCA integrity failed.
-    pub fn galileo_hpca_failed(&self) -> bool {
-        self.alert_flag_raw & (1 << 2) != 0
-    }
-
-    /// Bit 3: Galileo ionospheric storm active.
-    pub fn galileo_iono_storm(&self) -> bool {
-        self.alert_flag_raw & (1 << 3) != 0
-    }
-
-    /// Bit 5: GNSS signals may not be authentic, as flagged by SIG_AUTH_ALERT in RFStatus.
-    pub fn signal_auth_alert(&self) -> bool {
-        self.alert_flag_raw & (1 << 5) != 0
-    }
-
-    /// Bit 6: A navigation message failed authentication, as flagged by NAV_MSG_AUTH_ALERT
-    /// in RFStatus.
-    pub fn nav_msg_auth_alert(&self) -> bool {
-        self.alert_flag_raw & (1 << 6) != 0
-    }
 }
