@@ -1,7 +1,7 @@
 use super::ext_sensor_status::{ConnectionPort, ExtSensorModel};
 use crate::util::binrw::{
-    map_f4, map_f8, map_i2, map_u2, map_u2_zero, map_u4, unmap_f4, unmap_f8, unmap_i2, unmap_u2,
-    unmap_u2_zero, unmap_u4, unwrap_subblocks, wrap_subblocks,
+    map_f4, map_f8, map_i2, map_u1_enum, map_u2, map_u2_zero, map_u4, unmap_f4, unmap_f8, unmap_i2,
+    unmap_u1_enum, unmap_u2, unmap_u2_zero, unmap_u4, unwrap_subblocks, wrap_subblocks,
 };
 use alloc::vec::Vec;
 use binrw::binrw;
@@ -55,11 +55,11 @@ bitflags! {
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ExtSensorMeasSet {
-    #[br(map = |x: u8| ConnectionPort::from(x))]
-    #[bw(map = |x: &ConnectionPort| u8::from(*x))]
+    #[br(map = map_u1_enum)]
+    #[bw(map = unmap_u1_enum)]
     pub source: ConnectionPort,
-    #[br(map = |x: u8| ExtSensorModel::from(x))]
-    #[bw(map = |x: &ExtSensorModel| u8::from(*x))]
+    #[br(map = map_u1_enum)]
+    #[bw(map = unmap_u1_enum)]
     pub sensor_model: ExtSensorModel,
     pub type_: u8,
     #[br(map = |x: u8| ExtSensorMeasObsInfo::from_bits_retain(x))]

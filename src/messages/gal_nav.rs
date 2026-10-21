@@ -1,4 +1,7 @@
-use crate::util::binrw::{map_f4, map_u1, map_u2, map_u4, unmap_f4, unmap_u1, unmap_u2, unmap_u4};
+use crate::util::binrw::{
+    map_f4, map_u1, map_u1_enum, map_u2, map_u4, unmap_f4, unmap_u1, unmap_u1_enum, unmap_u2,
+    unmap_u4,
+};
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
@@ -28,8 +31,8 @@ pub struct GALNav {
     #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     pub svid: u8,
-    #[br(map = |x: u8| GalMessageType::from(x))]
-    #[bw(map = |x: &GalMessageType| u8::from(*x))]
+    #[br(map = map_u1_enum)]
+    #[bw(map = unmap_u1_enum)]
     pub source: GalMessageType,
     pub sqrt_a: f64,
     pub m_0: f64,

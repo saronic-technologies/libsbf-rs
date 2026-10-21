@@ -1,7 +1,7 @@
 use crate::util::{
     binrw::{
-        map_i2, map_u1_zero, map_u2, map_u4, unmap_i2, unmap_u1_zero, unmap_u2, unmap_u4,
-        unwrap_subblocks, wrap_subblocks,
+        map_i2, map_u1_enum, map_u1_zero, map_u2, map_u4, unmap_i2, unmap_u1_enum, unmap_u1_zero,
+        unmap_u2, unmap_u4, unwrap_subblocks, wrap_subblocks,
     },
     signal::glonass_frequency_number,
 };
@@ -44,8 +44,8 @@ pub struct SatInfo {
     #[br(map = map_i2)]
     #[bw(map = unmap_i2)]
     pub elevation: Option<i16>,
-    #[br(map = |x: u8| RiseSet::from(x))]
-    #[bw(map = |x: &RiseSet| u8::from(*x))]
+    #[br(map = map_u1_enum)]
+    #[bw(map = unmap_u1_enum)]
     pub rise_set: RiseSet,
     /// Source of the visibility info: 1 almanac, 2 ephemeris, 255 unknown.
     pub satellite_info: u8,

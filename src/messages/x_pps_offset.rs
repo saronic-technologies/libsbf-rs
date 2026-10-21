@@ -1,4 +1,4 @@
-use crate::util::binrw::{map_u2, map_u4, unmap_u2, unmap_u4};
+use crate::util::binrw::{map_u1_enum, map_u2, map_u4, unmap_u1_enum, unmap_u2, unmap_u4};
 use binrw::binrw;
 use num_enum::{FromPrimitive, IntoPrimitive};
 
@@ -37,8 +37,8 @@ pub struct XPPSOffset {
     pub wnc: Option<u16>,
     /// Age in seconds of the last synchronization to the time scale.
     pub sync_age: u8,
-    #[br(map = |x: u8| PpsTimeScale::from(x))]
-    #[bw(map = |x: &PpsTimeScale| u8::from(*x))]
+    #[br(map = map_u1_enum)]
+    #[bw(map = unmap_u1_enum)]
     pub time_scale: PpsTimeScale,
     /// Offset of the xPPS pulse from the reference in nanoseconds. Negative when the pulse is in advance.
     pub offset: f32,

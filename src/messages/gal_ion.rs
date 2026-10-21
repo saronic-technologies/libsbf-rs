@@ -1,5 +1,5 @@
 use super::gal_nav::GalMessageType;
-use crate::util::binrw::{map_u2, map_u4, unmap_u2, unmap_u4};
+use crate::util::binrw::{map_u1_enum, map_u2, map_u4, unmap_u1_enum, unmap_u2, unmap_u4};
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
@@ -28,8 +28,8 @@ pub struct GALIon {
     #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     pub svid: u8,
-    #[br(map = |x: u8| GalMessageType::from(x))]
-    #[bw(map = |x: &GalMessageType| u8::from(*x))]
+    #[br(map = map_u1_enum)]
+    #[bw(map = unmap_u1_enum)]
     pub source: GalMessageType,
     pub a_i0: f32,
     pub a_i1: f32,

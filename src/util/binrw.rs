@@ -118,6 +118,15 @@ pub(crate) fn unmap_u1_enum_opt<T: Copy + Into<u8>>(x: &Option<T>) -> u8 {
     x.map_or(DO_NOT_USE_U1, Into::into)
 }
 
+// Enum coded in a u1 field that has no Do-Not-Use value.
+pub(crate) fn map_u1_enum<T: From<u8>>(x: u8) -> T {
+    T::from(x)
+}
+
+pub(crate) fn unmap_u1_enum<T: Copy + Into<u8>>(x: &T) -> u8 {
+    (*x).into()
+}
+
 /// Wrapper for a single SBF sub-block to allow padding of individual elements,
 /// which is not supported on standalone structs.
 #[binrw]

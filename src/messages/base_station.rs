@@ -1,5 +1,8 @@
 use super::pvt_geodetic::Datum;
-use crate::util::binrw::{map_u1_enum_opt, map_u2, map_u4, unmap_u1_enum_opt, unmap_u2, unmap_u4};
+use crate::util::binrw::{
+    map_u1_enum, map_u1_enum_opt, map_u2, map_u4, unmap_u1_enum, unmap_u1_enum_opt, unmap_u2,
+    unmap_u4,
+};
 use alloc::vec::Vec;
 use binrw::binrw;
 use num_enum::{FromPrimitive, IntoPrimitive};
@@ -60,8 +63,8 @@ pub struct BaseStation {
     #[bw(map = unmap_u1_enum_opt)]
     pub base_type: Option<BaseType>,
     /// Source of the base station coordinates.
-    #[br(map = |x: u8| BaseStationSource::from(x))]
-    #[bw(map = |x: &BaseStationSource| u8::from(*x))]
+    #[br(map = map_u1_enum)]
+    #[bw(map = unmap_u1_enum)]
     pub source: BaseStationSource,
     /// Datum in which the coordinates are expressed. Firmware prior to 1.5.x marks this field
     /// not applicable.

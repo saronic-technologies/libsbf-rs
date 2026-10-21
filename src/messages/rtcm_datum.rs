@@ -1,5 +1,8 @@
 use super::pvt_geodetic::Datum;
-use crate::util::binrw::{map_u1_enum_opt, map_u2, map_u4, unmap_u1_enum_opt, unmap_u2, unmap_u4};
+use crate::util::binrw::{
+    map_u1_enum, map_u1_enum_opt, map_u2, map_u4, unmap_u1_enum, unmap_u1_enum_opt, unmap_u2,
+    unmap_u4,
+};
 use alloc::vec::Vec;
 use binrw::binrw;
 use num_enum::{FromPrimitive, IntoPrimitive};
@@ -118,8 +121,8 @@ pub struct RTCMDatum {
     #[bw(map = unmap_u1_enum_opt)]
     pub datum: Option<Datum>,
     /// Height Indicator field from MT1021 and MT1022.
-    #[br(map = |x: u8| HeightType::from(x))]
-    #[bw(map = |x: &HeightType| u8::from(*x))]
+    #[br(map = map_u1_enum)]
+    #[bw(map = unmap_u1_enum)]
     pub height_type: HeightType,
     /// Bit field indicating the maximum approximation error after applying the
     /// transformation.

@@ -2,8 +2,9 @@ use super::pvt_geodetic::{
     Datum, DiffCorrType, PvtError, PvtMisc, PvtMode, PvtModeFlags, RaimIntegrity, WACorrFlags,
 };
 use crate::util::binrw::{
-    map_f4, map_f8, map_u1, map_u1_enum_opt, map_u2, map_u2_zero, map_u4, map_u4_zero, unmap_f4,
-    unmap_f8, unmap_u1, unmap_u1_enum_opt, unmap_u2, unmap_u2_zero, unmap_u4, unmap_u4_zero,
+    map_f4, map_f8, map_u1, map_u1_enum, map_u1_enum_opt, map_u2, map_u2_zero, map_u4, map_u4_zero,
+    unmap_f4, unmap_f8, unmap_u1, unmap_u1_enum, unmap_u1_enum_opt, unmap_u2, unmap_u2_zero,
+    unmap_u4, unmap_u4_zero,
 };
 use alloc::vec::Vec;
 use binrw::binrw;
@@ -19,8 +20,8 @@ pub struct PosCart {
     #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     mode_raw: u8,
-    #[br(map = |x: u8| PvtError::from(x))]
-    #[bw(map = |x: &PvtError| u8::from(*x))]
+    #[br(map = map_u1_enum)]
+    #[bw(map = unmap_u1_enum)]
     pub error: PvtError,
     #[br(map = map_f8)]
     #[bw(map = unmap_f8)]

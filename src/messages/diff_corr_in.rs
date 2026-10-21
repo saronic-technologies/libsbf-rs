@@ -1,4 +1,7 @@
-use crate::util::binrw::{map_u1_enum_opt, map_u2, map_u4, unmap_u1_enum_opt, unmap_u2, unmap_u4};
+use crate::util::binrw::{
+    map_u1_enum, map_u1_enum_opt, map_u2, map_u4, unmap_u1_enum, unmap_u1_enum_opt, unmap_u2,
+    unmap_u4,
+};
 use alloc::vec::Vec;
 use binrw::binrw;
 use num_enum::{FromPrimitive, IntoPrimitive};
@@ -60,8 +63,8 @@ pub struct DiffCorrIn {
     #[br(map = map_u2)]
     #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
-    #[br(map = |x: u8| DiffCorrMode::from(x))]
-    #[bw(map = |x: &DiffCorrMode| u8::from(*x))]
+    #[br(map = map_u1_enum)]
+    #[bw(map = unmap_u1_enum)]
     pub mode: DiffCorrMode,
     #[br(map = map_u1_enum_opt)]
     #[bw(map = unmap_u1_enum_opt)]

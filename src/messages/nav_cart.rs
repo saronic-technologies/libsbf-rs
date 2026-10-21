@@ -6,9 +6,9 @@ use super::{
     },
 };
 use crate::util::binrw::{
-    map_f4, map_f8, map_i1, map_u1, map_u1_enum_opt, map_u1_zero, map_u2, map_u2_zero, map_u4,
-    map_u64_zero, unmap_f4, unmap_f8, unmap_i1, unmap_u1, unmap_u1_enum_opt, unmap_u1_zero,
-    unmap_u2, unmap_u2_zero, unmap_u4, unmap_u64_zero,
+    map_f4, map_f8, map_i1, map_u1, map_u1_enum, map_u1_enum_opt, map_u1_zero, map_u2, map_u2_zero,
+    map_u4, map_u64_zero, unmap_f4, unmap_f8, unmap_i1, unmap_u1, unmap_u1_enum, unmap_u1_enum_opt,
+    unmap_u1_zero, unmap_u2, unmap_u2_zero, unmap_u4, unmap_u64_zero,
 };
 use alloc::vec::Vec;
 use binrw::binrw;
@@ -25,8 +25,8 @@ pub struct NavCart {
     #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     mode_raw: u8,
-    #[br(map = |x: u8| PvtError::from(x))]
-    #[bw(map = |x: &PvtError| u8::from(*x))]
+    #[br(map = map_u1_enum)]
+    #[bw(map = unmap_u1_enum)]
     pub error: PvtError,
     #[br(map = map_f8)]
     #[bw(map = unmap_f8)]
