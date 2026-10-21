@@ -1,58 +1,79 @@
 use crate::binrw_util;
 use alloc::vec::Vec;
 use binrw::binrw;
+use core::fmt;
+use num_enum::{FromPrimitive, IntoPrimitive};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum QualityIndicator {
-    OverallQuality(u8),
-    MainAntennaSignal(u8),
-    AuxAntennaSignal(u8),
-    MainAntennaPower(u8),
-    AuxAntennaPower(u8),
-    CpuHeadroom(u8),
-    OcxoStability(u8),
-    ScintillationScore(u8),
-    BaseStationMeasurements(u8),
-    RtkPostProcessing(u8),
-    Unknown { indicator_type: u8, value: u8 },
+// Indicator value the receiver reports when the quality is unknown.
+const UNKNOWN_VALUE: u8 = 15;
+
+/// Kind of quality indicator, from bits 0-7 of an indicator word.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[repr(u8)]
+pub enum QualityIndicatorType {
+    /// Overall quality.
+    OverallQuality = 0,
+    /// GNSS signals from the main antenna.
+    MainAntennaSignal = 1,
+    /// GNSS signals from the aux1 antenna.
+    AuxAntennaSignal = 2,
+    /// RF power level from the main antenna.
+    MainAntennaPower = 11,
+    /// RF power level from the aux1 antenna.
+    AuxAntennaPower = 12,
+    /// CPU headroom.
+    CpuHeadroom = 21,
+    /// OCXO stability, available only on PolaRx5S receivers.
+    OcxoStability = 25,
+    /// Scintillation score, high when no ionospheric scintillation is detected.
+    ScintillationScore = 29,
+    /// Base station measurements, available only in RTK mode.
+    BaseStationMeasurements = 30,
+    /// Likelihood of a cm-accurate RTK position when post-processing the current
+    /// data, available only when the position mode is not RTK.
+    RtkPostProcessing = 31,
+    /// Indicator type code not defined by the reference guide.
+    #[num_enum(catch_all)]
+    Unknown(u8),
+}
+
+/// One quality indicator word: its kind and its value.
+#[binrw]
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub struct QualityIndicator(u16);
+
+impl QualityIndicator {
+    /// Kind of indicator, from bits 0-7.
+    pub fn indicator_type(&self) -> QualityIndicatorType {
+        QualityIndicatorType::from((self.0 & 0xFF) as u8)
+    }
+
+    /// Value from 0 for low quality to 10 for high quality, from bits 8-11. None when the
+    /// receiver reports it as unknown.
+    pub fn value(&self) -> Option<u8> {
+        let value = ((self.0 >> 8) & 0x0F) as u8;
+        (value != UNKNOWN_VALUE).then_some(value)
+    }
+}
+
+impl fmt::Debug for QualityIndicator {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("QualityIndicator")
+            .field("indicator_type", &self.indicator_type())
+            .field("value", &self.value())
+            .finish()
+    }
 }
 
 impl From<u16> for QualityIndicator {
     fn from(raw: u16) -> Self {
-        let indicator_type = (raw & 0xFF) as u8;
-        let value = ((raw >> 8) & 0x0F) as u8;
-        match indicator_type {
-            0 => QualityIndicator::OverallQuality(value),
-            1 => QualityIndicator::MainAntennaSignal(value),
-            2 => QualityIndicator::AuxAntennaSignal(value),
-            11 => QualityIndicator::MainAntennaPower(value),
-            12 => QualityIndicator::AuxAntennaPower(value),
-            21 => QualityIndicator::CpuHeadroom(value),
-            25 => QualityIndicator::OcxoStability(value),
-            29 => QualityIndicator::ScintillationScore(value),
-            30 => QualityIndicator::BaseStationMeasurements(value),
-            31 => QualityIndicator::RtkPostProcessing(value),
-            _ => QualityIndicator::Unknown { indicator_type, value },
-        }
+        Self(raw)
     }
 }
 
 impl From<QualityIndicator> for u16 {
     fn from(indicator: QualityIndicator) -> Self {
-        let (indicator_type, value): (u8, u8) = match indicator {
-            QualityIndicator::OverallQuality(value) => (0, value),
-            QualityIndicator::MainAntennaSignal(value) => (1, value),
-            QualityIndicator::AuxAntennaSignal(value) => (2, value),
-            QualityIndicator::MainAntennaPower(value) => (11, value),
-            QualityIndicator::AuxAntennaPower(value) => (12, value),
-            QualityIndicator::CpuHeadroom(value) => (21, value),
-            QualityIndicator::OcxoStability(value) => (25, value),
-            QualityIndicator::ScintillationScore(value) => (29, value),
-            QualityIndicator::BaseStationMeasurements(value) => (30, value),
-            QualityIndicator::RtkPostProcessing(value) => (31, value),
-            QualityIndicator::Unknown { indicator_type, value } => (indicator_type, value),
-        };
-        u16::from(indicator_type) | (u16::from(value & 0x0F) << 8)
+        indicator.0
     }
 }
 
@@ -68,8 +89,7 @@ pub struct QualityInd {
     pub wnc: Option<u16>,
     n: u8,
     reserved: u8,
-    #[br(count = usize::from(n), map = |v: Vec<u16>| v.into_iter().map(QualityIndicator::from).collect())]
-    #[bw(map = |v: &Vec<QualityIndicator>| v.iter().map(|q| u16::from(*q)).collect::<Vec<u16>>())]
+    #[br(count = usize::from(n))]
     pub indicators: Vec<QualityIndicator>,
     #[br(parse_with = binrw::helpers::until_eof)]
     _padding: Vec<u8>,

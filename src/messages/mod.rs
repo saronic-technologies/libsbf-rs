@@ -124,7 +124,7 @@ pub use pvt_geodetic::{
     ArpOffset, Datum, DiffCorrType, PVTGeodetic, PppInfo, PppSeedType, PvtError, PvtMisc, PvtMode,
     PvtModeFlags, RaimIntegrity, WACorrFlags,
 };
-pub use quality_ind::{QualityInd, QualityIndicator};
+pub use quality_ind::{QualityInd, QualityIndicator, QualityIndicatorType};
 pub use receiver_setup::ReceiverSetup;
 pub use receiver_status::{AGCState, ExtError, ReceiverStatus, RxError, RxState};
 pub use receiver_time::ReceiverTime;

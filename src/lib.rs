@@ -47,10 +47,10 @@ pub use messages::{
     MeasEpochChannelType2, MeasEpochCommonFlags, MeasEpochObsInfo, MeasExtra, MeasExtraChannelSub,
     NavCart, PVTCartesian, PVTGeodetic, PosCart, PosCovCartesian, PosCovGeodetic, PppInfo,
     PppSeedType, PvtError, PvtMisc, PvtMode, PvtModeFlags, PvtStatus, QualityInd, QualityIndicator,
-    RFBand, RFBandMode, RFStatus, RFStatusFlags, RaimIntegrity, ReceiverSetup, ReceiverStatus,
-    ReceiverTime, RiseSet, RxError, RxMessage, RxState, SatInfo, SatVisibility, SignalHealth,
-    TrackingStatus, VectorInfoCart, VectorInfoGeod, VelCovCartesian, VelCovGeodetic, VelSensorSetup,
-    WACorrFlags, XPPSOffset, DOP,
+    QualityIndicatorType, RFBand, RFBandMode, RFStatus, RFStatusFlags, RaimIntegrity, ReceiverSetup,
+    ReceiverStatus, ReceiverTime, RiseSet, RxError, RxMessage, RxState, SatInfo, SatVisibility,
+    SignalHealth, TrackingStatus, VectorInfoCart, VectorInfoGeod, VelCovCartesian, VelCovGeodetic,
+    VelSensorSetup, WACorrFlags, XPPSOffset, DOP,
 };
 
 // Re-export datagram parser
