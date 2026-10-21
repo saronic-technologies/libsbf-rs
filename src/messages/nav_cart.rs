@@ -5,7 +5,7 @@ use binrw::binrw;
 use super::att_euler::{AttitudeMode, BaselineError};
 use super::pvt_geodetic::{
     Datum, DiffCorrType, PppInfo, PvtError, PvtMisc, PvtMode, PvtModeFlags, RaimIntegrity,
-    WACorrFlags,
+    TimeSystem, WACorrFlags,
 };
 
 // NavCart Block 4272
@@ -53,9 +53,9 @@ pub struct NavCart {
     #[br(map = binrw_util::map_f4)]
     #[bw(map = binrw_util::unmap_f4)]
     pub rx_clk_drift: Option<f32>,
-    #[br(map = binrw_util::map_u1)]
-    #[bw(map = binrw_util::unmap_u1)]
-    pub time_system: Option<u8>,
+    #[br(map = binrw_util::map_u1_enum_opt)]
+    #[bw(map = binrw_util::unmap_u1_enum_opt)]
+    pub time_system: Option<TimeSystem>,
     #[br(map = binrw_util::map_u1_enum_opt)]
     #[bw(map = binrw_util::unmap_u1_enum_opt)]
     pub datum: Option<Datum>,

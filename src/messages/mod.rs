@@ -122,7 +122,7 @@ pub use pos_cov_geodetic::PosCovGeodetic;
 pub use pvt_cartesian::PVTCartesian;
 pub use pvt_geodetic::{
     ArpOffset, Datum, DiffCorrType, PVTGeodetic, PppInfo, PppSeedType, PvtError, PvtMisc, PvtMode,
-    PvtModeFlags, RaimIntegrity, WACorrFlags,
+    PvtModeFlags, RaimIntegrity, TimeSystem, WACorrFlags,
 };
 pub use quality_ind::{QualityInd, QualityIndicator, QualityIndicatorType};
 pub use receiver_setup::ReceiverSetup;

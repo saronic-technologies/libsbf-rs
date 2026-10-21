@@ -49,8 +49,8 @@ pub use messages::{
     PppSeedType, PvtError, PvtMisc, PvtMode, PvtModeFlags, PvtStatus, QualityInd, QualityIndicator,
     QualityIndicatorType, RFBand, RFBandMode, RFStatus, RFStatusFlags, RaimIntegrity, ReceiverSetup,
     ReceiverStatus, ReceiverTime, RiseSet, RxError, RxMessage, RxState, SatInfo, SatVisibility,
-    SignalHealth, TrackingStatus, VectorInfoCart, VectorInfoGeod, VelCovCartesian, VelCovGeodetic,
-    VelSensorSetup, WACorrFlags, XPPSOffset, DOP,
+    SignalHealth, TimeSystem, TrackingStatus, VectorInfoCart, VectorInfoGeod, VelCovCartesian,
+    VelCovGeodetic, VelSensorSetup, WACorrFlags, XPPSOffset, DOP,
 };
 
 // Re-export datagram parser

@@ -119,6 +119,27 @@ impl Default for Datum {
     }
 }
 
+/// Time system that the receiver clock bias in a PVT block refers to.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[repr(u8)]
+pub enum TimeSystem {
+    /// GPS time.
+    Gps = 0,
+    /// Galileo time.
+    Galileo = 1,
+    /// GLONASS time.
+    Glonass = 3,
+    /// BeiDou time.
+    BeiDou = 4,
+    /// QZSS time.
+    Qzss = 5,
+    /// Fugro AtomiChron time.
+    Fugro = 100,
+    /// Time system code not defined by the reference guide.
+    #[num_enum(catch_all)]
+    Unknown(u8),
+}
+
 /// PVT error codes.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
 #[repr(u8)]
@@ -327,9 +348,9 @@ pub struct PVTGeodetic {
     #[br(map = binrw_util::map_f4)]
     #[bw(map = binrw_util::unmap_f4)]
     pub rx_clk_drift: Option<f32>,
-    #[br(map = binrw_util::map_u1)]
-    #[bw(map = binrw_util::unmap_u1)]
-    pub time_system: Option<u8>,
+    #[br(map = binrw_util::map_u1_enum_opt)]
+    #[bw(map = binrw_util::unmap_u1_enum_opt)]
+    pub time_system: Option<TimeSystem>,
     #[br(map = binrw_util::map_u1_enum_opt)]
     #[bw(map = binrw_util::unmap_u1_enum_opt)]
     pub datum: Option<Datum>,
