@@ -1,15 +1,15 @@
 #[cfg(test)]
 mod tests {
     use crate::{
-        reader::SbfReader, AuxAntPositions, BaseVectorCart, BaseVectorGeod, ChannelStatus, Comment,
-        DiskStatus, EndOfAtt, EndOfPVT, ExtEvent, ExtEventINSNavCart, ExtEventINSNavGeod,
-        ExtSensorMeas, INSNavCart, INSNavGeod, MeasEpoch, MeasExtra, Messages, NavCart,
-        PVTCartesian, PVTGeodetic, PosCart, QualityInd, RFStatus, ReceiverStatus, ReceiverTime,
-        RxMessage, SatVisibility,
+        reader::SbfReader, AuxAntPositions, BDSNav, BaseVectorCart, BaseVectorGeod, ChannelStatus,
+        Comment, DiskStatus, EndOfAtt, EndOfPVT, ExtEvent, ExtEventINSNavCart, ExtEventINSNavGeod,
+        ExtSensorMeas, GLONav, INSNavCart, INSNavGeod, ImuSetup, MeasEpoch, MeasExtra, Messages,
+        NavCart, PVTCartesian, PVTGeodetic, PosCart, PosLocal, QualityInd, RFStatus,
+        ReceiverStatus, ReceiverTime, RxMessage, SatVisibility,
     };
     use binrw::{io::Cursor, BinRead, BinWrite};
     use std::collections::HashMap;
-    use std::fs::{self, File};
+    use std::fs::File;
 
     #[test]
     fn test_mega_file_all_message_types() {
@@ -53,6 +53,7 @@ mod tests {
             "AttEuler",
             "BaseVectorGeod",
             "BDSIon",
+            "BDSNav",
             "ChannelStatus",
             "Commands",
             "Comment",
@@ -70,6 +71,7 @@ mod tests {
             "GALUtc",
             "GEONav",
             "GEORawL1",
+            "GLONav",
             "GPSCNav",
             "GPSIon",
             "GPSNav",
@@ -82,6 +84,7 @@ mod tests {
             "MeasEpoch",
             "MeasExtra",
             "PosCovGeodetic",
+            "PosLocal",
             "PVTGeodetic",
             "QualityInd",
             "ReceiverSetup",
@@ -129,6 +132,9 @@ mod tests {
         assert_eq!(message_counts.get("DiskStatus").copied().unwrap_or(0), 1, "expected 1 DiskStatus");
         assert_eq!(message_counts.get("RxMessage").copied().unwrap_or(0), 1, "expected 1 RxMessage");
         assert_eq!(message_counts.get("Comment").copied().unwrap_or(0), 1, "expected 1 Comment");
+        assert_eq!(message_counts.get("PosLocal").copied().unwrap_or(0), 1, "expected 1 PosLocal");
+        assert_eq!(message_counts.get("GLONav").copied().unwrap_or(0), 10, "expected 10 GLONav");
+        assert_eq!(message_counts.get("BDSNav").copied().unwrap_or(0), 13, "expected 13 BDSNav");
 
         println!("Mega test file validation passed!");
         println!("Total messages: {}", total_messages);
@@ -302,26 +308,22 @@ mod tests {
             *count += 1;
         }
 
-        let data = fs::read("test-files/mega_test.sbf").expect("read mega_test.sbf");
+        let input_stream =
+            File::open("test-files/mega_test.sbf").expect("Failed to open mega_test.sbf");
+        let mut reader = SbfReader::new(input_stream);
         let mut present: HashMap<u16, usize> = HashMap::new();
         let mut round_tripped = 0usize;
 
-        let mut i = 0;
-        while i + 8 <= data.len() {
-            if data[i] != 0x24 || data[i + 1] != 0x40 {
-                i += 1;
-                continue;
-            }
-            let ident = u16::from_le_bytes([data[i + 4], data[i + 5]]);
-            let length = usize::from(u16::from_le_bytes([data[i + 6], data[i + 7]]));
-            if length < 8 || length % 4 != 0 || i + length > data.len() {
-                i += 1;
-                continue;
-            }
-            let block = ident & 0x1FFF;
-            let body = &data[i + 8..i + length];
+        while let Some(result) = reader.next() {
+            result.expect("read mega_test.sbf");
+            let raw = reader
+                .last_raw_bytes()
+                .expect("raw bytes after a parsed message");
+            let block = u16::from_le_bytes([raw[4], raw[5]]) & 0x1FFF;
+            let body = &raw[8..];
             match block {
                 4000 => round_trip::<MeasExtra>(body, block, &mut round_tripped),
+                4004 => round_trip::<GLONav>(body, block, &mut round_tripped),
                 4006 => round_trip::<PVTCartesian>(body, block, &mut round_tripped),
                 4007 => round_trip::<PVTGeodetic>(body, block, &mut round_tripped),
                 4012 => round_trip::<SatVisibility>(body, block, &mut round_tripped),
@@ -332,10 +334,13 @@ mod tests {
                 4043 => round_trip::<BaseVectorCart>(body, block, &mut round_tripped),
                 4044 => round_trip::<PosCart>(body, block, &mut round_tripped),
                 4050 => round_trip::<ExtSensorMeas>(body, block, &mut round_tripped),
+                4052 => round_trip::<PosLocal>(body, block, &mut round_tripped),
                 4059 => round_trip::<DiskStatus>(body, block, &mut round_tripped),
+                4081 => round_trip::<BDSNav>(body, block, &mut round_tripped),
                 4082 => round_trip::<QualityInd>(body, block, &mut round_tripped),
                 4092 => round_trip::<RFStatus>(body, block, &mut round_tripped),
                 4103 => round_trip::<RxMessage>(body, block, &mut round_tripped),
+                4224 => round_trip::<ImuSetup>(body, block, &mut round_tripped),
                 4225 => round_trip::<INSNavCart>(body, block, &mut round_tripped),
                 4226 => round_trip::<INSNavGeod>(body, block, &mut round_tripped),
                 4229 => round_trip::<ExtEventINSNavCart>(body, block, &mut round_tripped),
@@ -350,7 +355,6 @@ mod tests {
                 _ => {}
             }
             *present.entry(block).or_insert(0) += 1;
-            i += length;
         }
 
         assert!(round_tripped > 0, "no binrw blocks were round-tripped");

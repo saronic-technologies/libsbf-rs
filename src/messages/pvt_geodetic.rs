@@ -1,389 +1,104 @@
-use crate::binrw_util;
+use super::common::{
+    Datum, PppInfo, PvtError, PvtMisc, RawAlertFlag, RawPvtMode, RawWaCorrInfo, TimeSystem,
+};
+use crate::util::{
+    binrw::{
+        map_f4, map_f8, map_u1, map_u1_enum, map_u1_enum_opt, map_u1_zero, map_u2, map_u4,
+        map_u4_zero, unmap_f4, unmap_f8, unmap_u1, unmap_u1_enum, unmap_u1_enum_opt, unmap_u1_zero,
+        unmap_u2, unmap_u4, unmap_u4_zero,
+    },
+    serde::flag_bits,
+};
 use alloc::vec::Vec;
 use binrw::binrw;
-use bitflags::bitflags;
-use core::fmt;
-use num_enum::{FromPrimitive, IntoPrimitive};
-
-/// PVT mode (bits 0-3 of mode field).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, IntoPrimitive)]
-#[repr(u8)]
-pub enum PvtMode {
-    NoPvt = 0,
-    StandAlone = 1,
-    Differential = 2,
-    FixedLocation = 3,
-    RtkFixed = 4,
-    RtkFloat = 5,
-    Sbas = 6,
-    MovingBaseRtkFixed = 7,
-    MovingBaseRtkFloat = 8,
-    Ppp = 10,
-    #[num_enum(catch_all)]
-    Unknown(u8),
-}
-
-impl From<u8> for PvtMode {
-    fn from(value: u8) -> Self {
-        match value & 0x0F {
-            0 => PvtMode::NoPvt,
-            1 => PvtMode::StandAlone,
-            2 => PvtMode::Differential,
-            3 => PvtMode::FixedLocation,
-            4 => PvtMode::RtkFixed,
-            5 => PvtMode::RtkFloat,
-            6 => PvtMode::Sbas,
-            7 => PvtMode::MovingBaseRtkFixed,
-            8 => PvtMode::MovingBaseRtkFloat,
-            10 => PvtMode::Ppp,
-            x => PvtMode::Unknown(x),
-        }
-    }
-}
-
-impl fmt::Display for PvtMode {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            PvtMode::NoPvt => write!(f, "No PVT"),
-            PvtMode::StandAlone => write!(f, "Stand Alone"),
-            PvtMode::Differential => write!(f, "Differential"),
-            PvtMode::FixedLocation => write!(f, "Fixed Location"),
-            PvtMode::RtkFixed => write!(f, "RTK Fixed"),
-            PvtMode::RtkFloat => write!(f, "RTK Float"),
-            PvtMode::Sbas => write!(f, "SBAS"),
-            PvtMode::MovingBaseRtkFixed => write!(f, "Moving Base RTK Fixed"),
-            PvtMode::MovingBaseRtkFloat => write!(f, "Moving Base RTK Float"),
-            PvtMode::Ppp => write!(f, "PPP"),
-            PvtMode::Unknown(x) => write!(f, "Unknown({x})"),
-        }
-    }
-}
-
-bitflags! {
-    /// Mode flags (bits 6-7 of mode field).
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-    pub struct PvtModeFlags: u8 {
-        /// Bit 6: Receiver is determining static position.
-        const DETERMINING_STATIC = 1 << 6;
-        /// Bit 7: 2D mode (height assumed constant).
-        const MODE_2D = 1 << 7;
-    }
-}
-
-/// Coordinate datum.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
-#[repr(u8)]
-pub enum Datum {
-    Wgs84 = 0,
-    /// Datum equal to that used by the DGNSS/RTK base station.
-    DgnssBaseStation = 19,
-    /// ETRS89 (ETRF2000 realization).
-    Etrs89 = 30,
-    /// NAD83(2011), North American Datum (2011).
-    Nad83_2011 = 31,
-    /// NAD83(PA11), North American Datum, Pacific plate (2011).
-    Nad83Pa11 = 32,
-    /// NAD83(MA11), North American Datum, Marianas plate (2011).
-    Nad83Ma11 = 33,
-    /// GDA94(2010), Geocentric Datum of Australia (2010).
-    Gda94 = 34,
-    /// GDA2020, Geocentric Datum of Australia 2020.
-    Gda2020 = 35,
-    /// JGD2011, Japanese Geodetic Datum 2011.
-    Jgd2011 = 36,
-    /// First user-defined datum.
-    UserDefined1 = 250,
-    /// Second user-defined datum.
-    UserDefined2 = 251,
-    /// Unrecognized datum code.
-    #[num_enum(catch_all)]
-    Unknown(u8),
-}
-
-#[allow(clippy::derivable_impls)]
-impl Default for Datum {
-    fn default() -> Self {
-        Datum::Wgs84
-    }
-}
-
-/// PVT error codes.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
-#[repr(u8)]
-pub enum PvtError {
-    None = 0,
-    NotEnoughMeasurements = 1,
-    NotEnoughEphemerides = 2,
-    DopTooLarge = 3,
-    ResidualsTooLarge = 4,
-    NoConvergence = 5,
-    NotEnoughAfterOutlierRejection = 6,
-    PositionProhibited = 7,
-    NotEnoughDiffCorrections = 8,
-    BaseCoordsUnavailable = 9,
-    AmbiguitiesNotFixed = 10,
-    #[num_enum(catch_all)]
-    Unknown(u8),
-}
-
-#[allow(clippy::derivable_impls)]
-impl Default for PvtError {
-    fn default() -> Self {
-        PvtError::None
-    }
-}
-
-bitflags! {
-    /// Wide Area correction flags (bits 0-4 of wa_corr_info).
-    #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-    pub struct WACorrFlags: u8 {
-        /// Bit 0: Orbit and satellite clock correction used.
-        const ORBIT_CLOCK = 1 << 0;
-        /// Bit 1: Range correction used.
-        const RANGE = 1 << 1;
-        /// Bit 2: Ionospheric information used.
-        const IONO = 1 << 2;
-        /// Bit 3: Orbit accuracy (UERE/SISA) used.
-        const ORBIT_ACCURACY = 1 << 3;
-        /// Bit 4: DO229 Precision Approach mode active.
-        const DO229_PRECISION_APPROACH = 1 << 4;
-    }
-}
-
-/// Differential correction type (bits 5-6 of wa_corr_info).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-#[repr(u8)]
-pub enum DiffCorrType {
-    #[default]
-    Unknown = 0,
-    PhysicalBase = 1,
-    VirtualBase = 2,
-    Ssr = 3,
-}
-
-impl From<u8> for DiffCorrType {
-    fn from(value: u8) -> Self {
-        match (value >> 5) & 0x03 {
-            0 => DiffCorrType::Unknown,
-            1 => DiffCorrType::PhysicalBase,
-            2 => DiffCorrType::VirtualBase,
-            3 => DiffCorrType::Ssr,
-            _ => DiffCorrType::Unknown,
-        }
-    }
-}
-
-/// RAIM integrity status (bits 0-1 of alert_flag).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
-#[repr(u8)]
-pub enum RaimIntegrity {
-    #[default]
-    NotActive = 0,
-    TestSuccessful = 1,
-    TestFailed = 2,
-    Reserved = 3,
-}
-
-impl From<u8> for RaimIntegrity {
-    fn from(value: u8) -> Self {
-        match value & 0x03 {
-            0 => RaimIntegrity::NotActive,
-            1 => RaimIntegrity::TestSuccessful,
-            2 => RaimIntegrity::TestFailed,
-            3 => RaimIntegrity::Reserved,
-            _ => RaimIntegrity::NotActive,
-        }
-    }
-}
-
-/// Type of the last PPP seed, from bits 13-15 of ppp_info.
-#[derive(Debug, Clone, Copy, FromPrimitive, IntoPrimitive)]
-#[repr(u8)]
-pub enum PppSeedType {
-    /// Not seeded or not in PPP positioning mode.
-    NotSeeded = 0,
-    Manual = 1,
-    Dgnss = 2,
-    RtkFixed = 3,
-    #[num_enum(catch_all)]
-    Unknown(u8),
-}
-
-/// Whether the marker position reported in a block is also the ARP position,
-/// from bits 6-7 of misc.
-#[derive(Debug, Clone, Copy, FromPrimitive, IntoPrimitive)]
-#[repr(u8)]
-pub enum ArpOffset {
-    Unknown = 0,
-    /// The ARP-to-marker offset is zero.
-    Zero = 1,
-    /// The ARP-to-marker offset is not zero.
-    NonZero = 2,
-    #[num_enum(catch_all)]
-    Reserved(u8),
-}
-
-/// PPPInfo bit field of the PVT blocks: the seed age in bits 0-11 and the
-/// seed type in bits 13-15.
-#[binrw]
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct PppInfo(u16);
-
-impl PppInfo {
-    const SEED_AGE_MASK: u16 = 0x0FFF;
-    const SEED_TYPE_SHIFT: u32 = 13;
-
-    /// Age of the last PPP seed in seconds, clipped to 4091. Ignore when the
-    /// seed type is NotSeeded.
-    pub fn seed_age(&self) -> u16 {
-        self.0 & Self::SEED_AGE_MASK
-    }
-
-    /// Type of the last PPP seed.
-    pub fn seed_type(&self) -> PppSeedType {
-        PppSeedType::from((self.0 >> Self::SEED_TYPE_SHIFT) as u8)
-    }
-}
-
-bitflags! {
-    /// Misc bit field of the PVT and base vector blocks.
-    #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-    pub struct PvtMisc: u8 {
-        /// Bit 0: in DGNSS or RTK mode, the baseline points to the base
-        /// station ARP rather than the antenna phase center.
-        const BASELINE_TO_BASE_ARP = 1 << 0;
-        /// Bit 1: the phase center offset is compensated for at the rover.
-        const PHASE_CENTER_COMPENSATED = 1 << 1;
-        /// Mask for the ARP-to-marker offset flag in bits 6-7, decoded by
-        /// [`Self::arp_offset`]. Reserved in the base vector blocks.
-        const ARP_OFFSET_MASK = 0b11 << Self::ARP_OFFSET_SHIFT;
-    }
-}
-
-impl PvtMisc {
-    const ARP_OFFSET_SHIFT: u32 = 6;
-
-    /// ARP-to-marker offset flag, from bits 6-7.
-    pub fn arp_offset(&self) -> ArpOffset {
-        ArpOffset::from(self.intersection(Self::ARP_OFFSET_MASK).bits() >> Self::ARP_OFFSET_SHIFT)
-    }
-}
+use serde::Serialize;
 
 // PVTGeodetic Block 4007
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct PVTGeodetic {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
-    mode_raw: u8,
-    #[br(map = |x: u8| PvtError::from(x))]
-    #[bw(map = |x: &PvtError| u8::from(*x))]
+    /// Bit field indicating the GNSS PVT mode.
+    pub mode: RawPvtMode,
+    #[br(map = map_u1_enum)]
+    #[bw(map = unmap_u1_enum)]
     pub error: PvtError,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub latitude: Option<f64>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub longitude: Option<f64>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub height: Option<f64>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub undulation: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub vn: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub ve: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub vu: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cog: Option<f32>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub rx_clk_bias: Option<f64>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub rx_clk_drift: Option<f32>,
-    #[br(map = binrw_util::map_u1)]
-    #[bw(map = binrw_util::unmap_u1)]
-    pub time_system: Option<u8>,
-    #[br(map = binrw_util::map_datum)]
-    #[bw(map = binrw_util::unmap_datum)]
+    #[br(map = map_u1_enum_opt)]
+    #[bw(map = unmap_u1_enum_opt)]
+    pub time_system: Option<TimeSystem>,
+    #[br(map = map_u1_enum_opt)]
+    #[bw(map = unmap_u1_enum_opt)]
     pub datum: Option<Datum>,
-    #[br(map = binrw_util::map_u1)]
-    #[bw(map = binrw_util::unmap_u1)]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub nr_sv: Option<u8>,
-    wa_corr_info_raw: u8,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    /// Bit field providing information about which corrections have been applied.
+    pub wa_corr_info: RawWaCorrInfo,
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub reference_id: Option<u16>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub mean_corr_age: Option<u16>,
-    pub signal_info: u32,
-    alert_flag_raw: u8,
+    #[br(map = map_u4_zero)]
+    #[bw(map = unmap_u4_zero)]
+    pub signal_info: Option<u32>,
+    /// Bit field indicating integrity related information.
+    pub alert_flag: RawAlertFlag,
     // Rev 1 fields
-    pub nr_bases: u8,
+    #[br(map = map_u1_zero)]
+    #[bw(map = unmap_u1_zero)]
+    pub nr_bases: Option<u8>,
     pub ppp_info: PppInfo,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub latency: Option<u16>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub h_accuracy: Option<u16>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub v_accuracy: Option<u16>,
     #[br(map = PvtMisc::from_bits_retain)]
     #[bw(map = |x: &PvtMisc| x.bits())]
+    #[serde(serialize_with = "flag_bits")]
     pub misc: PvtMisc,
     // Rev 2 fields
     #[br(parse_with = binrw::helpers::until_eof)]
     pub padding: Vec<u8>,
-}
-
-impl PVTGeodetic {
-    /// PVT mode (bits 0-3 of mode).
-    pub fn pvt_mode(&self) -> PvtMode {
-        PvtMode::from(self.mode_raw)
-    }
-
-    /// Mode flags (bits 6-7 of mode).
-    pub fn mode_flags(&self) -> PvtModeFlags {
-        PvtModeFlags::from_bits_truncate(self.mode_raw)
-    }
-
-    /// Wide Area correction flags (bits 0-4).
-    pub fn wa_corr_flags(&self) -> WACorrFlags {
-        WACorrFlags::from_bits_truncate(self.wa_corr_info_raw)
-    }
-
-    /// Differential correction type (bits 5-6).
-    pub fn diff_corr_type(&self) -> DiffCorrType {
-        DiffCorrType::from(self.wa_corr_info_raw)
-    }
-
-    /// RAIM integrity status (bits 0-1 of alert_flag).
-    pub fn raim_integrity(&self) -> RaimIntegrity {
-        RaimIntegrity::from(self.alert_flag_raw)
-    }
-
-    /// Bit 2: Galileo HPCA integrity failed.
-    pub fn galileo_hpca_failed(&self) -> bool {
-        self.alert_flag_raw & (1 << 2) != 0
-    }
-
-    /// Bit 3: Galileo ionospheric storm active.
-    pub fn galileo_iono_storm(&self) -> bool {
-        self.alert_flag_raw & (1 << 3) != 0
-    }
 }

@@ -1,16 +1,17 @@
-use crate::binrw_util;
+use crate::util::binrw::{map_u2, map_u4, unmap_u2, unmap_u4};
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
 // Comment Block 5936
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct Comment {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     /// Length of `comment` in bytes. The string is not NUL-terminated.
     pub comment_ln: u16,

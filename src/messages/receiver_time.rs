@@ -1,43 +1,44 @@
-use crate::binrw_util;
+use crate::util::binrw::{map_i1, map_u2, map_u4, unmap_i1, unmap_u2, unmap_u4};
 use binrw::binrw;
+use serde::Serialize;
 
 // ReceiverTime Block 5914
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ReceiverTime {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     /// UTC year, two digits from 0 to 99.
-    #[br(map = binrw_util::map_i1)]
-    #[bw(map = binrw_util::unmap_i1)]
+    #[br(map = map_i1)]
+    #[bw(map = unmap_i1)]
     pub utc_year: Option<i8>,
     /// UTC month, 1 to 12.
-    #[br(map = binrw_util::map_i1)]
-    #[bw(map = binrw_util::unmap_i1)]
+    #[br(map = map_i1)]
+    #[bw(map = unmap_i1)]
     pub utc_month: Option<i8>,
     /// UTC day of month, 1 to 31.
-    #[br(map = binrw_util::map_i1)]
-    #[bw(map = binrw_util::unmap_i1)]
+    #[br(map = map_i1)]
+    #[bw(map = unmap_i1)]
     pub utc_day: Option<i8>,
     /// UTC hour, 0 to 23.
-    #[br(map = binrw_util::map_i1)]
-    #[bw(map = binrw_util::unmap_i1)]
+    #[br(map = map_i1)]
+    #[bw(map = unmap_i1)]
     pub utc_hour: Option<i8>,
     /// UTC minute, 0 to 59.
-    #[br(map = binrw_util::map_i1)]
-    #[bw(map = binrw_util::unmap_i1)]
+    #[br(map = map_i1)]
+    #[bw(map = unmap_i1)]
     pub utc_min: Option<i8>,
     /// UTC second, 0 to 59.
-    #[br(map = binrw_util::map_i1)]
-    #[bw(map = binrw_util::unmap_i1)]
+    #[br(map = map_i1)]
+    #[bw(map = unmap_i1)]
     pub utc_sec: Option<i8>,
     /// Integer number of seconds GNSS time is ahead of UTC.
-    #[br(map = binrw_util::map_i1)]
-    #[bw(map = binrw_util::unmap_i1)]
+    #[br(map = map_i1)]
+    #[bw(map = unmap_i1)]
     pub delta_ls: Option<i8>,
     /// Clock synchronization bit field.
     pub sync_level: u8,

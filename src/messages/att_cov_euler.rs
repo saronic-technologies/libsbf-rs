@@ -1,53 +1,37 @@
-use crate::binrw_util;
+use super::common::RawAttitudeError;
+use crate::util::binrw::{map_f4, map_u2, map_u4, unmap_f4, unmap_u2, unmap_u4};
 use binrw::binrw;
-
-use super::att_euler::BaselineError;
+use serde::Serialize;
 
 // AttCovEuler Block 5939
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct AttCovEuler {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     pub reserved: u8,
-    error_raw: u8,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    /// Bit field providing error information.
+    pub error: RawAttitudeError,
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_head_head: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_pitch_pitch: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_roll_roll: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_head_pitch: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_head_roll: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_pitch_roll: Option<f32>,
-}
-
-impl AttCovEuler {
-    /// Error code for Main-Aux1 baseline (bits 0-1).
-    pub fn main_aux1_error(&self) -> BaselineError {
-        BaselineError::from(self.error_raw & 0x03)
-    }
-
-    /// Error code for Main-Aux2 baseline (bits 2-3).
-    pub fn main_aux2_error(&self) -> BaselineError {
-        BaselineError::from((self.error_raw >> 2) & 0x03)
-    }
-
-    /// Bit 7: Returns true if attitude was not requested by user.
-    pub fn not_requested(&self) -> bool {
-        self.error_raw & (1 << 7) != 0
-    }
 }

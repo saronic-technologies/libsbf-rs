@@ -1,126 +1,100 @@
-use crate::binrw_util;
+use super::common::{Datum, PvtError, PvtMisc, RawAlertFlag, RawPvtMode, RawWaCorrInfo};
+use crate::util::{
+    binrw::{
+        map_f4, map_f8, map_u1, map_u1_enum, map_u1_enum_opt, map_u2, map_u2_zero, map_u4,
+        map_u4_zero, unmap_f4, unmap_f8, unmap_u1, unmap_u1_enum, unmap_u1_enum_opt, unmap_u2,
+        unmap_u2_zero, unmap_u4, unmap_u4_zero,
+    },
+    serde::flag_bits,
+};
 use alloc::vec::Vec;
 use binrw::binrw;
-
-use super::pvt_geodetic::{
-    Datum, DiffCorrType, PvtError, PvtMisc, PvtMode, PvtModeFlags, RaimIntegrity, WACorrFlags,
-};
+use serde::Serialize;
 
 // PosCart Block 4044
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct PosCart {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
-    mode_raw: u8,
-    #[br(map = |x: u8| PvtError::from(x))]
-    #[bw(map = |x: &PvtError| u8::from(*x))]
+    /// Bit field indicating the GNSS PVT mode.
+    pub mode: RawPvtMode,
+    #[br(map = map_u1_enum)]
+    #[bw(map = unmap_u1_enum)]
     pub error: PvtError,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub x: Option<f64>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub y: Option<f64>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub z: Option<f64>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub base2rover_x: Option<f64>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub base2rover_y: Option<f64>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub base2rover_z: Option<f64>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_xx: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_yy: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_zz: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_xy: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_xz: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cov_yz: Option<f32>,
-    #[br(map = binrw_util::map_u2_zero)]
-    #[bw(map = binrw_util::unmap_u2_zero)]
+    #[br(map = map_u2_zero)]
+    #[bw(map = unmap_u2_zero)]
     pub pdop: Option<u16>,
-    #[br(map = binrw_util::map_u2_zero)]
-    #[bw(map = binrw_util::unmap_u2_zero)]
+    #[br(map = map_u2_zero)]
+    #[bw(map = unmap_u2_zero)]
     pub hdop: Option<u16>,
-    #[br(map = binrw_util::map_u2_zero)]
-    #[bw(map = binrw_util::unmap_u2_zero)]
+    #[br(map = map_u2_zero)]
+    #[bw(map = unmap_u2_zero)]
     pub vdop: Option<u16>,
     #[br(map = PvtMisc::from_bits_retain)]
     #[bw(map = |x: &PvtMisc| x.bits())]
+    #[serde(serialize_with = "flag_bits")]
     pub misc: PvtMisc,
     _reserved: u8,
-    alert_flag_raw: u8,
-    #[br(map = binrw_util::map_datum)]
-    #[bw(map = binrw_util::unmap_datum)]
+    /// Bit field indicating integrity related information.
+    pub alert_flag: RawAlertFlag,
+    #[br(map = map_u1_enum_opt)]
+    #[bw(map = unmap_u1_enum_opt)]
     pub datum: Option<Datum>,
-    #[br(map = binrw_util::map_u1)]
-    #[bw(map = binrw_util::unmap_u1)]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub nr_sv: Option<u8>,
-    wa_corr_info_raw: u8,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    /// Bit field providing information about which corrections have been applied.
+    pub wa_corr_info: RawWaCorrInfo,
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub reference_id: Option<u16>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub mean_corr_age: Option<u16>,
-    pub signal_info: u32,
+    #[br(map = map_u4_zero)]
+    #[bw(map = unmap_u4_zero)]
+    pub signal_info: Option<u32>,
     #[br(parse_with = binrw::helpers::until_eof)]
     pub padding: Vec<u8>,
-}
-
-impl PosCart {
-    /// PVT mode (bits 0-3 of mode).
-    pub fn pvt_mode(&self) -> PvtMode {
-        PvtMode::from(self.mode_raw)
-    }
-
-    /// Mode flags (bits 6-7 of mode).
-    pub fn mode_flags(&self) -> PvtModeFlags {
-        PvtModeFlags::from_bits_truncate(self.mode_raw)
-    }
-
-    /// Wide Area correction flags (bits 0-4).
-    pub fn wa_corr_flags(&self) -> WACorrFlags {
-        WACorrFlags::from_bits_truncate(self.wa_corr_info_raw)
-    }
-
-    /// Differential correction type (bits 5-6).
-    pub fn diff_corr_type(&self) -> DiffCorrType {
-        DiffCorrType::from(self.wa_corr_info_raw)
-    }
-
-    /// RAIM integrity status (bits 0-1 of alert_flag).
-    pub fn raim_integrity(&self) -> RaimIntegrity {
-        RaimIntegrity::from(self.alert_flag_raw)
-    }
-
-    /// Bit 2: Galileo HPCA integrity failed.
-    pub fn galileo_hpca_failed(&self) -> bool {
-        self.alert_flag_raw & (1 << 2) != 0
-    }
-
-    /// Bit 3: Galileo ionospheric storm active.
-    pub fn galileo_iono_storm(&self) -> bool {
-        self.alert_flag_raw & (1 << 3) != 0
-    }
 }

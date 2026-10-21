@@ -8,7 +8,8 @@
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![cfg_attr(not(feature = "std"), no_std)]
-use binrw::{binrw, BinRead, BinWrite};
+use binrw::{binrw, BinRead};
+use serde::Serialize;
 
 extern crate alloc;
 
@@ -19,36 +20,40 @@ pub mod parser;
 #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
 pub mod reader;
 
-mod binrw_util;
+mod util;
 
 #[cfg(all(test, feature = "std"))]
 mod mega_test;
 
 // Re-export all message types at crate level
 pub use messages::{
-    AGCState, ArpOffset, AttCovEuler, AttEuler, AttitudeMode, AuxAntPositionSub, AuxAntPositions,
-    BDSIon, BaseVectorCart, BaseVectorGeod, BaselineError, ChannelSatInfo, ChannelStateInfo,
-    ChannelStatus, Commands, Comment, Datum, DiffCorrIn, DiffCorrType, DiskData, DiskStatus,
-    DiskStatusFlags, EndOfAtt, EndOfMeas, EndOfPVT, EventPolarity, EventSource, ExtError, ExtEvent,
-    ExtEventINSNavCart, ExtEventINSNavCartAtt, ExtEventINSNavCartAttStdDev,
-    ExtEventINSNavCartPosStdDev, ExtEventINSNavCartVel, ExtEventINSNavCartVelStdDev,
-    ExtEventINSNavGeod, ExtEventINSNavGeodAtt, ExtEventINSNavGeodAttStdDev,
-    ExtEventINSNavGeodPosStdDev, ExtEventINSNavGeodVel, ExtEventINSNavGeodVelStdDev, ExtSensorInfo,
-    ExtSensorMeas, ExtSensorMeasAcceleration, ExtSensorMeasAngularRate, ExtSensorMeasInfo,
-    ExtSensorMeasObsInfo, ExtSensorMeasSet, ExtSensorMeasSetType, ExtSensorMeasVelocity,
-    ExtSensorMeasZeroVelocityFlag, ExtSensorStatus, GALGstGps, GALIon, GALIonStormFlags, GALNav,
-    GALNavHealthOssol, GALUtc, GEONav, GEORawL1, GPSCNav, GPSCNavFlags, GPSIon, GPSNav, GPSUtc,
-    GalSignalHealth, GnssMode, INSCouplingMode, INSError, INSNavCart, INSNavCartAtt,
+    AGCState, AmbiguityType, ArpOffset, AttCovEuler, AttEuler, AttitudeMode, AuxAntPositionSub,
+    AuxAntPositions, BDSIon, BDSNav, BaseStation, BaseStationSource, BaseType, BaseVectorCart,
+    BaseVectorGeod, BaselineError, ChannelSatInfo, ChannelStateInfo, ChannelStatus, Commands,
+    Comment, ConnectionPort, Datum, DiffCorrIn, DiffCorrMode, DiffCorrSource, DiffCorrType,
+    DiskData, DiskStatus, DiskStatusFlags, EndOfAtt, EndOfMeas, EndOfPVT, EventPolarity,
+    EventSource, ExtError, ExtEvent, ExtEventINSNavCart, ExtEventINSNavCartAtt,
+    ExtEventINSNavCartAttStdDev, ExtEventINSNavCartPosStdDev, ExtEventINSNavCartVel,
+    ExtEventINSNavCartVelStdDev, ExtEventINSNavGeod, ExtEventINSNavGeodAtt,
+    ExtEventINSNavGeodAttStdDev, ExtEventINSNavGeodPosStdDev, ExtEventINSNavGeodVel,
+    ExtEventINSNavGeodVelStdDev, ExtSensorInfo, ExtSensorMeas, ExtSensorMeasAcceleration,
+    ExtSensorMeasAngularRate, ExtSensorMeasInfo, ExtSensorMeasObsInfo, ExtSensorMeasSet,
+    ExtSensorMeasSetType, ExtSensorMeasVelocity, ExtSensorMeasZeroVelocityFlag, ExtSensorModel,
+    ExtSensorStatus, GALGstGps, GALIon, GALIonStormFlags, GALNav, GALNavHealthOssol, GALUtc,
+    GEONav, GEORawL1, GLONav, GPSCNav, GPSCNavFlags, GPSIon, GPSNav, GPSUtc, GalMessageType,
+    GalSignalHealth, GnssMode, HeightType, INSCouplingMode, INSError, INSNavCart, INSNavCartAtt,
     INSNavCartAttCov, INSNavCartAttStdDev, INSNavCartPosCov, INSNavCartPosStdDev, INSNavCartVel,
     INSNavCartVelCov, INSNavCartVelStdDev, INSNavGeod, INSNavGeodAtt, INSNavGeodAttCov,
     INSNavGeodAttStdDev, INSNavGeodPosCov, INSNavGeodPosStdDev, INSNavGeodVel, INSNavGeodVelCov,
-    INSNavGeodVelStdDev, INSSolutionLocation, INSSupport, ImuSetup, Meas3Doppler, Meas3Ranges,
-    MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2, MeasEpochCommonFlags,
-    MeasEpochObsInfo, MeasExtra, MeasExtraChannelSub, NavCart, PVTCartesian, PVTGeodetic, PosCart,
-    PosCovCartesian, PosCovGeodetic, PppInfo, PppSeedType, PvtError, PvtMisc, PvtMode,
-    PvtModeFlags, PvtStatus, QualityInd, QualityIndicator, RFBand, RFBandMode, RFStatus,
-    RFStatusFlags, RaimIntegrity, ReceiverSetup, ReceiverStatus, ReceiverTime, RiseSet, RxError,
-    RxMessage, RxState, SatInfo, SatVisibility, SignalHealth, TrackingStatus, VectorInfoCart,
+    INSNavGeodVelStdDev, INSSolutionLocation, INSSupport, ImuSetup, ImuVehicleAlignment,
+    Meas3Doppler, Meas3Ranges, MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2,
+    MeasEpochCommonFlags, MeasEpochObsInfo, MeasExtra, MeasExtraChannelSub, NavCart, PVTCartesian,
+    PVTGeodetic, PosCart, PosCovCartesian, PosCovGeodetic, PosLocal, PppInfo, PppSeedType,
+    PpsTimeScale, PvtError, PvtMisc, PvtMode, PvtModeFlags, PvtStatus, QZSNav, QualityInd,
+    QualityIndicator, QualityIndicatorType, RFBand, RFBandMode, RFStatus, RFStatusFlags, RTCMDatum,
+    RaimIntegrity, RawAlertFlag, RawAttitudeError, RawInsInfo, RawPvtMode, RawWaCorrInfo,
+    ReceiverSetup, ReceiverStatus, ReceiverTime, RiseSet, RtcmDatumQuality, RxError, RxMessage,
+    RxState, SatInfo, SatVisibility, SignalHealth, TimeSystem, TrackingStatus, VectorInfoCart,
     VectorInfoGeod, VelCovCartesian, VelCovGeodetic, VelSensorSetup, WACorrFlags, XPPSOffset, DOP,
 };
 
@@ -87,69 +92,6 @@ struct Header {
     pub length: u16,
 }
 
-/// Wrapper for a single SBF sub-block to allow padding of individual elements,
-/// which is not supported on standalone structs.
-#[binrw]
-#[derive(Clone, Debug)]
-#[brw(import(sb_len: usize))]
-pub(crate) struct SubBlock<T>
-where
-    T: 'static,
-    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()>,
-{
-    #[brw(pad_size_to = sb_len)]
-    data: T,
-}
-
-impl<T> From<T> for SubBlock<T>
-where
-    T: 'static,
-    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()>,
-{
-    fn from(data: T) -> Self {
-        Self { data }
-    }
-}
-
-impl<T> SubBlock<T>
-where
-    T: 'static,
-    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()>,
-{
-    // Neither `From<SubBlock<T>> for T` (orphan rule) nor `Into<T> for
-    // SubBlock<T>` (collides with core's blanket `Into`) is allowed, so the
-    // unwrap direction is an inherent method.
-    pub(crate) fn into_inner(self) -> T {
-        self.data
-    }
-}
-
-/// The count of nested second-level sub-blocks carried by a first-level header,
-/// so [`NestedBlock`] can read that many without naming the count field.
-pub(crate) trait NestedHeader {
-    fn nested_count(&self) -> usize;
-}
-
-/// One first-level sub-block of a two-level SBF block: a fixed header padded to
-/// SB1Length followed by the nested second-level sub-blocks, each padded to
-/// SB2Length.
-#[binrw]
-#[derive(Clone, Debug)]
-#[brw(import(sb1_len: usize, sb2_len: usize))]
-pub(crate) struct NestedBlock<H, T>
-where
-    H: 'static,
-    T: 'static,
-    for<'a> H: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + NestedHeader + Clone,
-    for<'a> T: BinRead<Args<'a> = ()> + BinWrite<Args<'a> = ()> + Clone,
-{
-    #[brw(pad_size_to = sb1_len)]
-    pub header: H,
-    #[br(args { count: header.nested_count(), inner: (sb2_len,) })]
-    #[bw(args_raw = (sb2_len,))]
-    pub items: alloc::vec::Vec<SubBlock<T>>,
-}
-
 macro_rules! define_messages {
     ($($variant:ident => $code:literal,)+) => {
         /// Typed enum that can be used to determine the type of message
@@ -170,7 +112,7 @@ macro_rules! define_messages {
         }
 
         /// Detailed enum that holds the associated payload.
-        #[derive(Clone, Debug)]
+        #[derive(Clone, Debug, Serialize)]
         pub enum Messages {
             $( $variant($variant), )+
             Unsupported(u16),
@@ -215,6 +157,7 @@ define_messages!(
     MeasExtra => 4000,
     DOP => 4001,
     GALNav => 4002,
+    GLONav => 4004,
     PVTCartesian => 4006,
     PVTGeodetic => 4007,
     SatVisibility => 4012,
@@ -230,11 +173,15 @@ define_messages!(
     GPSCNav => 4042,
     BaseVectorCart => 4043,
     PosCart => 4044,
+    RTCMDatum => 4049,
     ExtSensorMeas => 4050,
+    PosLocal => 4052,
     DiskStatus => 4059,
     INSSupport => 4077,
+    BDSNav => 4081,
     QualityInd => 4082,
     RFStatus => 4092,
+    QZSNav => 4095,
     RxMessage => 4103,
     Meas3Ranges => 4109,
     Meas3Doppler => 4111,
@@ -268,6 +215,7 @@ define_messages!(
     AttCovEuler => 5939,
     AuxAntPositions => 5942,
     EndOfAtt => 5943,
+    BaseStation => 5949,
 );
 
 pub fn is_sync(bytes: &[u8; 2]) -> bool {
