@@ -9,6 +9,14 @@ use binrw::binrw;
 
 // Step of the high-resolution C/N0 extension, in dB-Hz.
 const CN0_HIGH_RES_STEP_DB_HZ: f32 = 0.03125;
+// Step of the multipath and smoothing corrections of the pseudorange, in m.
+const CODE_CORRECTION_STEP_M: f64 = 0.001;
+// Step of the code tracking noise variance, in m².
+const CODE_VAR_STEP_M2: f64 = 0.0001;
+// Step of the carrier tracking noise variance, in cycles².
+const CARRIER_VAR_STEP_CYCLES2: f64 = 1e-6;
+// Step of the multipath correction of the carrier phase, in cycles.
+const CARRIER_MP_CORR_STEP_CYCLES: f64 = 1.0 / 512.0;
 
 // MeasExtra Block 4000
 #[binrw]
@@ -77,6 +85,36 @@ impl MeasExtraChannelSub {
     /// MeasEpoch sub-block for the same channel and signal.
     pub fn cn0_db_hz(&self, meas_epoch_cn0_db_hz: f32) -> f32 {
         meas_epoch_cn0_db_hz + f32::from(self.cn0_high_res()) * CN0_HIGH_RES_STEP_DB_HZ
+    }
+
+    /// Multipath correction applied to the pseudorange, in meters. Adding it to the
+    /// pseudorange recovers the raw pseudorange as it would be if multipath mitigation was not
+    /// used.
+    pub fn mp_correction_m(&self) -> f64 {
+        f64::from(self.mp_correction) * CODE_CORRECTION_STEP_M
+    }
+
+    /// Smoothing correction applied to the pseudorange, in meters. Adding it to the
+    /// pseudorange recovers the raw pseudorange as it would be if smoothing was disabled.
+    pub fn smoothing_corr_m(&self) -> f64 {
+        f64::from(self.smoothing_corr) * CODE_CORRECTION_STEP_M
+    }
+
+    /// Estimated code tracking noise variance, in m², clipped at 6.5534 m².
+    pub fn code_var_m2(&self) -> Option<f64> {
+        self.code_var.map(|var| f64::from(var) * CODE_VAR_STEP_M2)
+    }
+
+    /// Estimated carrier tracking noise variance, in cycles², clipped at 0.065534 cycles².
+    pub fn carrier_var_cycles2(&self) -> Option<f64> {
+        self.carrier_var
+            .map(|var| f64::from(var) * CARRIER_VAR_STEP_CYCLES2)
+    }
+
+    /// Multipath correction applied to the carrier phase, in cycles. Adding it to the carrier
+    /// phase recovers the raw phase as it would be if multipath mitigation was not used.
+    pub fn car_mp_corr_cycles(&self) -> f64 {
+        f64::from(self.car_mp_corr) * CARRIER_MP_CORR_STEP_CYCLES
     }
 }
 
