@@ -1,16 +1,16 @@
 use super::ext_sensor_status::ConnectionPort;
-use crate::binrw_util;
+use crate::util::binrw::{map_f4, map_u2, map_u4, unmap_f4, unmap_u2, unmap_u4};
 use binrw::binrw;
 
 // IMU Setup Block 4224
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ImuSetup {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     _reserved: u8,
     /// Connection of the IMU: COM1 to COM4 for an external IMU, or the internal SPI bus
@@ -18,23 +18,23 @@ pub struct ImuSetup {
     #[br(map = |x: u8| ConnectionPort::from(x))]
     #[bw(map = |x: &ConnectionPort| u8::from(*x))]
     pub serial_port: ConnectionPort,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub ant_lever_arm_x_m: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub ant_lever_arm_y_m: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub ant_lever_arm_z_m: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub theta_x_deg: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub theta_y_deg: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub theta_z_deg: Option<f32>,
     /// Alignment parameters are present only in Rev > 0 blocks.
     #[br(try)]
@@ -47,34 +47,34 @@ pub struct ImuSetup {
 #[derive(Clone, Debug)]
 pub struct ImuVehicleAlignment {
     /// IMU orientation, theta_x angle, estimated by the receiver.
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub estimated_theta_x_deg: Option<f32>,
     /// IMU orientation, theta_y angle, estimated by the receiver.
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub estimated_theta_y_deg: Option<f32>,
     /// IMU orientation, theta_z angle, estimated by the receiver.
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub estimated_theta_z_deg: Option<f32>,
     /// Component of the lever arm from the product reference point to the
     /// motion constraint point along the X-axis of the vehicle frame, as set
     /// with the setVehicleInfo command.
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub constraint_lever_arm_x_m: Option<f32>,
     /// Component of the lever arm from the product reference point to the
     /// motion constraint point along the Y-axis of the vehicle frame, as set
     /// with the setVehicleInfo command.
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub constraint_lever_arm_y_m: Option<f32>,
     /// Component of the lever arm from the product reference point to the
     /// motion constraint point along the Z-axis of the vehicle frame, as set
     /// with the setVehicleInfo command.
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub constraint_lever_arm_z_m: Option<f32>,
 }
 

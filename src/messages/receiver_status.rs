@@ -1,4 +1,7 @@
-use crate::binrw_util;
+use crate::util::binrw::{
+    map_i1, map_u1, map_u1_zero, map_u2, map_u4, unmap_i1, unmap_u1, unmap_u1_zero, unmap_u2,
+    unmap_u4, unwrap_subblocks, wrap_subblocks,
+};
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
@@ -61,14 +64,14 @@ impl RxError {
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ReceiverStatus {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
-    #[br(map = binrw_util::map_u1)]
-    #[bw(map = binrw_util::unmap_u1)]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub cpu_load: Option<u8>,
     #[br(map = |x: u8| ExtError::from_bits_truncate(x))]
     #[bw(map = |x: &ExtError| x.bits())]
@@ -82,12 +85,12 @@ pub struct ReceiverStatus {
     pub rx_error: RxError,
     pub n: u8,
     pub sb_length: u8,
-    #[br(map = binrw_util::map_u1_zero)]
-    #[bw(map = binrw_util::unmap_u1_zero)]
+    #[br(map = map_u1_zero)]
+    #[bw(map = unmap_u1_zero)]
     pub cmd_count: Option<u8>,
     pub temperature: u8,
-    #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) }, map = binrw_util::unwrap_subblocks)]
-    #[bw(args_raw = (usize::from(*sb_length),), map = binrw_util::wrap_subblocks)]
+    #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) }, map = unwrap_subblocks)]
+    #[bw(args_raw = (usize::from(*sb_length),), map = wrap_subblocks)]
     pub agc_state: Vec<AGCState>,
     #[br(parse_with = binrw::helpers::until_eof)]
     pub padding: Vec<u8>,
@@ -97,11 +100,11 @@ pub struct ReceiverStatus {
 #[derive(Clone, Debug)]
 pub struct AGCState {
     pub frontend_id: u8,
-    #[br(map = binrw_util::map_i1)]
-    #[bw(map = binrw_util::unmap_i1)]
+    #[br(map = map_i1)]
+    #[bw(map = unmap_i1)]
     pub gain: Option<i8>,
-    #[br(map = binrw_util::map_u1_zero)]
-    #[bw(map = binrw_util::unmap_u1_zero)]
+    #[br(map = map_u1_zero)]
+    #[bw(map = unmap_u1_zero)]
     pub sample_var: Option<u8>,
     pub blanking_stat: u8,
 }

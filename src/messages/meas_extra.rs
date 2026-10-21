@@ -1,4 +1,6 @@
-use crate::binrw_util;
+use crate::util::binrw::{
+    map_u2, map_u4, subblock_count_mod256, unmap_u2, unmap_u4, unwrap_subblocks, wrap_subblocks,
+};
 use alloc::vec::Vec;
 use binrw::binrw;
 
@@ -6,20 +8,20 @@ use binrw::binrw;
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct MeasExtra {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     pub n: u8,
     pub sb_length: u8,
     pub doppler_var_factor: f32,
-    #[br(temp, parse_with = binrw_util::subblock_count_mod256, args(n, sb_length))]
+    #[br(temp, parse_with = subblock_count_mod256, args(n, sb_length))]
     #[bw(ignore)]
     count: usize,
-    #[br(args { count, inner: (usize::from(sb_length),) }, map = binrw_util::unwrap_subblocks)]
-    #[bw(args_raw = (usize::from(*sb_length),), map = binrw_util::wrap_subblocks)]
+    #[br(args { count, inner: (usize::from(sb_length),) }, map = unwrap_subblocks)]
+    #[bw(args_raw = (usize::from(*sb_length),), map = wrap_subblocks)]
     pub channel_sub: Vec<MeasExtraChannelSub>,
 }
 
@@ -30,14 +32,14 @@ pub struct MeasExtraChannelSub {
     pub type_field: u8,
     pub mp_correction: i16,
     pub smoothing_corr: i16,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub code_var: Option<u16>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub carrier_var: Option<u16>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub lock_time: Option<u16>,
     pub cum_loss_cont: u8,
     pub car_mp_corr: i8,

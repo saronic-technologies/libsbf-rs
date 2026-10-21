@@ -1,4 +1,7 @@
-use crate::binrw_util;
+use crate::util::binrw::{
+    map_f8, map_u1, map_u1_enum_opt, map_u2, map_u4, unmap_f8, unmap_u1, unmap_u1_enum_opt,
+    unmap_u2, unmap_u4, unwrap_subblocks, wrap_subblocks,
+};
 use alloc::vec::Vec;
 use binrw::binrw;
 use num_enum::{FromPrimitive, IntoPrimitive};
@@ -20,31 +23,31 @@ pub enum AmbiguityType {
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct AuxAntPositionSub {
-    #[br(map = binrw_util::map_u1)]
-    #[bw(map = binrw_util::unmap_u1)]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub nr_sv: Option<u8>,
     pub error: u8,
-    #[br(map = binrw_util::map_u1_enum_opt)]
-    #[bw(map = binrw_util::unmap_u1_enum_opt)]
+    #[br(map = map_u1_enum_opt)]
+    #[bw(map = unmap_u1_enum_opt)]
     pub ambiguity_type: Option<AmbiguityType>,
     pub aux_ant_id: u8,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub delta_east: Option<f64>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub delta_north: Option<f64>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub delta_up: Option<f64>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub east_vel: Option<f64>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub north_vel: Option<f64>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub up_vel: Option<f64>,
 }
 
@@ -52,16 +55,16 @@ pub struct AuxAntPositionSub {
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct AuxAntPositions {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     n: u8,
     pub sb_length: u8,
-    #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) }, map = binrw_util::unwrap_subblocks)]
-    #[bw(args_raw = (usize::from(*sb_length),), map = binrw_util::wrap_subblocks)]
+    #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) }, map = unwrap_subblocks)]
+    #[bw(args_raw = (usize::from(*sb_length),), map = wrap_subblocks)]
     pub aux_ant_positions: Vec<AuxAntPositionSub>,
     #[br(parse_with = binrw::helpers::until_eof)]
     _padding: Vec<u8>,

@@ -1,5 +1,10 @@
-use crate::binrw_util;
-use crate::{NestedBlock, NestedHeader, SubBlock};
+use crate::{
+    util::{
+        binrw::{map_u1, map_u2, map_u4, unmap_u1, unmap_u2, unmap_u4},
+        signal::signal_number,
+    },
+    NestedBlock, NestedHeader, SubBlock,
+};
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
@@ -26,10 +31,6 @@ bitflags! {
     }
 }
 
-// SigIdxLo value in the type field that extends the signal number into ObsInfo.
-const SIG_NR_ESCAPE: u8 = 31;
-// Base added to the ObsInfo extension bits to form the signal number.
-const SIG_NR_EXTENSION_OFFSET: u8 = 32;
 // SigIdxLo values that denote GLONASS signals.
 const GLONASS_SIG_NRS: RangeInclusive<u8> = 8..=11;
 // Offset subtracted from the ObsInfo extension bits to form the frequency number.
@@ -64,11 +65,11 @@ impl MeasEpochObsInfo {
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct MeasEpoch {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     pub n1: u8,
     pub sb1_length: u8,
@@ -100,11 +101,11 @@ struct MeasEpochChannelType1Header {
     pub doppler: Option<i32>,
     pub carrier_lsb: u16,
     pub carrier_msb: i8,
-    #[br(map = binrw_util::map_u1)]
-    #[bw(map = binrw_util::unmap_u1)]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub cn0: Option<u8>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub lock_time: Option<u16>,
     #[br(map = MeasEpochObsInfo::from_bits_retain)]
     #[bw(map = |x: &MeasEpochObsInfo| x.bits())]
@@ -187,12 +188,7 @@ impl MeasEpochChannelType1 {
     /// the type field, extended through obs_info when they read the escape
     /// value.
     pub fn signal_number(&self) -> u8 {
-        let sig_idx_lo = self.type_field & 0x1F;
-        if sig_idx_lo == SIG_NR_ESCAPE {
-            SIG_NR_EXTENSION_OFFSET + self.obs_info.sig_idx_hi()
-        } else {
-            sig_idx_lo
-        }
+        signal_number(self.type_field, self.obs_info.sig_idx_hi())
     }
 
     /// GLONASS frequency number from -7 to 6, from bits 3-7 of obs_info.
@@ -211,11 +207,11 @@ impl MeasEpochChannelType1 {
 #[derive(Clone, Debug)]
 pub struct MeasEpochChannelType2 {
     pub type_field: u8,
-    #[br(map = binrw_util::map_u1)]
-    #[bw(map = binrw_util::unmap_u1)]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub lock_time: Option<u8>,
-    #[br(map = binrw_util::map_u1)]
-    #[bw(map = binrw_util::unmap_u1)]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub cn0: Option<u8>,
     pub offsets_msb: u8,
     pub carrier_msb: i8,
@@ -237,11 +233,6 @@ impl MeasEpochChannelType2 {
     /// the type field, extended through obs_info when they read the escape
     /// value.
     pub fn signal_number(&self) -> u8 {
-        let sig_idx_lo = self.type_field & 0x1F;
-        if sig_idx_lo == SIG_NR_ESCAPE {
-            SIG_NR_EXTENSION_OFFSET + self.obs_info.sig_idx_hi()
-        } else {
-            sig_idx_lo
-        }
+        signal_number(self.type_field, self.obs_info.sig_idx_hi())
     }
 }

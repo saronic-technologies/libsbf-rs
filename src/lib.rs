@@ -19,7 +19,7 @@ pub mod parser;
 #[cfg_attr(docsrs, doc(cfg(feature = "std")))]
 pub mod reader;
 
-mod binrw_util;
+mod util;
 
 #[cfg(all(test, feature = "std"))]
 mod mega_test;

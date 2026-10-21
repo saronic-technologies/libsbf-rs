@@ -1,4 +1,7 @@
-use crate::binrw_util;
+use crate::util::binrw::{
+    map_f4, map_f8, map_u1, map_u1_enum_opt, map_u1_zero, map_u2, map_u4, map_u4_zero, unmap_f4,
+    unmap_f8, unmap_u1, unmap_u1_enum_opt, unmap_u1_zero, unmap_u2, unmap_u4, unmap_u4_zero,
+};
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
@@ -309,79 +312,79 @@ impl PvtMisc {
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct PVTGeodetic {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     mode_raw: u8,
     #[br(map = |x: u8| PvtError::from(x))]
     #[bw(map = |x: &PvtError| u8::from(*x))]
     pub error: PvtError,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub latitude: Option<f64>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub longitude: Option<f64>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub height: Option<f64>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub undulation: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub vn: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub ve: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub vu: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub cog: Option<f32>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub rx_clk_bias: Option<f64>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub rx_clk_drift: Option<f32>,
-    #[br(map = binrw_util::map_u1_enum_opt)]
-    #[bw(map = binrw_util::unmap_u1_enum_opt)]
+    #[br(map = map_u1_enum_opt)]
+    #[bw(map = unmap_u1_enum_opt)]
     pub time_system: Option<TimeSystem>,
-    #[br(map = binrw_util::map_u1_enum_opt)]
-    #[bw(map = binrw_util::unmap_u1_enum_opt)]
+    #[br(map = map_u1_enum_opt)]
+    #[bw(map = unmap_u1_enum_opt)]
     pub datum: Option<Datum>,
-    #[br(map = binrw_util::map_u1)]
-    #[bw(map = binrw_util::unmap_u1)]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub nr_sv: Option<u8>,
     wa_corr_info_raw: u8,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub reference_id: Option<u16>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub mean_corr_age: Option<u16>,
-    #[br(map = binrw_util::map_u4_zero)]
-    #[bw(map = binrw_util::unmap_u4_zero)]
+    #[br(map = map_u4_zero)]
+    #[bw(map = unmap_u4_zero)]
     pub signal_info: Option<u32>,
     alert_flag_raw: u8,
     // Rev 1 fields
-    #[br(map = binrw_util::map_u1_zero)]
-    #[bw(map = binrw_util::unmap_u1_zero)]
+    #[br(map = map_u1_zero)]
+    #[bw(map = unmap_u1_zero)]
     pub nr_bases: Option<u8>,
     pub ppp_info: PppInfo,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub latency: Option<u16>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub h_accuracy: Option<u16>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub v_accuracy: Option<u16>,
     #[br(map = PvtMisc::from_bits_retain)]
     #[bw(map = |x: &PvtMisc| x.bits())]

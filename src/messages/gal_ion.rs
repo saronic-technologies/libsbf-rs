@@ -1,4 +1,4 @@
-use crate::binrw_util;
+use crate::util::binrw::{map_u2, map_u4, unmap_u2, unmap_u4};
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
@@ -20,11 +20,11 @@ bitflags! {
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct GALIon {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     pub svid: u8,
     pub source: u8,

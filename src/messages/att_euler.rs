@@ -1,4 +1,4 @@
-use crate::binrw_util;
+use crate::util::binrw::{map_f4, map_u1, map_u2, map_u4, unmap_f4, unmap_u1, unmap_u2, unmap_u4};
 use binrw::binrw;
 use core::fmt;
 use num_enum::{FromPrimitive, IntoPrimitive};
@@ -77,14 +77,14 @@ impl From<u8> for BaselineError {
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct AttEuler {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
-    #[br(map = binrw_util::map_u1)]
-    #[bw(map = binrw_util::unmap_u1)]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub nrsv: Option<u8>,
     error_raw: u8,
     #[br(map = |x: u16| AttitudeMode::from(x))]
@@ -92,24 +92,24 @@ pub struct AttEuler {
     pub mode: AttitudeMode,
     _reserved: u16,
 
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub heading: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub pitch: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub roll: Option<f32>,
 
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub pitch_dot: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub roll_dot: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub heading_dot: Option<f32>,
 }
 

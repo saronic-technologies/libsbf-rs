@@ -1,5 +1,8 @@
 use super::ext_sensor_status::{ConnectionPort, ExtSensorModel};
-use crate::binrw_util;
+use crate::util::binrw::{
+    map_f4, map_f8, map_i2, map_u2, map_u2_zero, map_u4, unmap_f4, unmap_f8, unmap_i2, unmap_u2,
+    unmap_u2_zero, unmap_u4, unwrap_subblocks, wrap_subblocks,
+};
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
@@ -8,16 +11,16 @@ use bitflags::bitflags;
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ExtSensorMeas {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     pub n: u8,
     pub sb_length: u8,
-    #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) }, map = binrw_util::unwrap_subblocks)]
-    #[bw(args_raw = (usize::from(*sb_length),), map = binrw_util::wrap_subblocks)]
+    #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) }, map = unwrap_subblocks)]
+    #[bw(args_raw = (usize::from(*sb_length),), map = wrap_subblocks)]
     pub ext_sensor_meas_set: Vec<ExtSensorMeasSet>,
 }
 
@@ -78,63 +81,63 @@ pub struct ExtSensorMeasSet {
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ExtSensorMeasAcceleration {
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub ax: Option<f64>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub ay: Option<f64>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub az: Option<f64>,
 }
 
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ExtSensorMeasAngularRate {
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub wx: Option<f64>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub wy: Option<f64>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub wz: Option<f64>,
 }
 
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ExtSensorMeasVelocity {
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub vx: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub vy: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub vz: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub stdx: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub stdy: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub stdz: Option<f32>,
 }
 
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ExtSensorMeasInfo {
-    #[br(map = binrw_util::map_i2)]
-    #[bw(map = binrw_util::unmap_i2)]
+    #[br(map = map_i2)]
+    #[bw(map = unmap_i2)]
     pub sensor_temp: Option<i16>,
     /// Sample sequence number while the sensor time stamp is unknown.
-    #[br(map = binrw_util::map_u2_zero)]
-    #[bw(map = binrw_util::unmap_u2_zero)]
+    #[br(map = map_u2_zero)]
+    #[bw(map = unmap_u2_zero)]
     pub sequence_number: Option<u16>,
     pub _reserved: [u8; 20],
 }

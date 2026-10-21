@@ -1,5 +1,5 @@
 use super::ext_sensor_status::{ConnectionPort, ExtSensorModel};
-use crate::binrw_util;
+use crate::util::binrw::{map_u2, map_u4, unmap_u2, unmap_u4};
 use alloc::vec::Vec;
 use binrw::binrw;
 
@@ -7,11 +7,11 @@ use binrw::binrw;
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ExtSensorInfo {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     #[br(map = |x: u8| ConnectionPort::from(x))]
     #[bw(map = |x: &ConnectionPort| u8::from(*x))]

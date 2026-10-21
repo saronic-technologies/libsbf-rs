@@ -1,47 +1,51 @@
-use crate::binrw_util;
+use super::{
+    att_euler::AttitudeMode,
+    ins_nav_geod::{GnssMode, INSCouplingMode, INSError, INSSolutionLocation},
+    pvt_geodetic::{Datum, PvtMode},
+};
+use crate::util::binrw::{
+    map_f4, map_f8, map_u1_enum_opt, map_u2, map_u4, unmap_f4, unmap_f8, unmap_u1_enum_opt,
+    unmap_u2, unmap_u4,
+};
 use binrw::binrw;
-
-use super::att_euler::AttitudeMode;
-use super::ins_nav_geod::{GnssMode, INSCouplingMode, INSError, INSSolutionLocation};
-use super::pvt_geodetic::{Datum, PvtMode};
 
 // ExtEventINSNavGeod Block 4230
 // Same structure as INSNavGeod, but at external event time.
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ExtEventINSNavGeod {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     gnss_mode_raw: u8,
     pub error: u8,
     pub info: u16,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub gnss_age: Option<u16>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub latitude: Option<f64>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub longitude: Option<f64>,
-    #[br(map = binrw_util::map_f8)]
-    #[bw(map = binrw_util::unmap_f8)]
+    #[br(map = map_f8)]
+    #[bw(map = unmap_f8)]
     pub height: Option<f64>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub undulation: Option<f32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub accuracy: Option<u16>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub latency: Option<u16>,
-    #[br(map = binrw_util::map_u1_enum_opt)]
-    #[bw(map = binrw_util::unmap_u1_enum_opt)]
+    #[br(map = map_u1_enum_opt)]
+    #[bw(map = unmap_u1_enum_opt)]
     pub datum: Option<Datum>,
     _reserved: u8,
     pub sb_list: u16,
@@ -61,70 +65,70 @@ pub struct ExtEventINSNavGeod {
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ExtEventINSNavGeodPosStdDev {
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub latitude_std_dev: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub longitude_std_dev: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub height_std_dev: Option<f32>,
 }
 
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ExtEventINSNavGeodAtt {
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub heading: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub pitch: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub roll: Option<f32>,
 }
 
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ExtEventINSNavGeodAttStdDev {
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub heading_std_dev: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub pitch_std_dev: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub roll_std_dev: Option<f32>,
 }
 
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ExtEventINSNavGeodVel {
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub ve: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub vn: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub vu: Option<f32>,
 }
 
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ExtEventINSNavGeodVelStdDev {
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub ve_std_dev: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub vn_std_dev: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub vu_std_dev: Option<f32>,
 }
 
