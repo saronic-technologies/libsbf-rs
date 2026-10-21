@@ -3,7 +3,7 @@ mod tests {
     use crate::{
         reader::SbfReader, AuxAntPositions, BaseVectorCart, BaseVectorGeod, ChannelStatus, Comment,
         DiskStatus, EndOfAtt, EndOfPVT, ExtEvent, ExtEventINSNavCart, ExtEventINSNavGeod,
-        ExtSensorMeas, INSNavCart, INSNavGeod, MeasEpoch, MeasExtra, Messages, NavCart,
+        ExtSensorMeas, INSNavCart, INSNavGeod, ImuSetup, MeasEpoch, MeasExtra, Messages, NavCart,
         PVTCartesian, PVTGeodetic, PosCart, QualityInd, RFStatus, ReceiverStatus, ReceiverTime,
         RxMessage, SatVisibility,
     };
@@ -336,6 +336,7 @@ mod tests {
                 4082 => round_trip::<QualityInd>(body, block, &mut round_tripped),
                 4092 => round_trip::<RFStatus>(body, block, &mut round_tripped),
                 4103 => round_trip::<RxMessage>(body, block, &mut round_tripped),
+                4224 => round_trip::<ImuSetup>(body, block, &mut round_tripped),
                 4225 => round_trip::<INSNavCart>(body, block, &mut round_tripped),
                 4226 => round_trip::<INSNavGeod>(body, block, &mut round_tripped),
                 4229 => round_trip::<ExtEventINSNavCart>(body, block, &mut round_tripped),

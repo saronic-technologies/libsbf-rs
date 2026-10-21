@@ -43,13 +43,14 @@ pub use messages::{
     INSNavCartPosStdDev, INSNavCartVel, INSNavCartVelCov, INSNavCartVelStdDev, INSNavGeod,
     INSNavGeodAtt, INSNavGeodAttCov, INSNavGeodAttStdDev, INSNavGeodPosCov, INSNavGeodPosStdDev,
     INSNavGeodVel, INSNavGeodVelCov, INSNavGeodVelStdDev, INSSolutionLocation, INSSupport, ImuSetup,
-    Meas3Doppler, Meas3Ranges, MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2,
-    MeasEpochCommonFlags, MeasEpochObsInfo, MeasExtra, MeasExtraChannelSub, NavCart, PVTCartesian,
-    PVTGeodetic, PosCart, PosCovCartesian, PosCovGeodetic, PppInfo, PppSeedType, PvtError, PvtMisc,
-    PvtMode, PvtModeFlags, PvtStatus, QualityInd, QualityIndicator, RFBand, RFBandMode, RFStatus,
-    RFStatusFlags, RaimIntegrity, ReceiverSetup, ReceiverStatus, ReceiverTime, RiseSet, RxError,
-    RxMessage, RxState, SatInfo, SatVisibility, SignalHealth, TrackingStatus, VectorInfoCart,
-    VectorInfoGeod, VelCovCartesian, VelCovGeodetic, VelSensorSetup, WACorrFlags, XPPSOffset, DOP,
+    ImuVehicleAlignment, Meas3Doppler, Meas3Ranges, MeasEpoch, MeasEpochChannelType1,
+    MeasEpochChannelType2, MeasEpochCommonFlags, MeasEpochObsInfo, MeasExtra, MeasExtraChannelSub,
+    NavCart, PVTCartesian, PVTGeodetic, PosCart, PosCovCartesian, PosCovGeodetic, PppInfo,
+    PppSeedType, PvtError, PvtMisc, PvtMode, PvtModeFlags, PvtStatus, QualityInd, QualityIndicator,
+    RFBand, RFBandMode, RFStatus, RFStatusFlags, RaimIntegrity, ReceiverSetup, ReceiverStatus,
+    ReceiverTime, RiseSet, RxError, RxMessage, RxState, SatInfo, SatVisibility, SignalHealth,
+    TrackingStatus, VectorInfoCart, VectorInfoGeod, VelCovCartesian, VelCovGeodetic, VelSensorSetup,
+    WACorrFlags, XPPSOffset, DOP,
 };
 
 // Re-export datagram parser

@@ -98,7 +98,7 @@ pub use gps_cnav::{GPSCNav, GPSCNavFlags};
 pub use gps_ion::GPSIon;
 pub use gps_nav::GPSNav;
 pub use gps_utc::GPSUtc;
-pub use imu_setup::ImuSetup;
+pub use imu_setup::{ImuSetup, ImuVehicleAlignment};
 pub use ins_nav_cart::{
     INSNavCart, INSNavCartAtt, INSNavCartAttCov, INSNavCartAttStdDev, INSNavCartPosCov,
     INSNavCartPosStdDev, INSNavCartVel, INSNavCartVelCov, INSNavCartVelStdDev,
