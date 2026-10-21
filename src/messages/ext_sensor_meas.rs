@@ -127,7 +127,11 @@ pub struct ExtSensorMeasInfo {
     #[br(map = binrw_util::map_i2)]
     #[bw(map = binrw_util::unmap_i2)]
     pub sensor_temp: Option<i16>,
-    pub _reserved: [u8; 22],
+    /// Sample sequence number while the sensor time stamp is unknown.
+    #[br(map = binrw_util::map_u2_zero)]
+    #[bw(map = binrw_util::unmap_u2_zero)]
+    pub sequence_number: Option<u16>,
+    pub _reserved: [u8; 20],
 }
 
 #[binrw]
