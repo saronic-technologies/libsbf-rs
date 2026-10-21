@@ -48,6 +48,7 @@ pub mod pos_local;
 pub mod pvt_cartesian;
 pub mod pvt_geodetic;
 pub mod quality_ind;
+pub mod qzs_nav;
 pub mod receiver_setup;
 pub mod receiver_status;
 pub mod receiver_time;
@@ -134,6 +135,7 @@ pub use pvt_geodetic::{
     PvtModeFlags, RaimIntegrity, TimeSystem, WACorrFlags,
 };
 pub use quality_ind::{QualityInd, QualityIndicator, QualityIndicatorType};
+pub use qzs_nav::QZSNav;
 pub use receiver_setup::ReceiverSetup;
 pub use receiver_status::{AGCState, ExtError, ReceiverStatus, RxError, RxState};
 pub use receiver_time::ReceiverTime;

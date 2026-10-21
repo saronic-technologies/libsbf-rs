@@ -48,11 +48,11 @@ pub use messages::{
     MeasEpoch, MeasEpochChannelType1, MeasEpochChannelType2, MeasEpochCommonFlags,
     MeasEpochObsInfo, MeasExtra, MeasExtraChannelSub, NavCart, PVTCartesian, PVTGeodetic, PosCart,
     PosCovCartesian, PosCovGeodetic, PosLocal, PppInfo, PppSeedType, PpsTimeScale, PvtError,
-    PvtMisc, PvtMode, PvtModeFlags, PvtStatus, QualityInd, QualityIndicator, QualityIndicatorType,
-    RFBand, RFBandMode, RFStatus, RFStatusFlags, RTCMDatum, RaimIntegrity, ReceiverSetup,
-    ReceiverStatus, ReceiverTime, RiseSet, RtcmDatumQuality, RxError, RxMessage, RxState, SatInfo,
-    SatVisibility, SignalHealth, TimeSystem, TrackingStatus, VectorInfoCart, VectorInfoGeod,
-    VelCovCartesian, VelCovGeodetic, VelSensorSetup, WACorrFlags, XPPSOffset, DOP,
+    PvtMisc, PvtMode, PvtModeFlags, PvtStatus, QZSNav, QualityInd, QualityIndicator,
+    QualityIndicatorType, RFBand, RFBandMode, RFStatus, RFStatusFlags, RTCMDatum, RaimIntegrity,
+    ReceiverSetup, ReceiverStatus, ReceiverTime, RiseSet, RtcmDatumQuality, RxError, RxMessage,
+    RxState, SatInfo, SatVisibility, SignalHealth, TimeSystem, TrackingStatus, VectorInfoCart,
+    VectorInfoGeod, VelCovCartesian, VelCovGeodetic, VelSensorSetup, WACorrFlags, XPPSOffset, DOP,
 };
 
 // Re-export datagram parser
@@ -242,6 +242,7 @@ define_messages!(
     BDSNav => 4081,
     QualityInd => 4082,
     RFStatus => 4092,
+    QZSNav => 4095,
     RxMessage => 4103,
     Meas3Ranges => 4109,
     Meas3Doppler => 4111,
