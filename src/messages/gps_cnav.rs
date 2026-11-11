@@ -1,4 +1,4 @@
-use crate::binrw_util;
+use crate::util::binrw::{map_f4, map_u2, map_u4, unmap_f4, unmap_u2, unmap_u4};
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
@@ -24,11 +24,11 @@ bitflags! {
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct GPSCNav {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     pub prn: u8,
     #[br(map = |x: u8| GPSCNavFlags::from_bits_retain(x))]
@@ -64,20 +64,20 @@ pub struct GPSCNav {
     pub a_f2: f32,
     pub a_f1: f32,
     pub a_f0: f64,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub t_gd: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub isc_l1ca: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub isc_l2c: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub isc_l5i5: Option<f32>,
-    #[br(map = binrw_util::map_f4)]
-    #[bw(map = binrw_util::unmap_f4)]
+    #[br(map = map_f4)]
+    #[bw(map = unmap_f4)]
     pub isc_l5q5: Option<f32>,
     #[br(parse_with = binrw::helpers::until_eof)]
     pub padding: Vec<u8>,

@@ -1,4 +1,7 @@
-use crate::binrw_util;
+use crate::util::binrw::{
+    map_i1, map_u1, map_u1_zero, map_u2, map_u4, unmap_i1, unmap_u1, unmap_u1_zero, unmap_u2,
+    unmap_u4, unwrap_subblocks, wrap_subblocks,
+};
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
@@ -46,22 +49,29 @@ bitflags! {
         const MISSED_EVENT = 1 << 8;
         const CPU_OVERLOAD = 1 << 9;
         const INVALID_CONFIG = 1 << 10;
-        const OUT_OF_GEOFENCE = 1 << 11;
+        /// Out of the permitted region of operation, from geofencing or motion-fencing.
+        const OUT_OF_FENCE = 1 << 11;
     }
+}
+
+impl RxError {
+    /// Bit 11 as named by firmware prior to 1.5.x, where it covers geofencing only.
+    #[deprecated(note = "use OUT_OF_FENCE, which also covers motion-fencing")]
+    pub const OUT_OF_GEOFENCE: Self = Self::OUT_OF_FENCE;
 }
 
 // ReceiverStatus Block 4014
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ReceiverStatus {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
-    #[br(map = binrw_util::map_u1)]
-    #[bw(map = binrw_util::unmap_u1)]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub cpu_load: Option<u8>,
     #[br(map = |x: u8| ExtError::from_bits_truncate(x))]
     #[bw(map = |x: &ExtError| x.bits())]
@@ -75,10 +85,12 @@ pub struct ReceiverStatus {
     pub rx_error: RxError,
     pub n: u8,
     pub sb_length: u8,
-    pub cmd_count: u8,
+    #[br(map = map_u1_zero)]
+    #[bw(map = unmap_u1_zero)]
+    pub cmd_count: Option<u8>,
     pub temperature: u8,
-    #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) }, map = binrw_util::unwrap_subblocks)]
-    #[bw(args_raw = (usize::from(*sb_length),), map = binrw_util::wrap_subblocks)]
+    #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) }, map = unwrap_subblocks)]
+    #[bw(args_raw = (usize::from(*sb_length),), map = wrap_subblocks)]
     pub agc_state: Vec<AGCState>,
     #[br(parse_with = binrw::helpers::until_eof)]
     pub padding: Vec<u8>,
@@ -88,10 +100,12 @@ pub struct ReceiverStatus {
 #[derive(Clone, Debug)]
 pub struct AGCState {
     pub frontend_id: u8,
-    #[br(map = binrw_util::map_i1)]
-    #[bw(map = binrw_util::unmap_i1)]
+    #[br(map = map_i1)]
+    #[bw(map = unmap_i1)]
     pub gain: Option<i8>,
-    pub sample_var: u8,
+    #[br(map = map_u1_zero)]
+    #[bw(map = unmap_u1_zero)]
+    pub sample_var: Option<u8>,
     pub blanking_stat: u8,
 }
 
@@ -142,5 +156,10 @@ impl ReceiverStatus {
 
     pub fn setup_error(&self) -> bool {
         self.ext_error.contains(ExtError::SETUP)
+    }
+
+    /// Receiver temperature in degrees Celsius, None at the Do-Not-Use value 0.
+    pub fn temperature_c(&self) -> Option<i16> {
+        (self.temperature != 0).then(|| i16::from(self.temperature) - 100)
     }
 }

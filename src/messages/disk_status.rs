@@ -1,4 +1,7 @@
-use crate::binrw_util;
+use crate::util::binrw::{
+    map_u1, map_u2, map_u4, map_u4_zero, unmap_u1, unmap_u2, unmap_u4, unmap_u4_zero,
+    unwrap_subblocks, wrap_subblocks,
+};
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
@@ -24,17 +27,17 @@ bitflags! {
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct DiskStatus {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     pub n: u8,
     pub sb_length: u8,
     pub reserved: [u8; 4],
-    #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) }, map = binrw_util::unwrap_subblocks)]
-    #[bw(args_raw = (usize::from(*sb_length),), map = binrw_util::wrap_subblocks)]
+    #[br(args { count: usize::from(n), inner: (usize::from(sb_length),) }, map = unwrap_subblocks)]
+    #[bw(args_raw = (usize::from(*sb_length),), map = wrap_subblocks)]
     pub disks: Vec<DiskData>,
 }
 
@@ -48,22 +51,22 @@ pub struct DiskData {
     #[bw(map = |x: &DiskStatusFlags| x.bits())]
     pub status: DiskStatusFlags,
     /// 16 most-significant bits of the disk usage in bytes.
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub disk_usage_msb: Option<u16>,
     /// 32 least-significant bits of the disk usage in bytes.
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub disk_usage_lsb: Option<u32>,
     /// Total disk size in Mbytes.
-    #[br(map = binrw_util::map_u4_zero)]
-    #[bw(map = binrw_util::unmap_u4_zero)]
+    #[br(map = map_u4_zero)]
+    #[bw(map = unmap_u4_zero)]
     pub disk_size: Option<u32>,
     /// Counter of file and folder create/delete events, wrapping at 255.
     pub create_delete_count: u8,
     /// Disk error code: 0 no error, 254 mount failed.
-    #[br(map = binrw_util::map_u1)]
-    #[bw(map = binrw_util::unmap_u1)]
+    #[br(map = map_u1)]
+    #[bw(map = unmap_u1)]
     pub error: Option<u8>,
 }
 

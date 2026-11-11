@@ -1,4 +1,4 @@
-use crate::binrw_util;
+use crate::util::binrw::{map_u2, map_u4, unmap_u2, unmap_u4};
 use alloc::vec::Vec;
 use binrw::binrw;
 
@@ -6,16 +6,16 @@ use binrw::binrw;
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct GPSNav {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     pub prn: u8,
     pub reserved: u8,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wn: Option<u16>,
     pub ca_or_p_on_l2: u8,
     pub ura: u8,
@@ -60,6 +60,6 @@ impl GPSNav {
     pub const L2_CA_CODE: u8 = 2;
 
     // L2 data flag
-    pub const L2_NAV_DATA_OFF: u8 = 0;
-    pub const L2_NAV_DATA_ON: u8 = 1;
+    pub const L2_NAV_DATA_ON: u8 = 0;
+    pub const L2_NAV_DATA_OFF: u8 = 1;
 }

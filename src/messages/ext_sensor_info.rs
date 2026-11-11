@@ -1,4 +1,5 @@
-use crate::binrw_util;
+use super::common::{ConnectionPort, ExtSensorModel};
+use crate::util::binrw::{map_u1_enum, map_u2, map_u4, unmap_u1_enum, unmap_u2, unmap_u4};
 use alloc::vec::Vec;
 use binrw::binrw;
 
@@ -6,14 +7,18 @@ use binrw::binrw;
 #[binrw]
 #[derive(Clone, Debug)]
 pub struct ExtSensorInfo {
-    #[br(map = binrw_util::map_u4)]
-    #[bw(map = binrw_util::unmap_u4)]
+    #[br(map = map_u4)]
+    #[bw(map = unmap_u4)]
     pub tow: Option<u32>,
-    #[br(map = binrw_util::map_u2)]
-    #[bw(map = binrw_util::unmap_u2)]
+    #[br(map = map_u2)]
+    #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
-    pub source: u8,
-    pub sensor_model: u8,
+    #[br(map = map_u1_enum)]
+    #[bw(map = unmap_u1_enum)]
+    pub source: ConnectionPort,
+    #[br(map = map_u1_enum)]
+    #[bw(map = unmap_u1_enum)]
+    pub sensor_model: ExtSensorModel,
     #[br(parse_with = binrw::helpers::until_eof)]
     pub data: Vec<u8>,
 }
