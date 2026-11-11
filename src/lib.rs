@@ -40,7 +40,7 @@ pub use messages::{
     ExtSensorMeasSetType, ExtSensorMeasVelocity, ExtSensorMeasZeroVelocityFlag, ExtSensorModel,
     ExtSensorStatus, GALGstGps, GALIon, GALIonStormFlags, GALNav, GALNavHealthOssol, GALUtc,
     GEONav, GEORawL1, GLONav, GPSCNav, GPSCNavFlags, GPSIon, GPSNav, GPSUtc, GalMessageType,
-    GalSignalHealth, GnssMode, HeightType, INSCouplingMode, INSError, INSNavCart, INSNavCartAtt,
+    GalSignalHealth, HeightType, INSCouplingMode, INSError, INSNavCart, INSNavCartAtt,
     INSNavCartAttCov, INSNavCartAttStdDev, INSNavCartPosCov, INSNavCartPosStdDev, INSNavCartVel,
     INSNavCartVelCov, INSNavCartVelStdDev, INSNavGeod, INSNavGeodAtt, INSNavGeodAttCov,
     INSNavGeodAttStdDev, INSNavGeodPosCov, INSNavGeodPosStdDev, INSNavGeodVel, INSNavGeodVelCov,
@@ -50,10 +50,11 @@ pub use messages::{
     PVTGeodetic, PosCart, PosCovCartesian, PosCovGeodetic, PosLocal, PppInfo, PppSeedType,
     PpsTimeScale, PvtError, PvtMisc, PvtMode, PvtModeFlags, PvtStatus, QZSNav, QualityInd,
     QualityIndicator, QualityIndicatorType, RFBand, RFBandMode, RFStatus, RFStatusFlags, RTCMDatum,
-    RaimIntegrity, RawAlertFlag, RawAttitudeError, RawInsInfo, RawPvtMode, RawWaCorrInfo,
-    ReceiverSetup, ReceiverStatus, ReceiverTime, RiseSet, RtcmDatumQuality, RxError, RxMessage,
-    RxState, SatInfo, SatVisibility, SignalHealth, TimeSystem, TrackingStatus, VectorInfoCart,
-    VectorInfoGeod, VelCovCartesian, VelCovGeodetic, VelSensorSetup, WACorrFlags, XPPSOffset, DOP,
+    RaimIntegrity, RawAlertFlag, RawAttitudeError, RawGnssMode, RawInsInfo, RawPvtMode,
+    RawWaCorrInfo, ReceiverSetup, ReceiverStatus, ReceiverTime, RiseSet, RtcmDatumQuality, RxError,
+    RxMessage, RxState, SatInfo, SatVisibility, SignalHealth, TimeSystem, TrackingStatus,
+    VectorInfoCart, VectorInfoGeod, VelCovCartesian, VelCovGeodetic, VelSensorSetup, WACorrFlags,
+    XPPSOffset, DOP,
 };
 
 // Re-export datagram parser

@@ -9,7 +9,7 @@ const CN0_OFFSET_DB_HZ: f32 = 10.0;
 // Signal numbers whose C/N0 has no offset: GPS L1P and L2P.
 const CN0_NO_OFFSET_SIG_NRS: [u8; 2] = [1, 2];
 // Offset of a GLONASS frequency number as SBF stores it.
-const GLONASS_FREQ_NR_OFFSET: i8 = 8;
+const GLONASS_FREQ_NR_OFFSET: u8 = 8;
 // Carrier frequencies from section 4.1.10 of the reference guide, in Hz.
 const L1_HZ: f64 = 1_575.42e6;
 const L2_HZ: f64 = 1_227.60e6;
@@ -70,7 +70,7 @@ pub(crate) fn cn0_db_hz(cn0: u8, signal_number: u8) -> f32 {
 /// [icd]: https://www.unavco.org/help/glossary/docs/ICD_GLONASS_5.1_(2008)_en.pdf#page=15
 /// [gps-world]: https://www.gpsworld.com/glonass-the-decade-of-transition-to-cdma-signals/
 pub(crate) fn glonass_frequency_number(stored: u8) -> i8 {
-    stored as i8 - GLONASS_FREQ_NR_OFFSET
+    stored.wrapping_sub(GLONASS_FREQ_NR_OFFSET) as i8
 }
 
 /// Carrier frequency in Hz of a signal per section 4.1.10 of the reference guide. The GLONASS
@@ -100,7 +100,7 @@ pub(crate) fn carrier_frequency_hz(signal_number: u8, glonass_freq_nr: Option<i8
 
 #[cfg(test)]
 mod tests {
-    use super::{carrier_frequency_hz, cn0_db_hz, signal_number};
+    use super::{carrier_frequency_hz, cn0_db_hz, glonass_frequency_number, signal_number};
 
     // Signal numbers 1 and 2 are GPS L1P and L2P, which carry no 10 dB-Hz offset.
     #[test]
@@ -116,6 +116,20 @@ mod tests {
     fn signal_number_escape_uses_extension() {
         assert_eq!(signal_number(0b001_00011, 5), 3);
         assert_eq!(signal_number(0b010_11111, 5), 37);
+    }
+
+    // Stored bytes from 128 to 135 overflow when the subtraction is done in i8. Bytes from
+    // 136 to 255 wrap to negative numbers.
+    #[test]
+    fn glonass_frequency_number_removes_offset() {
+        assert_eq!(glonass_frequency_number(0), -8);
+        assert_eq!(glonass_frequency_number(1), -7);
+        assert_eq!(glonass_frequency_number(14), 6);
+        assert_eq!(glonass_frequency_number(21), 13);
+        assert_eq!(glonass_frequency_number(128), 120);
+        assert_eq!(glonass_frequency_number(135), 127);
+        assert_eq!(glonass_frequency_number(136), -128);
+        assert_eq!(glonass_frequency_number(255), -9);
     }
 
     // GPS L1CA has a fixed frequency, GLONASS L1CA shifts by 9/16 MHz per frequency number, and

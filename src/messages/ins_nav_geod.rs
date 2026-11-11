@@ -1,4 +1,4 @@
-use super::common::{Datum, GnssMode, INSError, RawInsInfo};
+use super::common::{Datum, INSError, RawGnssMode, RawInsInfo};
 use crate::util::binrw::{
     map_f4, map_f8, map_u1_enum, map_u1_enum_opt, map_u2, map_u4, unmap_f4, unmap_f8,
     unmap_u1_enum, unmap_u1_enum_opt, unmap_u2, unmap_u4,
@@ -16,9 +16,7 @@ pub struct INSNavGeod {
     #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     /// Last GNSS PVT mode and attitude mode used by the INS filter.
-    #[br(map = GnssMode::from_byte)]
-    #[bw(map = |x: &GnssMode| x.raw())]
-    pub gnss_mode: GnssMode,
+    pub gnss_mode: RawGnssMode,
     /// INS error code.
     #[br(map = map_u1_enum)]
     #[bw(map = unmap_u1_enum)]

@@ -465,33 +465,27 @@ impl RawAttitudeError {
     }
 }
 
-/// Combined GNSS mode containing PVT mode (bits 0-3) and attitude mode (bits 4-7).
+/// The raw GNSSMode byte of the INS blocks, which decodes into the PVT mode and the attitude
+/// mode.
+#[binrw]
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct GnssMode {
-    raw: u8,
-    pub pvt_mode: PvtMode,
-    pub attitude_mode: AttitudeMode,
-}
+pub struct RawGnssMode(u8);
 
-impl GnssMode {
-    /// Parse from raw gnss_mode byte.
-    pub fn from_byte(value: u8) -> Self {
-        Self {
-            raw: value,
-            pvt_mode: PvtMode::from(value),
-            attitude_mode: AttitudeMode::from((value >> 4) as u16),
-        }
+impl RawGnssMode {
+    /// PVT mode from bits 0-3.
+    pub fn pvt_mode(&self) -> PvtMode {
+        PvtMode::from(self.0)
     }
 
-    /// Get the raw byte value.
-    pub fn raw(&self) -> u8 {
-        self.raw
+    /// Attitude mode from bits 4-7.
+    pub fn attitude_mode(&self) -> AttitudeMode {
+        AttitudeMode::from(u16::from(self.0 >> 4))
     }
 }
 
-impl fmt::Display for GnssMode {
+impl fmt::Display for RawGnssMode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "PVT: {}, Attitude: {}", self.pvt_mode, self.attitude_mode)
+        write!(f, "PVT: {}, Attitude: {}", self.pvt_mode(), self.attitude_mode())
     }
 }
 
