@@ -1,15 +1,19 @@
 use super::common::{PvtError, PvtMisc, RawPvtMode};
-use crate::util::binrw::{
-    map_f4, map_f8, map_i2, map_u1, map_u1_enum, map_u2, map_u4, map_u4_zero, unmap_f4, unmap_f8,
-    unmap_i2, unmap_u1, unmap_u1_enum, unmap_u2, unmap_u4, unmap_u4_zero, unwrap_subblocks,
-    wrap_subblocks,
+use crate::util::{
+    binrw::{
+        map_f4, map_f8, map_i2, map_u1, map_u1_enum, map_u2, map_u4, map_u4_zero, unmap_f4,
+        unmap_f8, unmap_i2, unmap_u1, unmap_u1_enum, unmap_u2, unmap_u4, unmap_u4_zero,
+        unwrap_subblocks, wrap_subblocks,
+    },
+    serde::flag_bits,
 };
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
 // BaseVectorGeod Block 4028
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct BaseVectorGeod {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]
@@ -29,7 +33,7 @@ pub struct BaseVectorGeod {
 
 // VectorInfoGeod sub-block
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct VectorInfoGeod {
     #[br(map = map_u1)]
     #[bw(map = unmap_u1)]
@@ -45,6 +49,7 @@ pub struct VectorInfoGeod {
     #[bw(map = |x: &PvtMisc| x.bits())]
     /// Flags for whether the baseline runs from rover ARP to base ARP. The baseline is
     /// ARP-to-ARP only when bits 0 and 1 are both set. Bits 6-7 are reserved here.
+    #[serde(serialize_with = "flag_bits")]
     pub misc: PvtMisc,
     /// East component of the baseline from rover to base, in meters.
     #[br(map = map_f8)]

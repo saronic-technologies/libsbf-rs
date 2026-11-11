@@ -5,9 +5,10 @@ use crate::util::binrw::{
 use alloc::vec::Vec;
 use binrw::binrw;
 use num_enum::{FromPrimitive, IntoPrimitive};
+use serde::Serialize;
 
 /// Carrier phase ambiguity resolution behind an aux antenna position.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum AmbiguityType {
     /// Position obtained with fixed ambiguities.
@@ -21,7 +22,7 @@ pub enum AmbiguityType {
 
 /// Sub-block for a single auxiliary antenna position.
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct AuxAntPositionSub {
     #[br(map = map_u1)]
     #[bw(map = unmap_u1)]
@@ -53,7 +54,7 @@ pub struct AuxAntPositionSub {
 
 // AuxAntPositions Block 5942
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct AuxAntPositions {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]

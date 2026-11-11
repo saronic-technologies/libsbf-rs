@@ -3,10 +3,11 @@ use crate::util::binrw::{
     unmap_u2_zero, unmap_u4,
 };
 use binrw::binrw;
+use serde::Serialize;
 
 // DOP Block 4001
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct DOP {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]

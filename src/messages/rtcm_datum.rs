@@ -1,15 +1,19 @@
 use super::common::Datum;
-use crate::util::binrw::{
-    map_u1_enum, map_u1_enum_opt, map_u2, map_u4, unmap_u1_enum, unmap_u1_enum_opt, unmap_u2,
-    unmap_u4,
+use crate::util::{
+    binrw::{
+        map_u1_enum, map_u1_enum_opt, map_u2, map_u4, unmap_u1_enum, unmap_u1_enum_opt, unmap_u2,
+        unmap_u4,
+    },
+    serde::ascii_bytes,
 };
 use alloc::vec::Vec;
 use binrw::binrw;
 use num_enum::{FromPrimitive, IntoPrimitive};
+use serde::Serialize;
 
 /// Height Indicator field from RTCM 3.x messages 1021 and 1022, telling how to interpret
 /// the height reported in the PosLocal and PosProjected blocks.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum HeightType {
     /// Geometrical height.
@@ -25,7 +29,7 @@ pub enum HeightType {
 
 /// Maximum approximation error after applying a datum transformation, as one of the
 /// quality indicator codes of RTCM 3.x messages 1021 to 1024.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, FromPrimitive, IntoPrimitive, Serialize)]
 #[repr(u8)]
 pub enum RtcmDatumQuality {
     /// Unknown quality.
@@ -101,7 +105,7 @@ impl RtcmDatumQuality {
 
 // RTCMDatum Block 4049
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct RTCMDatum {
     /// Receiver time stamp, in 0.001 s.
     #[br(map = map_u4)]
@@ -112,8 +116,10 @@ pub struct RTCMDatum {
     #[bw(map = unmap_u2)]
     pub wnc: Option<u16>,
     /// Name of the source Coordinate Reference System, right-padded with zeros.
+    #[serde(serialize_with = "ascii_bytes")]
     pub source_crs: [u8; 32],
     /// Name of the target Coordinate Reference System, right-padded with zeros.
+    #[serde(serialize_with = "ascii_bytes")]
     pub target_crs: [u8; 32],
     /// Datum code that the PosLocal and PosProjected blocks use for this transformation.
     /// None when this SourceCRS/TargetCRS pair is currently not used by the receiver.

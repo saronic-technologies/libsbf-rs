@@ -4,10 +4,11 @@ use crate::util::binrw::{
 };
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
 // VelSensorSetup Block 4244
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct VelSensorSetup {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]

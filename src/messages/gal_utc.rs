@@ -5,10 +5,11 @@ use crate::util::binrw::{
 };
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
 // GALUtc Block 4031
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct GALUtc {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]

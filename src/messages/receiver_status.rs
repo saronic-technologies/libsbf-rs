@@ -1,10 +1,14 @@
-use crate::util::binrw::{
-    map_i1, map_u1, map_u1_zero, map_u2, map_u4, unmap_i1, unmap_u1, unmap_u1_zero, unmap_u2,
-    unmap_u4, unwrap_subblocks, wrap_subblocks,
+use crate::util::{
+    binrw::{
+        map_i1, map_u1, map_u1_zero, map_u2, map_u4, unmap_i1, unmap_u1, unmap_u1_zero, unmap_u2,
+        unmap_u4, unwrap_subblocks, wrap_subblocks,
+    },
+    serde::flag_bits,
 };
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
+use serde::Serialize;
 
 bitflags! {
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -62,7 +66,7 @@ impl RxError {
 
 // ReceiverStatus Block 4014
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ReceiverStatus {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]
@@ -75,13 +79,16 @@ pub struct ReceiverStatus {
     pub cpu_load: Option<u8>,
     #[br(map = |x: u8| ExtError::from_bits_truncate(x))]
     #[bw(map = |x: &ExtError| x.bits())]
+    #[serde(serialize_with = "flag_bits")]
     pub ext_error: ExtError,
     pub up_time: u32,
     #[br(map = |x: u32| RxState::from_bits_truncate(x))]
     #[bw(map = |x: &RxState| x.bits())]
+    #[serde(serialize_with = "flag_bits")]
     pub rx_state: RxState,
     #[br(map = |x: u32| RxError::from_bits_truncate(x))]
     #[bw(map = |x: &RxError| x.bits())]
+    #[serde(serialize_with = "flag_bits")]
     pub rx_error: RxError,
     pub n: u8,
     pub sb_length: u8,
@@ -97,7 +104,7 @@ pub struct ReceiverStatus {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct AGCState {
     pub frontend_id: u8,
     #[br(map = map_i1)]

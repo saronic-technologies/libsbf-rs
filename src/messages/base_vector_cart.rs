@@ -1,15 +1,19 @@
 use super::common::{PvtError, PvtMisc, RawPvtMode};
-use crate::util::binrw::{
-    map_f4, map_f8, map_i2, map_u1, map_u1_enum, map_u2, map_u4, map_u4_zero, unmap_f4, unmap_f8,
-    unmap_i2, unmap_u1, unmap_u1_enum, unmap_u2, unmap_u4, unmap_u4_zero, unwrap_subblocks,
-    wrap_subblocks,
+use crate::util::{
+    binrw::{
+        map_f4, map_f8, map_i2, map_u1, map_u1_enum, map_u2, map_u4, map_u4_zero, unmap_f4,
+        unmap_f8, unmap_i2, unmap_u1, unmap_u1_enum, unmap_u2, unmap_u4, unmap_u4_zero,
+        unwrap_subblocks, wrap_subblocks,
+    },
+    serde::flag_bits,
 };
 use alloc::vec::Vec;
 use binrw::binrw;
+use serde::Serialize;
 
 // BaseVectorCart Block 4043
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct BaseVectorCart {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]
@@ -26,7 +30,7 @@ pub struct BaseVectorCart {
 
 // VectorInfoCart sub-block
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct VectorInfoCart {
     #[br(map = map_u1)]
     #[bw(map = unmap_u1)]
@@ -38,6 +42,7 @@ pub struct VectorInfoCart {
     pub mode: RawPvtMode,
     #[br(map = PvtMisc::from_bits_retain)]
     #[bw(map = |x: &PvtMisc| x.bits())]
+    #[serde(serialize_with = "flag_bits")]
     pub misc: PvtMisc,
     #[br(map = map_f8)]
     #[bw(map = unmap_f8)]

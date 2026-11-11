@@ -4,11 +4,12 @@ use crate::util::binrw::{
     unmap_u1_enum, unmap_u1_enum_opt, unmap_u2, unmap_u4,
 };
 use binrw::binrw;
+use serde::Serialize;
 
 // ExtEventINSNavCart Block 4229
 // Same structure as INSNavCart, but at external event time.
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtEventINSNavCart {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]
@@ -62,7 +63,7 @@ pub struct ExtEventINSNavCart {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtEventINSNavCartPosStdDev {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -76,7 +77,7 @@ pub struct ExtEventINSNavCartPosStdDev {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtEventINSNavCartAtt {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -90,7 +91,7 @@ pub struct ExtEventINSNavCartAtt {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtEventINSNavCartAttStdDev {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -104,7 +105,7 @@ pub struct ExtEventINSNavCartAttStdDev {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtEventINSNavCartVel {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]
@@ -118,7 +119,7 @@ pub struct ExtEventINSNavCartVel {
 }
 
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ExtEventINSNavCartVelStdDev {
     #[br(map = map_f4)]
     #[bw(map = unmap_f4)]

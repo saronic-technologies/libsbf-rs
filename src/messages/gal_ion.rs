@@ -1,8 +1,12 @@
 use super::common::GalMessageType;
-use crate::util::binrw::{map_u1_enum, map_u2, map_u4, unmap_u1_enum, unmap_u2, unmap_u4};
+use crate::util::{
+    binrw::{map_u1_enum, map_u2, map_u4, unmap_u1_enum, unmap_u2, unmap_u4},
+    serde::flag_bits,
+};
 use alloc::vec::Vec;
 use binrw::binrw;
 use bitflags::bitflags;
+use serde::Serialize;
 
 bitflags! {
     /// StormFlags bit field of the [`GALIon`] block: the five ionospheric
@@ -19,7 +23,7 @@ bitflags! {
 
 // GALIon Block 4030
 #[binrw]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Serialize)]
 pub struct GALIon {
     #[br(map = map_u4)]
     #[bw(map = unmap_u4)]
@@ -36,6 +40,7 @@ pub struct GALIon {
     pub a_i2: f32,
     #[br(map = |x: u8| GALIonStormFlags::from_bits_retain(x))]
     #[bw(map = |x: &GALIonStormFlags| x.bits())]
+    #[serde(serialize_with = "flag_bits")]
     pub storm_flags: GALIonStormFlags,
     #[br(parse_with = binrw::helpers::until_eof)]
     pub padding: Vec<u8>,
