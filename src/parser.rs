@@ -475,13 +475,21 @@ mod tests {
     /// Sanitize noise by making any $@ sequences have invalid headers.
     /// This ensures the parser rejects fake syncs immediately rather than
     /// waiting for more data due to a large claimed message length.
-    fn sanitize_noise(mut v: Vec<u8>) -> Vec<u8> {
-        for i in 0..v.len().saturating_sub(7) {
-            if v[i] == 36 && v[i + 1] == 64 {
-                // Set length bytes (offset 6-7 from sync) to invalid value
-                // Length of 1 fails the `length >= 8` check
-                v[i + 6] = 1;
-                v[i + 7] = 0;
+    /// `insert_at` is the index in the noise where the test will insert a valid
+    /// block. A sync block too close to the insertion point or to the end of the
+    /// noise will interpret part of the message as a length, so the sync marker
+    /// is removed in this case.
+    fn sanitize_noise(mut v: Vec<u8>, insert_at: usize) -> Vec<u8> {
+        for i in 0..v.len().saturating_sub(1) {
+            if v[i] == b'$' && v[i + 1] == b'@' {
+                if i + 7 < v.len() && !(i < insert_at && insert_at <= i + 7) {
+                    // Set length bytes (offset 6-7 from sync) to invalid value
+                    // Length of 1 fails the `length >= 8` check
+                    v[i + 6] = 1;
+                    v[i + 7] = 0;
+                } else {
+                    v[i + 1] += 1;
+                }
             }
         }
         v
@@ -595,7 +603,7 @@ mod tests {
     proptest! {
 
         #[test]
-        fn test_valid_message_with_noise(noise in proptest::collection::vec(any::<u8>(), 0..10000).prop_map(sanitize_noise)) {
+        fn test_valid_message_with_noise(noise in proptest::collection::vec(any::<u8>(), 0..10000).prop_map(|v| { let n = v.len(); sanitize_noise(v, n / 2) })) {
             let mut valid_msg = Vec::new();
             valid_msg.extend_from_slice(VALID_SYNC);
             valid_msg.extend_from_slice(VALID_QUALITY_IND_HEADER);
@@ -631,7 +639,7 @@ mod tests {
         }
 
         #[test]
-        fn test_receiver_setup_with_noise(noise in proptest::collection::vec(any::<u8>(), 0..10000).prop_map(sanitize_noise)) {
+        fn test_receiver_setup_with_noise(noise in proptest::collection::vec(any::<u8>(), 0..10000).prop_map(|v| { let n = v.len(); sanitize_noise(v, n / 2) })) {
             let valid_msg = create_valid_receiver_setup_message();
 
             let insert_index = if noise.is_empty() { 0 } else { noise.len() / 2 };
@@ -668,8 +676,8 @@ mod tests {
         #[test]
         fn test_multiple_messages_multiple_types(
             kinds in proptest::collection::vec(TestMsg::strategy(), 1..8),
-            leading in proptest::collection::vec(any::<u8>(), 0..2000).prop_map(sanitize_noise),
-            trailing in proptest::collection::vec(any::<u8>(), 0..2000).prop_map(sanitize_noise),
+            leading in proptest::collection::vec(any::<u8>(), 0..2000).prop_map(|v| { let n = v.len(); sanitize_noise(v, n) }),
+            trailing in proptest::collection::vec(any::<u8>(), 0..2000).prop_map(|v| sanitize_noise(v, 0)),
         ) {
             // Stream: leading noise + contiguous valid messages + trailing noise.
             // The messages are concatenated directly (no noise between them) so
